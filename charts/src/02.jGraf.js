@@ -453,7 +453,7 @@ var jGraf = exports.jGraf = new (function() {
 			
 			// If max and min Value are the same we set difference
 			if (minValue == maxValue) {
-				minValue -= 2;
+				minValue = minValue >= 0 ? 0 : minValue - 2;
 				maxValue += 2;
 			}
 			
