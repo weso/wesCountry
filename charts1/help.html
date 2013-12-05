@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns='http://www.w3.org/1999/xhtml' lang="es">
+	<head>
+		<meta name="viewport" content="width=device-width"/>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<title>Chart Help</title>
+		<style>
+			body {
+				margin: 0 auto;
+				width: 80%;
+				font-family: "trebuchet MS"
+			}
+			
+			strong {
+				color: #333;
+			}
+			
+			p.ie {
+				background-color: #eee;
+				color: #0f4bb5;
+				margin: 0.5em 0;
+				padding: 0.5em;
+			}
+			
+			p.important {
+				background-color: #eee;
+				color: #be0d28;
+				padding: 0.5em;
+				line-height: 1.4em;
+			}
+			
+			p.important strong {
+				color: #901414;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Chart Help</h1>
+		<h2>ULR format</h2>
+		HOST/charts/CHART/[CONDITION_1]/[CONDITION_2]/[CONDITION_3][?OPTIONS]
+		<p>Examples</p>
+		<ul>
+			<li>
+				HOST/charts/bar/YEAR(2010)
+			</li>
+			<li>
+				HOST/charts/bar/YEAR(2010)/COUNTRY(ESP,FRA,BRA,EGY)
+			</li>
+			<li>
+				HOST/charts/bar/YEAR(2010)/COUNTRY(ESP,FRA,BRA,EGY)/INDICATOR(ITU G)
+			</li>
+			<li>
+				HOST/charts/line/YEAR(2010)/COUNTRY(ESP,FRA,BRA,EGY)/INDICATOR(ITU G)?width=900&height=500
+			</li>
+			<li>
+				HOST/charts/pie/YEAR(2010)/COUNTRY(ESP)/INDICATOR(ITU A)
+			</li>
+		</ul>
+		CHART values
+		<ul>
+			<li>
+				<strong>bar</strong> Bar chart
+			</li>
+			<li>
+				<strong>line</strong> Line chart
+			</li>
+			<li>
+				<strong>pie</strong> Pie chart
+			</li>
+			<li>
+				<strong>polar</strong> Polar chart
+			</li>
+		</ul>
+		<p class="important">
+			<strong>NOTE</strong>
+			<br />
+			URLs MUST be encoded.
+			<br />
+			So the following URL:
+			<br/>
+			HOST/charts/bar/YEAR(2010)/COUNTRY(ESP,FRA,BRA,EGY)/INDICATOR(ITU G)
+			<br />
+			Must be encoded as:
+			<br />
+			HOST/charts/bar/YEAR(2010)/COUNTRY(ESP,FRA,BRA,EGY)/INDICATOR(<strong>ITU%20G</strong>)
+		</p>
+		<h2>Default options</h2>
+		<ul>
+			<li>
+				<strong>width</strong> Number. Sets graph width in pixels
+				<p class="ie">i.e. width=500</p>
+			</li>
+			<li>
+				<strong>height</strong> Number. Sets graph height in pixels
+			</li>
+			<li>
+				<strong>margins</strong> Array of numbers. Sets graph margins. 
+				<p class="ie">i.e. margins=[1, 1, 1, 1] set margins in order [top, right, bottom, left] to value 1% of the graph width, for left and right margins, and height, for top and bottom margins.</p>
+			</li>
+			<li>
+				<strong>backgroundColour</strong> String representing a color. 
+				<p class="ie">i.e. "none", "#666666", "#333", "red"</p>
+				<p class="ie">backgroundColor="#333"</p>
+			</li>
+			<li>
+				<strong>serieColours</strong> Array of strings representing colours. Colours for each serie. 
+				<p class="ie">i.e. serieColours=["#333", "#444"]</p>
+			</li>
+			<li>
+				<strong>groupMargin</strong> Number. Percentage of space in between of bar groups. Only applicable to bar charts.
+			</li>
+			<li>
+				<strong>barMargin</strong> Number. Percentage of space in between of bars. Only applicable to bar charts.
+			</li>			
+		</ul>
+		<h2>Axis options</h2>
+		The following options are valid for X and Y axes. Each option must be preceded by either "xAxis" or "yAxis".
+		<ul>
+			<li>
+				<strong>title</strong> String. Sets axis name. 
+				<p class="ie">i.e. xAxis.title = "Years"</p>
+			</li>
+			<li>
+				<strong>colour</strong> String representing a colour. Sets the axis border colour.
+			</li>
+			<li>
+				<strong>margin</strong> Number. It's the margin between the chart and the axis.
+			</li>
+			<li>
+				<strong>tickColour</strong> String representing a colour. Colour for each tick line.
+			</li>
+			<li>
+				<strong>font-family</strong> String. Font family for axis labels. 
+				<p class="ie">i.e. xAxis.font-family="Helvetica".</p>
+			</li>
+			<li>
+				<strong>font-colour</strong> String representing a colour. Sets axis font colour.
+			</li>
+			<li>
+				<strong>font-size</strong> String representing a size. Sets axis font size. 
+				<p class="ie">i.e. xAxis.font-size="16px"</p>
+			</li>
+			<li>
+				<strong>values</strong> Array of strings. Only applicable for X axis with discrete values. 
+				<p class="ie">i.e. xAxis.values=["January", "February", "March"]</p>
+			</li>
+		</ul>
+		<h2>Legend options</h2>
+		The following options must be preceded by "legend".
+		<ul>
+			<li>
+				<strong>show</strong> Boolean. Indicates whether to show the legend.
+				<p class="ie">i.e. legend.show=false.</p>
+			</li>
+			<li>
+				<strong>itemSize</strong> Number. Size of each legend colour bubble. It is measured in total graph width percentage.
+			</li>
+			<li>
+				<strong>font-family</strong> String. Font family for legend labels. 
+				<p class="ie">i.e. legend.font-family="Helvetica".</p>
+			</li>
+			<li>
+				<strong>font-colour</strong> String representing a colour. Sets legend font colour.
+			</li>
+			<li>
+				<strong>font-size</strong> String representing a size. Sets legend font size. 
+				<p class="ie">i.e. legend.font-size="16px"</p>
+			</li>
+		</ul>
+		<h2>Series</h2>
+		Series are set as an array of objects. Each object has two values, name of the serie and values, an array of values. 
+		<p class="ie">i.e. 	
+		series = [{
+            name: "First",
+            values: [-1, 4, 5, 3, 6]
+        }, {
+            name: "Second",
+            values: [1, 7, 5, 6, 4]
+        }, {
+        	name: "Third",
+        	values: [0, 1, 2, 3, 4]
+        }]</p>
+	</body>
+</html>

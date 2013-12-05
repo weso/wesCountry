@@ -1,0 +1,49 @@
+body {
+	font-family: "Kite One";
+	padding: 1em;
+}
+
+h1 {
+	margin: 0 0 1em 0;
+}
+
+/* Divs */
+
+div.visible {
+	display: block;
+	width: 100%;
+	min-height: 20px;
+}
+
+div.invisible {
+	display: none;
+}
+
+/* Nav */
+
+nav ul {
+	overflow: auto;
+	padding: 0;
+}
+
+nav ul li {
+	float: left;
+	margin-right: 4em;
+	list-style: none;
+}
+
+nav a {
+	cursor: pointer;
+}
+
+nav a.active {
+	color: #333;
+}
+
+nav a.inactive {
+	color: #aaa;
+}
+
+nav a.inactive:hover {
+	color: #333;
+}
