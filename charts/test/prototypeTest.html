@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Dinamic test for jGraf</title>
+	<script src="../src/01.jSVG.js"></script>
+	<script src="../src/02.jGraf.js"></script>
+	<script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+	<script src="colpick/js/colpick.js"></script>
+	<script src="prototypeTest.js"></script>
+	<link rel="stylesheet" href="colpick/css/colpick.css" type="text/css"/>
+</head>
+<body>
+	<h1>Dinamic test jGraf</h1>
+	<div id="selector">
+		Type of Graph: <select name="typeSelector" id="typeSelector">
+			<option value="line">Line</option>
+			<option value="bar">Bar</option>
+			<option value="pie">Pie</option>
+			<option value="area">Area</option>
+		</select> 
+	</div>
+	<div id="grafForm">
+		Serie 1: <select name="comboOpcion1" id="comboOpcion1">
+			<option value="option1">Option1</option>
+			<option value="option2">Option2</option>
+			<option value="option3">Option3</option>
+		</select>   
+		<div id="picker1"></div>
+		<br>
+		Serie 2: <select name="comboOpcion2" id="comboOpcion2">
+			<option value="option1">Option1</option>
+			<option value="option2" selected="selected">Option2</option>
+			<option value="option3">Option3</option>
+		</select>
+		<div id="picker2"></div>
+		<br>
+		<input type="button" name="botonSubmit" id="botonSubmit" value="Generate" onclick="onSeriesChanged();">
+	</div>
+	<div id="divGraph"></div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Single Chart</title>
+		<script src="../src/01.jSVG.js"></script>
+	<script src="../src/02.jGraf.js"></script>
+</head>
+<body>
+	<div id="chartDiv">
+	
+	<script type="text/javascript">
+		var div = document.getElementById("chartDiv");
+		var options = {
+			container: "#chartDiv",
+			chartType: "bar"
+		};
+		jGraf.chart(options);
+		</script>
+	</div>
+</body>
+</html>
