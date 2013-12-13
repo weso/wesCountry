@@ -1,4 +1,16 @@
-var series = {
+var data = [
+{"countryCode":"BR", "countryName":"Brazil", "year":"2009", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"243.951870842302", "dataset":""},
+{"countryCode":"BR", "countryName":"Brazil", "year":"2008", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"309.008997833499", "dataset":"World Bank"},
+{"countryCode":"BR", "countryName":"Brazil", "year":"2007", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"326.585848270781", "dataset":"World Bank"},
+{"countryCode":"IT", "countryName":"Italy", "year":"2009", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"256.268026665139", "dataset":"World Bank"},
+{"countryCode":"IT", "countryName":"Italy", "year":"2008", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"222.458534003048", "dataset":"World Bank"},
+{"countryCode":"IT", "countryName":"Italy", "year":"2007", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"430.564095118456", "dataset":"World Bank"},
+{"countryCode":"ES", "countryName":"Spain", "year":"2009", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"106.145003684811", "dataset":"World Bank"},
+{"countryCode":"ES", "countryName":"Spain", "year":"2008", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"89.1699567127999", "dataset":"World Bank"},
+{"countryCode":"ES", "countryName":"Spain", "year":"2007", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"117.185367443222", "dataset":"World Bank"}
+];
+
+/*var series = {
 	serie0: {
 	name: "Primero",
 	values: [-1, 4, 5, 3, 6],
@@ -15,10 +27,16 @@ serie2: {
 	name: "Tercero",
 	values: [0, 1, 2, 3, 4],
 	urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
-}};
+}}; */
+
+var optionSeries = jGraf.jsonParse(data);
 
 var optionsDefault = {
-	series: []
+	series: [],
+	xAxis: {
+			title: "Years",
+			values: ["2007", "2008", "2009"]
+	}
 };
 
 var color1 = "#3289c7";
@@ -72,8 +90,8 @@ function onSeriesChanged() {
 	var options = JSON.parse(JSON.stringify(optionsDefault));
 	var select1 = document.getElementById("comboOpcion1");
 	var select2 = document.getElementById("comboOpcion2");
-	options.series.push(series["serie"+select1.selectedIndex]);
-	options.series.push(series["serie"+select2.selectedIndex]);
+	options.series.push(optionSeries.series[select1.selectedIndex]);
+	options.series.push(optionSeries.series[select2.selectedIndex]);
 	var colors = document.querySelectorAll(".colorText");
 	options.serieColours = [color1, color2];
 	var typeGraphCombo = document.querySelector("#typeSelector");
