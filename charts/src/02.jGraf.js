@@ -77,12 +77,26 @@ var jGraf = exports.jGraf = new (function() {
 			"font-family": "Helvetica",
 			"font-size": "16px"
         },
+        tooltip: {
+	        show: true,
+	        style: {
+			    display: "none",
+			    padding: "0.8em 0.5em",
+			    "font-size": "12px",
+			    border: "0.1em solid #ccc",
+			    "background-color": "#fff",
+			    position: "absolute",
+			    color: "#000",
+	        }
+        },
         events: {
 	        "onmouseover": function(serie, pos, value) {
-		    	console.log(String.format("Serie '{0}': ({1}, {2})", serie, pos, value));
+		    	var text = String.format("Serie '{0}': ({1}, {2})", serie, pos, value);
+		    	console.log(text);
+		    	jGraf.showTooltip(text);
 	        },
 	        "onmouseout": function() {
-	        
+	        	jGraf.hideTooltip();
 	        },
 	        "onclick": function() {
 	        
@@ -221,6 +235,9 @@ var jGraf = exports.jGraf = new (function() {
 			// Legend
 			if (options.legend.show)
 				showLegend(g, sizes, options);
+			
+			// Tooltip
+			createTooltip(options);			
 				
 			return svg;
 		}
@@ -465,6 +482,9 @@ var jGraf = exports.jGraf = new (function() {
 			// Legend
 			if (options.legend.show)
 				showLegend(g, sizes, options);
+				
+			// Tooltip
+			createTooltip(options);				
 				
 			return svg;
 		}
@@ -794,6 +814,9 @@ var jGraf = exports.jGraf = new (function() {
 			if (options.legend.show)
 				showLegend(g, sizes, options);
 				
+			// Tooltip
+			createTooltip(options);				
+				
 			return svg;
 		}
 		
@@ -1096,6 +1119,9 @@ var jGraf = exports.jGraf = new (function() {
 			if (options.legend.show)
 				showLegend(g, sizes, options);
 				
+			// Tooltip
+			createTooltip(options);				
+				
 			return svg;
 		}
 		
@@ -1286,6 +1312,9 @@ var jGraf = exports.jGraf = new (function() {
 			// Legend
 			if (options.legend.show)
 				showLegend(g, sizes, options);
+				
+			// Tooltip
+			createTooltip(options);	
 				
 			return svg;
 		}
@@ -1928,34 +1957,65 @@ var jGraf = exports.jGraf = new (function() {
   		return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
          	s4() + '-' + s4() + s4() + s4();
 	}
-
+	
 	////////////////////////////////////////////////////////////////////////////////
-	//                                 JSON PARSE
+	//                                   TOOLTIP
 	////////////////////////////////////////////////////////////////////////////////
-
-	this.jsonParse = function (json) {
-		var hashTable = new HashTable();
-		for(var i=0;i<json.length;i++) {
-			if(hashTable.hasItem(json[i].countryName)) {
-				var values = hashTable.getItem(json[i].countryName);
-				values.push(parseFloat(json[i].value));
-				hashTable.setItem(json[i].countryName, values);
-			} else {
-				var values = [parseFloat(json[i].value)];
-				hashTable.setItem(json[i].countryName, values);
+	
+	var tooltip = null;
+	
+	function createTooltip(options) {
+		if (options.tooltip.show == true) {
+			tooltip = document.getElementById("wesCountryTooltip");
+			
+			if (!tooltip) {
+				tooltip = document.createElement("span");
+				tooltip.id = "wesCountryTooltip";
+				document.body.appendChild(tooltip);
+				
+				var style = "";
+				
+				for (var attr in options.tooltip.style) {
+					var element = options.tooltip.style[attr];
+						
+					style += String.format("{0}:{1};", attr, element);
+				}
+				
+				tooltip.setAttribute("style", style);
 			}
 		}
-		var options = {
-			series: []
-		};
-		var keys = hashTable.keys().array;
-		for(var i=0;i<keys.length;i++) {
-			options.series.push({
-				name: keys[i],
-				values: hashTable.getItem(keys[i])
-			});
-		}
-		return options;
+		else
+			tooltip = null;
 	}
+	
+	this.showTooltip = function(text) {
+		if (!tooltip)
+			return;
+		
+    	updateTooltipPos();
+    	tooltip.innerHTML = text;
+    	tooltip.style.display = "block";
+    	window.onscroll = updateTooltipPos;
+    }
+    
+    function updateTooltipPos() {
+		if (!tooltip)
+			return;    
+    
+    	var ev = arguments[0]?arguments[0]:event;
+    	var x = ev.clientX;
+    	var y = ev.clientY;
+    	diffX = 24;
+    	diffY = 0;
+    	tooltip.style.top  = y - 2 + diffY + document.body.scrollTop + "px";
+    	tooltip.style.left = x - 2 + diffX + document.body.scrollLeft + "px";
+    }
+
+    this.hideTooltip = function() {
+		if (!tooltip)
+			return;    
+    
+    	tooltip.style.display = "none";
+    }
 
 })();
