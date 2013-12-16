@@ -6,8 +6,12 @@ var data = exports.data = new (function() {
 	//                                 JSON PARSE
 	////////////////////////////////////////////////////////////////////////////////
 
-	this.jsonParse = function (json) {
+	this.jsonParse = function (json, sortFunction) {
 		var hashTable = new HashTable();
+		if(typeof sortFunction==="function")
+			json = json.sort(sortFunction);
+		else 
+			json = json.sort(defaultSortFunction);
 		for(var i=0;i<json.length;i++) {
 			if(hashTable.hasItem(json[i].countryName)) {
 				var values = hashTable.getItem(json[i].countryName);
@@ -30,5 +34,9 @@ var data = exports.data = new (function() {
 		}
 		return options;
 	}
+
+	var defaultSortFunction = function (a,b) {
+		return a.year-b.year;
+}
 
 })();
