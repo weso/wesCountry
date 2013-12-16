@@ -1386,6 +1386,10 @@ var jGraf = exports.jGraf = new (function() {
 			var div = document.createElement('div');
 			div.className = "chartDiv";
 			container.appendChild(div);
+			showChart();
+		}
+
+		function showChart() {
 			var typeOfGraph = container.querySelector(".active").innerHTML.toLowerCase();
 			options.chartType = typeOfGraph;
 			options.container = ".chartDiv";
@@ -1396,7 +1400,7 @@ var jGraf = exports.jGraf = new (function() {
 			//remove previous chart
 			document.querySelector(".chartDiv").innerHTML="";	
 
-			createChart();
+			showChart();
 		}
 
 		function setSelectedGraphToActive(name) {
