@@ -38,11 +38,11 @@ var jGraf = exports.jGraf = new (function() {
 			"font-size": "16px",
 		},
 		xAxis: {
-			title: "Meses",
+			title: "Months",
 			colour: "none",
 			margin: 10,
 			tickColour: "none",
-			values: ["Ene", "Feb", "Mar", "Abr", "May"],
+			values: ["Jan", "Feb", "Mar", "Apr", "May"],
 			"font-family": "Helvetica",
 			"font-colour": "#666",
 			"font-size": "16px"
@@ -58,15 +58,15 @@ var jGraf = exports.jGraf = new (function() {
 			"from-zero": false
 		},
 		series: [{
-            name: "Primero",
+            name: "First",
             values: [-1, 4, 5, 3, 6],
             urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
         }, {
-            name: "Segundo",
+            name: "Second",
             values: [1, 7, 5, 6, 4],
             urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
         }, {
-        	name: "Tercero",
+        	name: "Third",
         	values: [0, 1, 2, 3, 4],
         	urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
         }],
@@ -91,7 +91,7 @@ var jGraf = exports.jGraf = new (function() {
         },
         events: {
 	        "onmouseover": function(serie, pos, value) {
-		    	var text = String.format("Serie '{0}': ({1}, {2})", serie, pos, value);
+		    	var text = String.format("Series '{0}': ({1}, {2})", serie, pos, value);
 		    	console.log(text);
 		    	jGraf.showTooltip(text);
 	        },
