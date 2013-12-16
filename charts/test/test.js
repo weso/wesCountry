@@ -218,11 +218,11 @@ function generateCharts(options) {
 	options.series = [
 		{
             name: "2012",
-            values: [-5.5, 2, 3.7]
+            values: [-5.5, 2, 3.7, 5, 6]
         },
         {  
         	name: "2013",
-         	values: [-50, 2.4, 5]
+         	values: [-50, 2.4, 5, 7, 8]
         }
     ];
 	
