@@ -21,6 +21,8 @@ var jGraf = exports.jGraf = new (function() {
 	var defaultOptions = {
 		width: 600,
 		height: 400,
+        chartType: "bar",
+        container: "body",
 		margins: [10, 20, 10, 5],
 		backgroundColour: "none",
 		serieColours: ["#FCD271", "#FA5882", "#2BBBD8", "#102E37"],
@@ -75,8 +77,17 @@ var jGraf = exports.jGraf = new (function() {
 			"font-family": "Helvetica",
 			"font-size": "16px"
         },
-        chartType: "bar",
-        container: "body"
+        events: {
+	        "onmouseover": function(serie, pos, value) {
+		    	console.log(String.format("Serie '{0}': ({1}, {2})", serie, pos, value));
+	        },
+	        "onmouseout": function() {
+	        
+	        },
+	        "onclick": function() {
+	        
+	        }
+        }
 	};
 	
 	////////////////////////////////////////////////////////////////////////////////
@@ -126,8 +137,10 @@ var jGraf = exports.jGraf = new (function() {
 			
 			for (var i = 0; i < length; i++) {
 				for (var j = 0; j < numberOfSeries; j++) {
+					var serie = options.series[j].name;
 					var value = options.series[j].values[i];
 					var url = options.series[j].urls ? options.series[j].urls[i] : "";
+					var pos = options.xAxis.values[j];
 					
 					if (!value)
 						value = 0;
@@ -154,29 +167,42 @@ var jGraf = exports.jGraf = new (function() {
 						x: xPos,
 						y: yPos,
 						width: barWidth,
-						height: height
+						height: height,
+						serie: serie,
+						value: value,
+						pos: pos
 					};			
 					
 					var rectangleStyle = String.format("fill: {0}", options.serieColours[j]);
 				
-					var onmouseover = function() { 
+					// Events
+				
+					var onmouseover = function() {
 						this.colour = this.style.fill;
 						this.style.fill = options.overColour;
+						
+						options.events.onmouseover(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
 					};
 												
 					var onmouseout = function() { 
 						this.style.fill = this.colour;
+						options.events.onmouseout(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+					};
+					
+					var onclick = function() { 
+						this.style.fill = this.colour;
+						options.events.onclick(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
 					};
 					
 					if (url && url != "") {
 						var a = g.a({}, url ? url : "")
-						a.rectangle(rectangleOptions).style(rectangleStyle)
-						.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onmouseout);
+						var r = a.rectangle(rectangleOptions).style(rectangleStyle)
+						.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 					}
 					else {
-						g.rectangle(rectangleOptions).style(rectangleStyle)
-						.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onmouseout);
-					}				
+						var r = g.rectangle(rectangleOptions).style(rectangleStyle)
+						.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+					}			
 				
 					// Value on bar
 					if (options.valueOnItem.show == true) {
@@ -333,6 +359,9 @@ var jGraf = exports.jGraf = new (function() {
 					var valuePrev = j > 0 ? options.series[i].values[j - 1] : 0;
 					var url = options.series[i].urls ? options.series[i].urls[j] : "";
 					
+					var serie = options.series[i].name;
+					var pos = options.xAxis.values[j];
+					
 					if (!value)
 						value = 0;
 						
@@ -348,7 +377,10 @@ var jGraf = exports.jGraf = new (function() {
 						cx: xPos,
 						cy: yPos,
 						r: 5,
-						"class": lineId
+						"class": lineId,
+						serie: serie,
+						value: value,
+						pos: pos
 					};
 					
 					var pointStyle = String.format("fill: {0}", options.serieColours[i % options.serieColours.length]);
@@ -366,21 +398,29 @@ var jGraf = exports.jGraf = new (function() {
 					var onmouseover = function() { 
 						this.setAttribute("r", 8);
 						setLineWidth(this, 2);
+						options.events.onmouseover(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
 					};
 												
 					var onmouseout = function() { 
 						this.setAttribute("r", 5); 
 						setLineWidth(this, 1);
+						options.events.onmouseout(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+					};
+					
+					var onclick = function() { 
+						this.setAttribute("r", 5); 
+						setLineWidth(this, 1);
+						options.events.onclick(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
 					};
 					
 					if (url && url != "") {
 						var a = g.a({}, url ? url : "")
 						a.circle(pointOptions)
-						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onmouseout);
+						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 					}
 					else {
 						g.circle(pointOptions)
-						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onmouseout);
+						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 					}
 								
 					// Value on bar		
@@ -603,6 +643,25 @@ var jGraf = exports.jGraf = new (function() {
 					options.xAxis["font-family"],
 					options.xAxis["font-size"]));
 				
+				// Events
+		
+				var onmouseover = function() {
+					this.colour = this.style.fill;
+					this.style.fill = options.overColour;
+					
+					options.events.onmouseover(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+				};
+											
+				var onmouseout = function() { 
+					this.style.fill = this.colour;
+					options.events.onmouseout(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+				};
+				
+				var onclick = function() { 
+					this.style.fill = this.colour;
+					options.events.onclick(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+				};		
+		
 				// Pie
 				
 				var total = 0;
@@ -635,18 +694,30 @@ var jGraf = exports.jGraf = new (function() {
 	
 			    if (numberOfGreaterThanZero == 1) {
 			    	var colour = "";
+			    	var serie = "";
+			    	var value = "";
+			    	var pos = "";
 			    	
 			    	for(var j = 0; j < length; j++)
 			    		if (angles[j] != 0) {
 			    			colour = options.serieColours[j];
+			    			serie = options.series[j].name;
+			    			value = Math.abs(options.series[0].values[j]).toFixed(2);
+			    			pos = options.xAxis.values[i];
 				    		break;
-			    		}
+			    		}	
 			    		
 			    	g.circle({
 				    	cx: cx,
 				    	cy: cy,
-				    	r: radius
-			    	}).style(String.format("fill: {0}", colour));
+				    	r: radius,
+				    	serie: serie,
+						value: value,
+						pos: pos
+			    	}).event("onmouseover", onmouseover)
+					.event("onmouseout", onmouseout)
+					.event("onclick", onclick)	
+			    	.style(String.format("fill: {0}", colour));
 			    }
 			    else {
 				    var startangle = 0;
@@ -654,6 +725,10 @@ var jGraf = exports.jGraf = new (function() {
 					for (var j = 0; j < length; j++) {
 						var endangle = startangle + angles[j];
 						var value = Math.abs(options.series[j].values[i]).toFixed(2);
+						
+						var serie = options.series[j].name;
+						var url = options.series[j].urls ? options.series[j].urls[i] : "";
+						var pos = options.xAxis.values[i];
 						
 				        // Compute the two points where our wedge intersects the circle
 				        // These formulas are chosen so that an angle of 0 is at 12 o'clock
@@ -676,8 +751,7 @@ var jGraf = exports.jGraf = new (function() {
 				        
 				        // We describe a wedge with an <svg:path> element
 				        // Notice that we create this with createElementNS()
-				        var path = g.path();
-				        
+						
 				        // This string holds the path details
 				        var d = "M " + cx + "," + cy +  // Start at circle center
 				            " L " + x1 + "," + y1 +     // Draw line to (x1,y1)
@@ -686,7 +760,18 @@ var jGraf = exports.jGraf = new (function() {
 				            x2 + "," + y2 +             // Arc goes to to (x2,y2)
 				            " Z";                       // Close path back to (cx,cy)
 				            
-				        path.attribute(null, "d", d).style(String.format("fill: {0}", options.serieColours[j]));
+						var pathOptions = {
+							d: d,
+							serie: serie,
+							value: value,
+							pos: pos
+						};	
+						
+						var path = g.path(pathOptions)
+						.event("onmouseover", onmouseover)
+						.event("onmouseout", onmouseout)
+						.event("onclick", onclick)			            
+				        .style(String.format("fill: {0}", options.serieColours[j]));
 				        
 				        // Value on bar
 						if (options.valueOnItem.show == true) {
@@ -944,24 +1029,65 @@ var jGraf = exports.jGraf = new (function() {
 				}
 			}	
 			
+			// Events
+			
+			var setLineWidth = function(element, stroke) {
+				var className = element.getAttribute("class");
+				var lines = element.parentNode.querySelectorAll("line." + className);
+				var length = lines.length;
+		
+				for (var k = 0; k < length; k++) {
+					lines[k].setAttribute("stroke-width", stroke)
+				}	
+			};			
+			
+			var onmouseover = function() { 
+				this.setAttribute("r", 8);
+				setLineWidth(this, 2);
+				options.events.onmouseover(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+			};
+										
+			var onmouseout = function() { 
+				this.setAttribute("r", 5); 
+				setLineWidth(this, 1);
+				options.events.onmouseout(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+			};
+			
+			var onclick = function() { 
+				this.setAttribute("r", 5); 
+				setLineWidth(this, 1);
+				options.events.onclick(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+			};			
+			
 			// Polygon drawing
 			
 			for (var i = 0; i < length; i++) {
+				var lineId = "l" + guid();
+			
 				for (var j = 0; j < numberOfVertices; j++) {
 					var vertex = polygonVertices[i][j];
 					var vertexPrev = j == 0 ? polygonVertices[i][numberOfVertices - 1] : polygonVertices[i][j - 1];
+					var value = options.series[i].values[j];
+					var serie = options.series[i].name;
+					var pos = options.xAxis.values[j];
 				
 					g.circle({
 						cx: vertex.x,
 						cy: vertex.y,
-						r: 5
-					}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]));
+						r: 5,
+						serie: serie,
+						value: value,
+						pos: pos,
+						"class": lineId
+					}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]))
+					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 					
 					g.line({
 				  		x1: vertexPrev.x,
 				  		y1: vertexPrev.y,
 				  		x2: vertex.x,
-				  		y2: vertex.y
+				  		y2: vertex.y,
+				  		"class": lineId
 				  	}).style(String.format("stroke: {0};", options.serieColours[i % options.serieColours.length]));
 				}
 			}
@@ -1080,6 +1206,25 @@ var jGraf = exports.jGraf = new (function() {
 			
 			if (sizesX.minValue <= 0)
 				zeroPosX = sizesX.xTickWidth * Math.abs(sizesX.minValue);		
+
+			// Events
+		
+			var onmouseover = function() {
+				this.colour = this.style.fill;
+				this.style.fill = options.overColour;
+				
+				options.events.onmouseover(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+			};
+										
+			var onmouseout = function() { 
+				this.style.fill = this.colour;
+				options.events.onmouseout(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+			};
+			
+			var onclick = function() { 
+				this.style.fill = this.colour;
+				options.events.onclick(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+			};		
 		
 			for (var i = 0; i < length; i++) {
 				var values = options.series[i].values;
@@ -1088,6 +1233,10 @@ var jGraf = exports.jGraf = new (function() {
 				for (var j = 0; j < valueLength; j++) {
 					var valueX = values[j][0] ? values[j][0] : 0;
 					var valueXPrev = 0;
+					
+					var value = options.series[i].values[j];
+					var serie = options.series[i].name;
+					var pos = valueX;
 				
 					if (j > 0)
 						valueXPrev = values[j - 1][0] ? values[j - 1][0] : 0;
@@ -1125,9 +1274,12 @@ var jGraf = exports.jGraf = new (function() {
 					g.circle({
 						cx: xPos,
 						cy: yPos,
-						r: 5
-					}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]));
-					
+						r: 5,
+						serie: serie,
+						value: value,
+						pos: pos
+					}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]))
+					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 				}
 			}
 			
@@ -1556,7 +1708,16 @@ var jGraf = exports.jGraf = new (function() {
 	
 	function clone(obj) {
 		// Not valid for copying objects that contain methods
-	    return JSON.parse(JSON.stringify(obj));
+	    //return JSON.parse(JSON.stringify(obj));
+	    if (null == obj || "object" != typeof obj) return obj;
+	    
+	    var copy = obj.constructor();
+	    
+	    for (var attr in obj) {
+	        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+	    }
+	    
+	    return copy;
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////
