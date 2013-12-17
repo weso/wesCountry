@@ -418,7 +418,7 @@ wesCountry.charts = new (function() {
 			if (typeof options === "string")
 				options = { container: options };
 		
-			var auxOptions = clone(defaultOptions);
+			var auxOptions = this.clone(defaultOptions);
 			
 			for (var option in options)
 				auxOptions[option] = mergeOptions(auxOptions[option], options[option]);
@@ -426,7 +426,7 @@ wesCountry.charts = new (function() {
 			options = auxOptions;
 		}
 		else
-			options = clone(defaultOptions);
+			options = this.clone(defaultOptions);
 			
 		return options;
 	};
@@ -446,7 +446,7 @@ wesCountry.charts = new (function() {
 			return from;
 	};
 	
-	function clone(obj) {
+	this.clone = function(obj) {
 		// Not valid for copying objects that contain methods
 	    //return JSON.parse(JSON.stringify(obj));
 	    if (null == obj || "object" != typeof obj) return obj;
@@ -2113,7 +2113,7 @@ wesCountry.charts.scatterPlot = function(options) {
 //                                  CHART
 ////////////////////////////////////////////////////////////////////////////////	
 wesCountry.charts.chart = function (options) {
-	options = mergeOptionsAndDefaultOptions(options, defaultOptions);
+	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	var chart;
 	switch(options.chartType) {
 		case "bar":
@@ -2136,8 +2136,8 @@ wesCountry.charts.chart = function (options) {
 //                                MULTI CHART
 ////////////////////////////////////////////////////////////////////////////////
 wesCountry.charts.multiChart = function (options) {
-	options = mergeOptionsAndDefaultOptions(options, defaultOptions);
-	seriesSave = clone(options.series);
+	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+	seriesSave = wesCountry.charts.clone(options.series);
 	var charts = options.chartType;
 	charts = charts instanceof Array ? charts : [charts]; //if not array convert to array
 	var container = document.querySelector(options.container);
@@ -2170,7 +2170,7 @@ wesCountry.charts.multiChart = function (options) {
 		for(var i=0; i<seriesSave.length;i++) {
 			var input = document.createElement('input');
 			var label = document.createElement('label');
-			input.id = seriesSave[i].name + "Checkbox" + guid();
+			input.id = seriesSave[i].name + "Checkbox" + wesCountry.charts.guid();
 			input.type = "checkbox";
 			input.className = "checks";
 			input.onchange = onSeriesChanged;
@@ -2193,7 +2193,7 @@ wesCountry.charts.multiChart = function (options) {
 		var typeOfGraph = container.querySelector(".active").innerHTML.toLowerCase();
 		options.chartType = typeOfGraph;
 		options.container = ".chartDiv";
-		jGraf.chart(options);
+		wesCountry.charts.chart(options);
 	}
 
 	function loadGraph(graphName) {

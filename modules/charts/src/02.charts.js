@@ -189,7 +189,7 @@ wesCountry.charts = new (function() {
 			if (typeof options === "string")
 				options = { container: options };
 		
-			var auxOptions = clone(defaultOptions);
+			var auxOptions = this.clone(defaultOptions);
 			
 			for (var option in options)
 				auxOptions[option] = mergeOptions(auxOptions[option], options[option]);
@@ -197,7 +197,7 @@ wesCountry.charts = new (function() {
 			options = auxOptions;
 		}
 		else
-			options = clone(defaultOptions);
+			options = this.clone(defaultOptions);
 			
 		return options;
 	};
@@ -217,7 +217,7 @@ wesCountry.charts = new (function() {
 			return from;
 	};
 	
-	function clone(obj) {
+	this.clone = function(obj) {
 		// Not valid for copying objects that contain methods
 	    //return JSON.parse(JSON.stringify(obj));
 	    if (null == obj || "object" != typeof obj) return obj;

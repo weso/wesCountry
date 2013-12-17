@@ -8,5 +8,5 @@ window.onload = function () {
 		}
 	};
 
-	data.parseTable(myOptions);
+	wesCountry.data.parseTable(myOptions);
 }
