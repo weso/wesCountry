@@ -7,10 +7,8 @@ wesCountry.data = new (function() {
 	var allSeries = [];
 
 	this.parseJSON = function (receivedOptions) {
-		var filterByIndicator = function (element) {
-			return element.indicatorCode === indicatorCode;
-		}
-		options = receivedOptions;
+		options = wesCountry.charts.mergeOptionsAndDefaultOptions(receivedOptions, wesCountry.charts.defaultOptions);
+		options.xAxis.values = []; //removeXAxisValues
 		var json = options.data;
 		var hashTableIndicator = new HashTable();
 		for(var i=0;i<json.length;i++) {
@@ -23,17 +21,26 @@ wesCountry.data = new (function() {
 					if(hashTable.hasItem(filtered[j].countryName)) {
 						var values = hashTable.getItem(filtered[j].countryName);
 						values.push(parseFloat(filtered[j].value));
-						hashTable.setItem(filtered[j].countryName, values);
+						options.xAxis.values.indexOf(filtered[j].year) > -1
 					} else {
-						var values = [parseFloat(filtered[j].value)];
-						hashTable.setItem(filtered[j].countryName, values);
+						var values = [parseFloat(filtered[j].value)];	
 					}
+					hashTable.setItem(filtered[j].countryName, values);
+					insertXAxisValue(filtered[j].year);
 				}
 				hashTableIndicator.setItem(json[i].indicatorCode, hashTable);
 			}
 		}
 		myData = hashTableIndicator;
 		return this;
+
+		function filterByIndicator(element) {
+			return element.indicatorCode === indicatorCode;
+		}
+		function insertXAxisValue(value) {
+			if(options.xAxis.values.indexOf(value) < 0)
+				options.xAxis.values.push(value);
+		}
 	}
 
 	this.parseTable = function (receivedOptions) {
@@ -59,7 +66,6 @@ wesCountry.data = new (function() {
 		if(myData !== null) {
 			var div = document.createElement("div");
 			div.className = "indicatorSelector";
-			document.querySelector(options.container).appendChild(div);
 			var select = document.createElement("select");
 			div.appendChild(select);
 			select.onchange = onIndicatorChanged;
@@ -79,19 +85,26 @@ wesCountry.data = new (function() {
 				option.innerHTML = indicators[i];
 				select.appendChild(option);
 			}
+			var wrapperDiv = document.createElement("div");
+			document.querySelector(options.container).appendChild(wrapperDiv);
 			drawSelectedIndicator();
 		}
-		function onIndicatorChanged () {
-			document.querySelector(".chartDiv").remove();
-			document.querySelector(".seriesSelector").remove();
-			document.querySelector(".chartSelector").remove();
+		function onIndicatorChanged() {
+			//this.parentNode.parentNode.querySelector(".chartDiv").remove();
+			//this.parentNode.parentNode.querySelector(".seriesSelector").remove();
+			//this.parentNode.parentNode.querySelector(".chartSelector").remove();
+			var div = this.parentNode.parentNode;
+			var wrapperDiv = div.parentNode;
+			div.remove();
 			drawSelectedIndicator();
 		}
 
 		function drawSelectedIndicator() {
 			var index = select.selectedIndex;
 			options.series = allSeries[index];
-			wesCountry.charts.multiChart(JSON.parse(JSON.stringify(options)));
+			var container = wesCountry.charts.multiChart(options);
+			container.insertBefore(div, container.childNodes[0]);
+			wrapperDiv.appendChild(container);
 		}
 	}
 

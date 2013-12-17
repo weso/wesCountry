@@ -3,8 +3,7 @@ window.onload = function () {
 		container: "body",
 		chartType: ["line", "bar", "pie", "area"],
 		xAxis: {
-				title: "Years",
-				values: ["2007", "2008", "2009"]
+				title: "Years"
 		}
 	};
 

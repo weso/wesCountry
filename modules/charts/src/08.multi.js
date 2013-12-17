@@ -2,6 +2,9 @@
 //                                  CHART
 ////////////////////////////////////////////////////////////////////////////////	
 wesCountry.charts.chart = function (options) {
+	var container;
+	container = typeof options.container !== "string" ? options.container : undefined;
+	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container; 
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	var chart;
 	switch(options.chartType) {
@@ -18,8 +21,11 @@ wesCountry.charts.chart = function (options) {
 			chart = this.areaChart(options);
 			break;
 	}
-	document.querySelector(options.container).appendChild(chart.render());
-};
+	if(container === undefined)
+		container = document.querySelector(options.container);
+	container.appendChild(chart.render());
+	return container.parentNode;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                MULTI CHART
@@ -29,10 +35,11 @@ wesCountry.charts.multiChart = function (options) {
 	seriesSave = wesCountry.charts.clone(options.series);
 	var charts = options.chartType;
 	charts = charts instanceof Array ? charts : [charts]; //if not array convert to array
-	var container = document.querySelector(options.container);
+	var container = document.createElement("div");
+	document.querySelector(options.container).appendChild(container);
 	createChartSelector();
 	createSeriesSelector();
-	createChart();
+	return createChart();
 
 	function createChartSelector() {
 		var div = document.createElement('div');
@@ -75,26 +82,28 @@ wesCountry.charts.multiChart = function (options) {
 		var div = document.createElement('div');
 		div.className = "chartDiv";
 		container.appendChild(div);
-		showChart();
+		return showChart(div);
 	}
 
-	function showChart() {
+	function showChart(div) {
 		var typeOfGraph = container.querySelector(".active").innerHTML.toLowerCase();
 		options.chartType = typeOfGraph;
-		options.container = ".chartDiv";
-		wesCountry.charts.chart(options);
+		if(div === undefined)
+			options.container = ".chartDiv";
+		else
+			options.container = div;
+		return wesCountry.charts.chart(options);
 	}
 
-	function loadGraph(graphName) {
+	function loadGraph(div) {
 		//remove previous chart
-		document.querySelector(".chartDiv").innerHTML="";	
-
-		showChart();
+		div.querySelector(".chartDiv").innerHTML="";	
+		showChart(div.querySelector(".chartDiv"));
 	}
 
-	function setSelectedGraphToActive(name) {
-		var active = document.querySelector(".active");
-		var inactives = document.querySelectorAll(".inactive");
+	function setSelectedGraphToActive(name, ul) {
+		var active = ul.querySelector(".active");
+		var inactives = ul.querySelectorAll(".inactive");
 		var length = inactives.length;
 		for(var i=0;i<length;i++) 
 			if(name===inactives[i].innerHTML) 
@@ -106,25 +115,21 @@ wesCountry.charts.multiChart = function (options) {
 			active.className="inactive";
 	}
 
-	function changeGraph() {
-		var graphName = document.querySelector(".active").innerHTML;
-		loadGraph(graphName);
-	}
-
 	function onGraphSelected() {
-		setSelectedGraphToActive(this.innerHTML);
-		changeGraph();
+		setSelectedGraphToActive(this.innerHTML, this.parentNode.parentNode);
+		var div = this.parentNode.parentNode.parentNode.parentNode;
+		loadGraph(div);
 	}
 
 	function onSeriesChanged() {
-		var series = clone(seriesSave);
-		var checkBoxes = document.querySelectorAll(".seriesSelector input");
+		var series = wesCountry.charts.clone(seriesSave);
+		var checkBoxes = this.parentNode.querySelectorAll("input");
 		var length = series.length;
 		for(var i=0;i<length;i++) 
 			if(!checkBoxes[i].checked)
 				delete series[i];
 		optionSeriesWithoutUndefined();
-		changeGraph();
+		loadGraph(this.parentNode.parentNode); //div of the grap
 
 		function optionSeriesWithoutUndefined() {
 			var seriesReturned = [];

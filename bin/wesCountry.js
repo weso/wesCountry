@@ -2112,6 +2112,9 @@ wesCountry.charts.scatterPlot = function(options) {
 //                                  CHART
 ////////////////////////////////////////////////////////////////////////////////	
 wesCountry.charts.chart = function (options) {
+	var container;
+	container = typeof options.container !== "string" ? options.container : undefined;
+	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container; 
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	var chart;
 	switch(options.chartType) {
@@ -2128,8 +2131,11 @@ wesCountry.charts.chart = function (options) {
 			chart = this.areaChart(options);
 			break;
 	}
-	document.querySelector(options.container).appendChild(chart.render());
-};
+	if(container === undefined)
+		container = document.querySelector(options.container);
+	container.appendChild(chart.render());
+	return container.parentNode;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                MULTI CHART
@@ -2139,10 +2145,11 @@ wesCountry.charts.multiChart = function (options) {
 	seriesSave = wesCountry.charts.clone(options.series);
 	var charts = options.chartType;
 	charts = charts instanceof Array ? charts : [charts]; //if not array convert to array
-	var container = document.querySelector(options.container);
+	var container = document.createElement("div");
+	document.querySelector(options.container).appendChild(container);
 	createChartSelector();
 	createSeriesSelector();
-	createChart();
+	return createChart();
 
 	function createChartSelector() {
 		var div = document.createElement('div');
@@ -2185,26 +2192,28 @@ wesCountry.charts.multiChart = function (options) {
 		var div = document.createElement('div');
 		div.className = "chartDiv";
 		container.appendChild(div);
-		showChart();
+		return showChart(div);
 	}
 
-	function showChart() {
+	function showChart(div) {
 		var typeOfGraph = container.querySelector(".active").innerHTML.toLowerCase();
 		options.chartType = typeOfGraph;
-		options.container = ".chartDiv";
-		wesCountry.charts.chart(options);
+		if(div === undefined)
+			options.container = ".chartDiv";
+		else
+			options.container = div;
+		return wesCountry.charts.chart(options);
 	}
 
-	function loadGraph(graphName) {
+	function loadGraph(div) {
 		//remove previous chart
-		document.querySelector(".chartDiv").innerHTML="";	
-
-		showChart();
+		div.querySelector(".chartDiv").innerHTML="";	
+		showChart(div.querySelector(".chartDiv"));
 	}
 
-	function setSelectedGraphToActive(name) {
-		var active = document.querySelector(".active");
-		var inactives = document.querySelectorAll(".inactive");
+	function setSelectedGraphToActive(name, ul) {
+		var active = ul.querySelector(".active");
+		var inactives = ul.querySelectorAll(".inactive");
 		var length = inactives.length;
 		for(var i=0;i<length;i++) 
 			if(name===inactives[i].innerHTML) 
@@ -2216,25 +2225,21 @@ wesCountry.charts.multiChart = function (options) {
 			active.className="inactive";
 	}
 
-	function changeGraph() {
-		var graphName = document.querySelector(".active").innerHTML;
-		loadGraph(graphName);
-	}
-
 	function onGraphSelected() {
-		setSelectedGraphToActive(this.innerHTML);
-		changeGraph();
+		setSelectedGraphToActive(this.innerHTML, this.parentNode.parentNode);
+		var div = this.parentNode.parentNode.parentNode.parentNode;
+		loadGraph(div);
 	}
 
 	function onSeriesChanged() {
-		var series = clone(seriesSave);
-		var checkBoxes = document.querySelectorAll(".seriesSelector input");
+		var series = wesCountry.charts.clone(seriesSave);
+		var checkBoxes = this.parentNode.querySelectorAll("input");
 		var length = series.length;
 		for(var i=0;i<length;i++) 
 			if(!checkBoxes[i].checked)
 				delete series[i];
 		optionSeriesWithoutUndefined();
-		changeGraph();
+		loadGraph(this.parentNode.parentNode); //div of the grap
 
 		function optionSeriesWithoutUndefined() {
 			var seriesReturned = [];
@@ -2244,7 +2249,8 @@ wesCountry.charts.multiChart = function (options) {
 			options.series = seriesReturned;
 		}
 	}
-};if (typeof(wesCountry) === "undefined")
+};
+if (typeof(wesCountry) === "undefined")
 	var wesCountry = new Object();
 
 wesCountry.data = new (function() {
@@ -2253,10 +2259,8 @@ wesCountry.data = new (function() {
 	var allSeries = [];
 
 	this.parseJSON = function (receivedOptions) {
-		var filterByIndicator = function (element) {
-			return element.indicatorCode === indicatorCode;
-		}
-		options = receivedOptions;
+		options = wesCountry.charts.mergeOptionsAndDefaultOptions(receivedOptions, wesCountry.charts.defaultOptions);
+		options.xAxis.values = []; //removeXAxisValues
 		var json = options.data;
 		var hashTableIndicator = new HashTable();
 		for(var i=0;i<json.length;i++) {
@@ -2269,17 +2273,26 @@ wesCountry.data = new (function() {
 					if(hashTable.hasItem(filtered[j].countryName)) {
 						var values = hashTable.getItem(filtered[j].countryName);
 						values.push(parseFloat(filtered[j].value));
-						hashTable.setItem(filtered[j].countryName, values);
+						options.xAxis.values.indexOf(filtered[j].year) > -1
 					} else {
-						var values = [parseFloat(filtered[j].value)];
-						hashTable.setItem(filtered[j].countryName, values);
+						var values = [parseFloat(filtered[j].value)];	
 					}
+					hashTable.setItem(filtered[j].countryName, values);
+					insertXAxisValue(filtered[j].year);
 				}
 				hashTableIndicator.setItem(json[i].indicatorCode, hashTable);
 			}
 		}
 		myData = hashTableIndicator;
 		return this;
+
+		function filterByIndicator(element) {
+			return element.indicatorCode === indicatorCode;
+		}
+		function insertXAxisValue(value) {
+			if(options.xAxis.values.indexOf(value) < 0)
+				options.xAxis.values.push(value);
+		}
 	}
 
 	this.parseTable = function (receivedOptions) {
@@ -2305,7 +2318,6 @@ wesCountry.data = new (function() {
 		if(myData !== null) {
 			var div = document.createElement("div");
 			div.className = "indicatorSelector";
-			document.querySelector(options.container).appendChild(div);
 			var select = document.createElement("select");
 			div.appendChild(select);
 			select.onchange = onIndicatorChanged;
@@ -2325,19 +2337,26 @@ wesCountry.data = new (function() {
 				option.innerHTML = indicators[i];
 				select.appendChild(option);
 			}
+			var wrapperDiv = document.createElement("div");
+			document.querySelector(options.container).appendChild(wrapperDiv);
 			drawSelectedIndicator();
 		}
-		function onIndicatorChanged () {
-			document.querySelector(".chartDiv").remove();
-			document.querySelector(".seriesSelector").remove();
-			document.querySelector(".chartSelector").remove();
+		function onIndicatorChanged() {
+			//this.parentNode.parentNode.querySelector(".chartDiv").remove();
+			//this.parentNode.parentNode.querySelector(".seriesSelector").remove();
+			//this.parentNode.parentNode.querySelector(".chartSelector").remove();
+			var div = this.parentNode.parentNode;
+			var wrapperDiv = div.parentNode;
+			div.remove();
 			drawSelectedIndicator();
 		}
 
 		function drawSelectedIndicator() {
 			var index = select.selectedIndex;
 			options.series = allSeries[index];
-			wesCountry.charts.multiChart(JSON.parse(JSON.stringify(options)));
+			var container = wesCountry.charts.multiChart(options);
+			container.insertBefore(div, container.childNodes[0]);
+			wrapperDiv.appendChild(container);
 		}
 	}
 
