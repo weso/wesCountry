@@ -1193,8 +1193,7 @@ wesCountry.charts.generateLineChart = function(options, area) {
 			legendItemSize: legendItemSize
 		};
 	}
-}		
-////////////////////////////////////////////////////////////////////////////////
+};////////////////////////////////////////////////////////////////////////////////
 //                                  PIE CHART
 ////////////////////////////////////////////////////////////////////////////////
 	
@@ -1505,7 +1504,7 @@ wesCountry.charts.pieChart = function(options) {
 			legendItemSize: legendItemSize
 		};
 	}		
-}////////////////////////////////////////////////////////////////////////////////
+};////////////////////////////////////////////////////////////////////////////////
 //                                  POLAR CHART
 ////////////////////////////////////////////////////////////////////////////////
 	
@@ -1808,7 +1807,7 @@ wesCountry.charts.polarChart = function(options) {
 			legendItemSize: legendItemSize
 		};
 	}	
-}////////////////////////////////////////////////////////////////////////////////
+};////////////////////////////////////////////////////////////////////////////////
 //                                SCATTER PLOT
 ////////////////////////////////////////////////////////////////////////////////
 	
@@ -2109,7 +2108,7 @@ wesCountry.charts.scatterPlot = function(options) {
 			inc: maxAndMinValues.inc
 		};
 	}		
-}////////////////////////////////////////////////////////////////////////////////
+};////////////////////////////////////////////////////////////////////////////////
 //                                  CHART
 ////////////////////////////////////////////////////////////////////////////////	
 wesCountry.charts.chart = function (options) {
@@ -2130,7 +2129,7 @@ wesCountry.charts.chart = function (options) {
 			break;
 	}
 	document.querySelector(options.container).appendChild(chart.render());
-}
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                MULTI CHART
@@ -2245,4 +2244,1062 @@ wesCountry.charts.multiChart = function (options) {
 			options.series = seriesReturned;
 		}
 	}
-}
+};if (typeof(wesCountry) === "undefined")
+	var wesCountry = new Object();
+
+wesCountry.data = new (function() {
+	var myData = null;
+	var options = {};
+	var allSeries = [];
+
+	this.parseJSON = function (receivedOptions) {
+		var filterByIndicator = function (element) {
+			return element.indicatorCode === indicatorCode;
+		}
+		options = receivedOptions;
+		var json = options.data;
+		var hashTableIndicator = new HashTable();
+		for(var i=0;i<json.length;i++) {
+			var indicatorCode = json[i].indicatorCode;
+			if(!hashTableIndicator.hasItem(indicatorCode)) {
+				var filtered = json.filter(filterByIndicator);
+				var filtered = filtered.sort(sortByYear);
+				var hashTable = new HashTable();
+				for(var j=0;j<filtered.length;j++) {
+					if(hashTable.hasItem(filtered[j].countryName)) {
+						var values = hashTable.getItem(filtered[j].countryName);
+						values.push(parseFloat(filtered[j].value));
+						hashTable.setItem(filtered[j].countryName, values);
+					} else {
+						var values = [parseFloat(filtered[j].value)];
+						hashTable.setItem(filtered[j].countryName, values);
+					}
+				}
+				hashTableIndicator.setItem(json[i].indicatorCode, hashTable);
+			}
+		}
+		myData = hashTableIndicator;
+		return this;
+	}
+
+	this.parseTable = function (receivedOptions) {
+		var tables = document.querySelectorAll(".graphs");
+		for(var i=0;i<tables.length;i++) {
+			var headers = tables[i].querySelectorAll("th");
+			var rows = tables[i].querySelectorAll("tr");
+			var json = [];
+			for(var j=1;j<rows.length;j++) {
+				var obj = new Object();
+				var data = rows[j].querySelectorAll("td");
+				for(var k=0;k<data.length;k++) {
+					obj[headers[k].className] = data[k].innerHTML;
+				}
+				json.push(obj);
+			}
+			receivedOptions.data = json;
+			this.parseJSON(receivedOptions).iterate();
+		}
+	}
+
+	this.iterate = function () {
+		if(myData !== null) {
+			var div = document.createElement("div");
+			div.className = "indicatorSelector";
+			document.querySelector(options.container).appendChild(div);
+			var select = document.createElement("select");
+			div.appendChild(select);
+			select.onchange = onIndicatorChanged;
+			var indicators = myData.keys();
+			indicators = indicators.array;
+			for(var i in indicators) {
+				var countries = myData.getItem(indicators[i]).keys().array;
+				var seriesByIndicator = [];
+				for(var c in countries) {
+					seriesByIndicator.push({
+						name: countries[c],
+						values: myData.getItem(indicators[i]).getItem(countries[c])
+					});
+				}
+				allSeries.push(seriesByIndicator);
+				var option = document.createElement("option");
+				option.innerHTML = indicators[i];
+				select.appendChild(option);
+			}
+			drawSelectedIndicator();
+		}
+		function onIndicatorChanged () {
+			document.querySelector(".chartDiv").remove();
+			document.querySelector(".seriesSelector").remove();
+			document.querySelector(".chartSelector").remove();
+			drawSelectedIndicator();
+		}
+
+		function drawSelectedIndicator() {
+			var index = select.selectedIndex;
+			options.series = allSeries[index];
+			wesCountry.charts.multiChart(JSON.parse(JSON.stringify(options)));
+		}
+	}
+
+	var sortByYear = function (a,b) {
+		return a.year - b.year;
+	}
+
+})();if (typeof(wesCountry) === "undefined")
+	var wesCountry = {};
+
+wesCountry.table = new Object();
+
+////////////////////////////////////////////////////////////////
+// Pages
+////////////////////////////////////////////////////////////////
+
+wesCountry.table.pages = new (function() {
+	var firstShownRow = 0;
+	var numberFooterAnchors = 5; // Must be odd
+
+	(function init() {
+		var tables = document.querySelectorAll("table.pages");
+		var length = tables.length;
+		
+		for (var i = 0; i < length; i++) {
+			var table = tables[i];
+			
+			// Table properties
+			table.isPaged = true;
+			
+			table.firstShownRow = firstShownRow;
+			table.numberFooterAnchors = numberFooterAnchors;
+		
+			var tBodies = table.tBodies;
+			var length = tBodies.length;
+			var rowNumber = 0;
+			
+			for (var j = 0; j < length; j++)
+				rowNumber += tBodies[j].rows.length;				
+
+			table.numberOfRows = rowNumber;
+			
+			var pageLength = (table.numberOfRows == 0) ? 1 : Math.floor(log10(table.numberOfRows)) + 1;
+			table.rowsPerPage = Math.pow(10, pageLength - 1);
+		
+			prepareTable(table);
+			
+			// Header select
+			createHeaderSelect(table);
+		}
+	})();
+	
+	function prepareTable(table) {
+		// Fitst we remove empty rows (Added to complete last page)
+		var emptyRows = table.querySelectorAll("tr.empty");
+		var length = emptyRows.length;
+		
+		for (var i = 0; i < length; i++)
+			emptyRows[i].parentNode.removeChild(emptyRows[i]);
+
+		// Table properties
+		table.numberOfPages = Math.ceil(table.numberOfRows / table.rowsPerPage);
+
+		// If last page has less rows
+		var total = table.numberOfPages * table.rowsPerPage;
+		var length = table.numberOfColumns > 0 ? table.numberOfColumns : 1;
+		var tBodies = table.tBodies;
+		
+		if (table.numberOfPages > 1 && total > table.numberOfRows && tBodies.length > 0) {
+			var rowNumber = table.numberOfRows;
+		
+			while (total > rowNumber) {
+				var tr = document.createElement("tr");
+				tr.className = "empty";
+				
+				for (var i = 0; i < length; i++) {
+					var td = document.createElement("td");
+					td.innerHTML = "&nbsp";
+					tr.appendChild(td);
+				}
+				
+				tBodies[0].appendChild(tr);
+				
+				rowNumber++;
+			}
+		}
+
+		table.selectedPage = 1;
+		showPage(table);
+		
+		table.changePage = changePage;
+		table.reloadPage = function () {
+			showPage(this);
+		}
+		
+		// Footer
+		createFooter(table);
+	}
+	
+	function changePage(pageNumber) {
+		if (pageNumber > this.numberOfPages || pageNumber < 1)
+			return;
+			
+		this.firstShownRow = (pageNumber - 1) * this.rowsPerPage;
+		this.selectedPage = pageNumber;
+		
+		showPage(this);
+	}
+	
+	function showPage(table) {
+		var firstShownRow = table.firstShownRow;
+		var rowsPerPage = table.rowsPerPage * 1;
+		var tBodies = table.tBodies;		
+	
+		// We set visible and hidden rows
+		var count = 0; // All rows (including empty rows)
+		var numberOfRows = 0; // Real rows
+		var lastShownRow = firstShownRow + rowsPerPage - 1;
+	
+		var length = tBodies.length;
+		var numberOfColumns = 0;
+		
+		for (var i = 0; i < length; i++) {
+			var rows = tBodies[i].rows;
+			var rowNumber = rows.length;
+			
+			for (var j = 0; j < rowNumber; j++) {
+				var row = rows[j];
+				var shown = count >= firstShownRow && count <= lastShownRow;
+				row.style.display = shown == true ? "table-row" : "none";
+				
+				if (row.cells.length > numberOfColumns)
+					numberOfColumns = row.cells.length;
+				
+				if (row.className != "empty")
+					numberOfRows++;
+				
+				count++;
+			}
+		}
+		
+		// Set footer link as selected
+		updateFooter(table);
+		
+		// Update table properties
+		table.numberOfRows = numberOfRows;
+		table.numberOfColumns = numberOfColumns;
+	}
+	
+	function updateFooter(table) {
+		var selectedPage = table.selectedPage;
+		var numberOfPages = table.numberOfPages;
+		
+		// First link
+		var link = table.querySelector("tFoot a.first");
+		
+		if (link) {
+			link.className = selectedPage > 1 ? "not-number first" : "not-number first disabled";
+			link.index = selectedPage > 1 ? 1 : -1;
+		}
+		
+		// Previous link
+		var link = table.querySelector("tFoot a.previous");
+		
+		if (link) {
+			link.className = selectedPage > 1 ? "not-number previous" : "not-number previous disabled";
+			link.index = selectedPage > 1 ? selectedPage - 1 : -1;		
+		}
+		
+		// Next link
+		var link = table.querySelector("tFoot a.next");
+		
+		if (link) {
+			link.className = selectedPage < numberOfPages ? "not-number next" : "not-number next disabled";
+			link.index = selectedPage < numberOfPages ? selectedPage + 1 : -1;	
+		}
+		
+		// Last link
+		var link = table.querySelector("tFoot a.last");
+		
+		if (link) {
+			link.className = selectedPage < numberOfPages ? "not-number last" : "not-number last disabled";
+			link.index = selectedPage < numberOfPages ? numberOfPages : -1;		
+		}
+		
+		// Number links
+		var links = table.querySelectorAll("tFoot a.number");
+		var length = links.length;
+		
+		// Visible anchors
+		var numberOfBubbles = Math.min(table.numberFooterAnchors, length);
+		var numberFooterAnchorsHalf = Math.floor(numberOfBubbles / 2);
+
+		var previous = selectedPage > numberFooterAnchorsHalf ? numberFooterAnchorsHalf : selectedPage - 1;
+		var next = table.numberFooterAnchors - 1 - previous;
+	
+		var firstShown = selectedPage - previous;
+		var lastShown = selectedPage + next;
+		
+		if (lastShown > length) {
+			firstShown -= lastShown - length;
+			lastShown = length;
+		}
+			
+		for (var i = 1; i <= length; i++) {
+			var shown = i >= firstShown && i <= lastShown ? "shown" : "hidden";
+			var selected = i == selectedPage ? "number selected " : "number ";
+			links[i - 1].className = selected + shown;
+		}
+		
+		// Show navigation details
+		var first = (selectedPage - 1) * table.rowsPerPage + 1;
+		var last = first + table.rowsPerPage - 1 > table.numberOfRows ? table.numberOfRows : first + table.rowsPerPage - 1;
+		var details = table.querySelector("tFoot span.details");
+		
+		if (details)
+			details.innerHTML = first + " - " + last + " of " + table.numberOfRows + " items.";
+	}
+	
+	function createFooter(table) {
+		var footer = table.querySelector("tFoot.pagination");
+	
+		if (!footer) {
+			var footer = document.createElement("tFoot");
+			footer.className = "pagination";
+			
+			table.appendChild(footer);
+			table.navFooter = footer;
+		}
+		
+		footer.innerHTML = "";
+		
+		var tr = document.createElement("tr");
+		footer.appendChild(tr);
+		
+		var td = document.createElement("td");
+		tr.appendChild(td);
+		td.colSpan = table.numberOfColumns;
+		
+		// Navigation details
+		var span = document.createElement("span");
+		span.className = "details";
+		td.appendChild(span);	
+		
+		var first = table.numberOfRows > 0 ? 1 : 0;
+		var last = table.numberOfRows > table.rowsPerPage ? table.rowsPerPage : table.numberOfRows;
+		span.innerHTML = first + " - " + last + " of " + table.numberOfRows + " items.";
+			
+		// First link
+		var a = createLink(table, "<<", "not-number first disabled", -1);
+		td.appendChild(a);
+		
+		// Previous link
+		var a = createLink(table, "<", "not-number previous disabled", -1);
+		td.appendChild(a);
+		
+		// Number links
+		var length = table.numberOfPages;
+	
+		for (var i = 1; i <= length; i++) {
+			var shown = i > table.numberFooterAnchors ? "hidden" : "shown";
+			var selected = i == 1 ? "number selected " : "number ";
+			var a = createLink(table, i, selected + shown, i);
+			td.appendChild(a);
+		}
+		
+		// Next link
+		var a = createLink(table, ">", length > 1 ? "not-number next" : "not-number next disabled", length > 1 ? 2 : -1);
+		td.appendChild(a);		
+		
+		// Last link
+		var a = createLink(table, ">>", length > 1 ? "not-number last" : "not-number last disabled", length > 1 ? length : -1);
+		td.appendChild(a);
+	}
+	
+	function createHeaderSelect(table) {
+		var tHead = table.tHead;
+		var numberOfRows = table.numberOfRows;
+		var length = (numberOfRows == 0) ? 1 : Math.floor(log10(numberOfRows)) + 1;
+
+		if (tHead && length > 1) {
+			var tr = document.createElement("tr");
+			tr.className = "select";
+			tHead.insertBefore(tr, tHead.firstChild);
+			
+			var th = document.createElement("th");
+			th.colSpan = table.numberOfColumns;
+			tr.appendChild(th);
+			
+			var span = document.createElement("span");
+			span.className = "show";
+			th.appendChild(span);
+			
+			span.appendChild(document.createTextNode("Show "));
+			
+			var select = document.createElement("select");
+			th.appendChild(select);
+			
+			select.table = table;
+			
+			var span = document.createElement("span");
+			span.className = "entries";
+			th.appendChild(span);
+			
+			span.appendChild(document.createTextNode(" entries"));
+			
+			//Options
+			var inc = Math.pow(10, length - 1);
+			
+			for (var i = 1; i <= 4; i++) {
+				var number = inc * i;
+				
+				if (number > numberOfRows)
+					break;
+				
+				createOption(select, number, number);
+			}
+			
+			createOption(select, "all", numberOfRows);
+			
+			// Handler
+			select.onchange = function() {
+				var value = this.options[this.selectedIndex].value;
+				this.table.rowsPerPage = value;
+
+				prepareTable(this.table);
+				table.changePage(1);
+			};
+		}
+	}
+	
+	function createOption(select, text, value) {
+		var option = document.createElement("option");
+		option.text = text;
+		option.value = value;
+		select.appendChild(option);
+	}
+	
+	function log10(val) {
+		return Math.log(val) / Math.LN10;
+	}
+
+	function createLink(table, text, className, index) {
+		var a = document.createElement("a");
+		a.className = className;
+		a.table = table;
+		a.index = index;
+		
+		a.onclick = function() {
+			this.table.changePage(this.index);
+		};
+		
+		var textNode = document.createTextNode(text);
+		a.appendChild(textNode);
+		
+		return a;
+	}
+})();
+
+////////////////////////////////////////////////////////////////
+// Sortable 
+////////////////////////////////////////////////////////////////
+
+wesCountry.table.sort = new (function() {
+	(function init() {
+		var tables = document.querySelectorAll("table.sortable");
+		var length = tables.length;
+		
+		for (var i = 0; i < length; i++)
+			iterateOverRows(tables[i]);
+	})();
+	
+	function iterateOverRows(table) {
+		var headers = table.tHead.rows;
+		//var headers = table.querySelectorAll("tHead tr");
+		var length = headers.length;
+	
+		for (var i = 0; i < length; i++) {
+			if (headers[i].className == "select")
+				continue;
+				
+			headers[i].className = "sorter";	
+			
+			var rowLength = headers[i].cells.length;
+		
+			for (var j = 0; j < rowLength; j++) {
+				headers[i].cells[j].table = table;
+				headers[i].cells[j].index = j;
+				headers[i].cells[j].sort = "empty";
+				
+				var img = new Image();
+				img.className = "empty";
+				headers[i].cells[j].appendChild(img);
+				
+				headers[i].cells[j].onclick = function() {
+					sortRows(this.table, this.index, this);
+				};
+			}
+		}
+	}
+	
+	function sortRows(table, index, header) {
+		// Insert rows in array
+		
+		var rows = new Array();
+		
+		var length = table.tBodies.length;
+		
+		for (var i = 0; i < length; i++) {
+			var tBody = table.tBodies[i];
+		
+			for (var j = 0; j < tBody.rows.length; j++) {
+				var row = tBody.rows[j];
+			
+				rows.push(row);
+			}
+		}
+		
+		// Sorting		
+		if (header.sort == "empty" || header.sort == "down")
+			header.sort = "up";
+		else
+			header.sort = "down";	
+		
+		rows.sort(function(row1, row2) {
+			if (row1.className == "empty" || row2.className == "empty")
+				return 1;
+
+			var row1 = row1.cells[index].innerHTML.toString();
+			var row2 = row2.cells[index].innerHTML.toString();	
+		
+			if (row1 < row2)
+				return header.sort == "up" ? - 1 : 1;
+			else if (row1 > row2)
+				return header.sort == "up" ? 1 : -1;
+			else
+				return 0;
+		});
+		
+		// Update header image
+		var img = header.querySelector("img");
+		img.className = header.sort;
+		
+		// Update header image for the rest of columns
+		//var tHeader = table.tHead.rows[0].cells;
+		var tHeader = table.querySelectorAll("tHead tr.sorter th");
+		var length = tHeader.length;
+		
+		for (var i = 0; i < length; i++)
+			if (i != index)
+				emptyHeaderSorter(tHeader[i]);
+		
+		// Delete rows
+		var tHead = table.tHead;
+		var tFoot = table.tFoot;
+		
+		while(table.hasChildNodes())
+			table.removeChild(table.firstChild);
+			
+		// Insert head
+		table.appendChild(tHead);
+		
+		// Insert footer
+		if (tFoot)
+			table.appendChild(tFoot);
+		
+		// Insert sorted rows
+		var tBody = document.createElement('tbody');
+		table.appendChild(tBody);
+		
+		var length = rows.length;
+		
+		for (var i = 0; i < length; i++)
+			tBody.appendChild(rows[i]);
+			
+		// If table is paged then page 1 is set
+		if (table.changePage)	
+			table.changePage(1);
+	}
+	
+	function emptyHeaderSorter(header) {
+		var img = header.querySelectorAll("img");
+		
+		if (img && img.length && img.length > 0)
+			img[0].className = "empty";
+			
+		header.sort = "empty";
+	}
+})();function SortedArray() {
+    var index = 0;
+    this.array = [];
+    var length = arguments.length;
+    
+    while (index < length) 
+    	this.insert(arguments[index++]);
+    
+	this.length = 0;
+	
+	this.insert = function (element) {
+	    var array = this.array;
+	    var index = array.length;
+	    array.push(element);
+	    
+	    this.length = this.array.length;
+	
+	    while (index) {
+	        var i = index, j = --index;
+	
+	        if (array[i] < array[j]) {
+	            var temp = array[i];
+	            array[i] = array[j];
+	            array[j] = temp;
+	        }
+	    }
+	
+	    return this;
+	};
+	
+	this.get = function (index) {
+		return this.array[index];
+	};
+	
+	this.getArray = function() {
+		return this.array;	
+	};
+	
+	// No repeated elements allowed
+	
+	this.uniqueInsert = function (element) {
+		if (this.search(element) != -1)
+			return;
+			
+		this.insert(element);
+	}
+	
+	this.search = function (element) {
+	    var low = 0;
+	    var array = this.array;
+	    var high = array.length;
+	
+	    while (high > low) {
+	        var index = (high + low) / 2 >>> 0;
+	        var cursor = array[index];
+	
+	        if (cursor < element) low = index + 1;
+	        else if (cursor > element) high = index;
+	        else return index;
+	    }
+	
+	    return -1;
+	};
+	
+	this.remove = function (element) {
+	    var index = this.search(element);
+	    if (index >= 0) this.array.splice(index, 1);
+	    
+	    this.length = this.array.length;
+	    
+	    return this;
+	};
+}if (typeof(exports) === "undefined")
+	exports = new Object();
+
+var Selector = exports.Selector = function(data, options) {
+	var defaultOptions = {
+		"ul-class": "default-selector",
+		callback: null,
+		maxSelectedItems: -1,
+		selectedItems: []
+	};
+
+	var firstLevelItems = [];
+	var selectedItems = new SortedArray();
+	var root = null;
+
+	function init() {
+		// Merge default options and user options
+		options = mergeOptionsAndDefaultOptions(options, defaultOptions);
+	
+		var list = generateList(data, null, 1, null, null);
+		root = list.ul;
+
+		// Set options.selectedItems as selected
+		var selectedItems = list.selectedItems;
+		var length = selectedItems.length;
+
+		for (var i = 0; i < length; i++)
+			selectedItems[i].onclick();
+	}
+	
+	init();
+	
+	this.render = function() {
+		return root;
+	}
+	
+	this.clear = function() {
+		var length = root.children.length;
+		for (var i = 0; i < length; i++)
+			updateElementStatus(root.children[i], null, false);
+	}
+	
+	// List generation
+	function generateList(element, parent, level, previousLink, parentLink) {
+		var ul = document.createElement("ul");
+		ul.className = options["ul-class"];
+	
+		// Sort children
+		element.sort(function(a, b) {
+			if (a.label < b.label)
+				return -1;
+			if (a.label > b.label)
+				return 1;
+			return 0;
+		});
+		
+		var length = element.length;
+		
+		var firstChildLink = null;
+		
+		var selected = false;
+		var selectedItems = [];
+		
+		for (var i = 0; i < length; i++) {
+			var child = element[i];
+			var childrenLength = child.children && child.children.length ? child.children.length : 0;
+			
+			var li = document.createElement("li");
+			ul.appendChild(li);
+			
+			// Set parent information
+			li.code = child.code;
+			li.liParent = parent;
+			li.data = child;
+			
+			// Selection
+			li.isSelected = false;
+			
+			var currentLink = document.createElement("a");
+			currentLink.href = "javascript: void(0)"
+			currentLink.value = child.label;
+
+			// Check if element is selected
+			if (options.selectedItems.indexOf(li.code) != -1) {
+				selected = true;
+				selectedItems.push(currentLink);
+			}
+
+			if (parentLink == null)
+				firstLevelItems.push(currentLink);
+
+			// Previous and next links
+			currentLink.previousSiblingLink = previousLink;
+			currentLink.nextSiblingLink = null;
+			currentLink.parentLink = parentLink;
+			
+			if (previousLink)
+				previousLink.nextSiblingLink = currentLink;
+	
+			if (i == 0)
+				firstChildLink = currentLink;
+			
+			currentLink.className = "circleAndText"
+			li.appendChild(currentLink);
+			
+			// Click event on currentLink div
+			// We set the parent of currentLink div (the LI element)
+			currentLink.liParent = li;
+			
+			currentLink.onclick = function(event) { 
+				elementClick(this.liParent, options.callback); 
+				
+				if (event)
+					event.stopPropagation();	
+			};
+						
+			// Plus or minus sign to show / hide children
+			var plusOrMinus = document.createElement("div");
+			plusOrMinus.className = childrenLength > 0 ? "plusOrMinus" : "hidden-plusOrMinus";
+			plusOrMinus.innerHTML = "+";
+			currentLink.appendChild(plusOrMinus);
+				
+			if (childrenLength > 0) {
+				plusOrMinus.onclick = function(event) { 
+					plusMinusClick(this);
+					event.stopPropagation();
+				}
+			}
+			
+			// Keyboard event for link
+			currentLink.plusOrMinus = plusOrMinus;
+			
+			currentLink.onkeydown = function(event) {
+				if (event.keyCode == 13) {
+					elementClick(this.liParent, options.callback); 	
+					
+					event.stopPropagation();
+					return false;
+				}
+				else if (event.keyCode == 38) { // Up arrow key
+					if (this.previousSiblingLink)
+						this.previousSiblingLink.focus();
+				
+					event.stopPropagation();
+					return false;
+				}
+				else if (event.keyCode == 40) { // Down arrow key
+					// If opened go to first child
+					if (this.plusOrMinus.opened && this.firstChildLink)
+						this.firstChildLink.focus();
+					else if (this.nextSiblingLink)
+						this.nextSiblingLink.focus();
+					// After last child we move onto next sibling
+					else if (this.parentLink.nextSiblingLink)
+						this.parentLink.nextSiblingLink.focus();
+				
+					event.stopPropagation();
+					return false;
+				}
+				else if (event.keyCode == 37 || event.keyCode == 39) { // Left and right keys
+					event.stopPropagation();
+				
+					plusMinusClick(this.plusOrMinus);
+				
+					event.keyCode = 9; 
+					return event.keyCode
+				}
+			};
+			
+			var circle = document.createElement("div");
+			circle.className = "circle";
+			currentLink.appendChild(circle);
+			
+			var title = document.createElement("div");
+			title.className = "title";
+			currentLink.appendChild(title)
+			
+			var text = document.createTextNode(child.label);
+			title.appendChild(text);
+			
+			// Update previous link
+			previousLink = currentLink;
+			
+			if (childrenLength > 0) {			
+				// Counter circle
+				var counter = document.createElement("span");
+				counter.className = "empty-counter";
+				circle.appendChild(counter);
+			
+				text = document.createTextNode("0");
+				counter.appendChild(text);
+				
+				// Set li properties
+				li.counter = {
+					div: counter,
+					value: 0	
+				};
+				
+				// Children
+				var childrenUl = generateList(child.children, li, level + 1, previousLink, currentLink);
+				li.appendChild(childrenUl.ul);
+				
+				// Update first child link
+				currentLink.firstChildLink = childrenUl.firstChildLink;
+				
+				// Set plusOrMinus properties
+				plusOrMinus.childrenUl = childrenUl.ul;
+				
+				// Check if any child is selected
+				if (childrenUl.selected == true) {
+					selected = true;
+					// Update + / - symbol
+					plusOrMinus.innerHTML = "-";
+				}
+					
+				selectedItems = selectedItems.concat(childrenUl.selectedItems);	
+			}
+			
+			// Set child number
+			li.childNumber = child.children ? child.children.length : 0;
+		}
+		
+		// Non top-level elements are initially hidden
+		// Unless some child is in options.selectedItems
+		if (level > 1 && selected == false)
+			ul.style.display = "none";
+	
+		return {
+					ul: ul,
+					firstChildLink: firstChildLink,
+					selected: selected,
+					selectedItems: selectedItems
+				};
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////
+	//                            PLUS / MINUS CLICK
+	////////////////////////////////////////////////////////////////////////////////	
+	
+	function plusMinusClick (element) {
+		if (element.innerHTML == "+") {
+			element.innerHTML = "&#8212;";
+			
+			if (element.childrenUl)
+				element.childrenUl.style.display = "block";
+				
+			element.opened = true;
+		}
+		else {
+			element.innerHTML = "+";
+			
+			if (element.childrenUl)
+				element.childrenUl.style.display = "none";
+				
+			element.opened = false;
+		}
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////
+	//                              ELEMENT CLICK
+	////////////////////////////////////////////////////////////////////////////////	
+	
+	this.selectAll = function() {
+		var length = firstLevelItems.length;
+		for (var i = 0; i < length; i++)
+			elementClick(firstLevelItems[i].liParent, null);
+	}
+	
+	function elementClick(element, callback) {		
+		var selected = !element.isSelected;
+		
+		if (selected && options.maxSelectedItems > 0 && selectedItems.length >= options.maxSelectedItems)
+			return;
+		
+		updateElementStatus(element, callback, selected);
+	}
+	
+	function updateElementStatus(element, callback, selected) {
+		setElementStatus(element, selected);
+		
+		// Add element in its parent's counter
+		if (element.liParent) {
+			var oldParentCounter = element.liParent.counter.value;
+			var parentCounter = selected ? oldParentCounter + 1 : oldParentCounter - 1;
+		
+			updateElementCounter(element.liParent, parentCounter);
+			
+			// An element is selected when all its children are selected
+			// If an element is unselected then its parent must be unselected
+			if (!selected) {
+				element.liParent.className = "not-selected";
+				element.liParent.isSelected = false;
+				
+				updateSelectedItems(element.liParent.code, false);
+			} 
+			else {
+				// If you select all an element's children then the element must be selected
+				if (parentCounter == element.liParent.childNumber) {
+					element.liParent.className = "selected";
+					element.liParent.isSelected = true;
+					
+					updateSelectedItems(element.liParent.code, true);
+				}
+			}
+		}
+			
+		// Update current node's counter when has children
+		// If the element is selected, the counter equals its child number
+		// Else it equals 0
+		if (element.childNumber > 0)
+			updateElementCounter(element, selected ? element.childNumber : 0);
+			
+		// Callback invocation
+		if (callback)
+			callback.call(element, element.data, selectedItems);
+	}
+	
+	function setElementStatus(element, status) {
+		if (element.tagName.toLowerCase() == "li") {
+			element.isSelected = status;
+			element.className = status ? "selected" : "not-selected";
+			
+			// SelectedItems update
+			updateSelectedItems(element.code, status);
+			
+			// Update anchor title
+			var value = element.firstChild.value;
+			element.firstChild.title = value + (status ? " is selected" : "");
+		}
+		
+		var length = element && element.children && element.children.length ? element.children.length : 0;
+		
+		for (var i = 0; i < length; i++)
+			setElementStatus(element.children[i], status);
+	}
+	
+	function updateElementCounter(element, value) {	
+		var counter = element.counter;
+		
+		counter.value = value;
+		counter.div.innerHTML = counter.value; 
+		
+		counter.div.className = counter.value > 0 ? "counter" : "empty-counter";
+		
+		// Update anchor title
+		var value = element.firstChild.value;
+		element.firstChild.title = value + ": " + counter.value + 
+			(counter.value != 1 ? " selected countries" : " selected country");
+	}
+
+	////////////////////////////////////////////////////////////////////////////////
+	//                           UPDATE SELECTED ITEMS
+	////////////////////////////////////////////////////////////////////////////////
+	
+	function updateSelectedItems(code, action) {
+		if (code) {
+			if (action)
+				selectedItems.uniqueInsert(code);	
+			else
+				selectedItems.remove(code);
+		}
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////
+	//                              MERGING OPTIONS
+	////////////////////////////////////////////////////////////////////////////////
+	
+	function mergeOptionsAndDefaultOptions(options, defaultOptions) {
+		if (options) {
+			if (typeof options === "string")
+				options = { container: options };
+		
+			var auxOptions = clone(defaultOptions);
+			
+			for (var option in options)
+				auxOptions[option] = mergeOptions(auxOptions[option], options[option]);
+			
+			options = auxOptions;
+		}
+		else
+			options = clone(defaultOptions);
+			
+		return options;
+	};
+	
+	function mergeOptions(to, from) {
+		if (from instanceof Array) {
+			return from;
+		}
+		else if (typeof from === "object") {
+			for (var option in from) {
+				to[option] = mergeOptions(to[option], from[option]);
+			}
+
+			return to;
+		}
+		else
+			return from;
+	};
+	
+	function clone(obj) {
+		// Not valid for copying objects that contain methods
+	    return JSON.parse(JSON.stringify(obj));
+	}
+};

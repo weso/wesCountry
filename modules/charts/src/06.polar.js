@@ -301,4 +301,4 @@ wesCountry.charts.polarChart = function(options) {
 			legendItemSize: legendItemSize
 		};
 	}	
-}
+};

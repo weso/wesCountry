@@ -299,4 +299,4 @@ wesCountry.charts.scatterPlot = function(options) {
 			inc: maxAndMinValues.inc
 		};
 	}		
-}
+};
