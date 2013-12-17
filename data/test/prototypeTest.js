@@ -58,5 +58,5 @@ window.onload = function () {
 		}
 	};
 
-	data.create(myOptions).iterate();
+	data.parseJSON(myOptions).iterate();
 }

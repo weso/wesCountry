@@ -6,7 +6,7 @@ var data = exports.data = new (function() {
 	var options = {};
 	var allSeries = [];
 
-	this.create = function (receivedOptions) {
+	this.parseJSON = function (receivedOptions) {
 		var filterByIndicator = function (element) {
 			return element.indicatorCode === indicatorCode;
 		}
@@ -34,6 +34,25 @@ var data = exports.data = new (function() {
 		}
 		myData = hashTableIndicator;
 		return this;
+	}
+
+	this.parseTable = function (receivedOptions) {
+		var tables = document.querySelectorAll(".graphs");
+		for(var i=0;i<tables.length;i++) {
+			var headers = tables[i].querySelectorAll("th");
+			var rows = tables[i].querySelectorAll("tr");
+			var json = [];
+			for(var j=1;j<rows.length;j++) {
+				var obj = new Object();
+				var data = rows[j].querySelectorAll("td");
+				for(var k=0;k<data.length;k++) {
+					obj[headers[k].className] = data[k].innerHTML;
+				}
+				json.push(obj);
+			}
+			receivedOptions.data = json;
+			this.parseJSON(receivedOptions).iterate();
+		}
 	}
 
 	this.iterate = function () {
