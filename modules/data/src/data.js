@@ -1,7 +1,7 @@
-if (typeof(exports) === "undefined")
-	exports = new Object();
+if (typeof(wesCountry) === "undefined")
+	var wesCountry = new Object();
 
-var data = exports.data = new (function() {
+wesCountry.data = new (function() {
 	var myData = null;
 	var options = {};
 	var allSeries = [];
@@ -56,7 +56,7 @@ var data = exports.data = new (function() {
 	}
 
 	this.iterate = function () {
-		if(data !== null) {
+		if(myData !== null) {
 			var div = document.createElement("div");
 			div.className = "indicatorSelector";
 			document.querySelector(options.container).appendChild(div);
@@ -91,7 +91,7 @@ var data = exports.data = new (function() {
 		function drawSelectedIndicator() {
 			var index = select.selectedIndex;
 			options.series = allSeries[index];
-			jGraf.multiChart(JSON.parse(JSON.stringify(options)));
+			wesCountry.charts.multiChart(JSON.parse(JSON.stringify(options)));
 		}
 	}
 
