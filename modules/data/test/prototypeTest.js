@@ -58,5 +58,5 @@ window.onload = function () {
 		}
 	};
 
-	data.parseJSON(myOptions).iterate();
+	wesCountry.data.parseJSON(myOptions).iterate();
 }
