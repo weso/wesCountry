@@ -19,7 +19,7 @@ wesCountry.charts.chart = function (options) {
 			break;
 	}
 	document.querySelector(options.container).appendChild(chart.render());
-}
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                MULTI CHART
@@ -134,4 +134,4 @@ wesCountry.charts.multiChart = function (options) {
 			options.series = seriesReturned;
 		}
 	}
-}
+};

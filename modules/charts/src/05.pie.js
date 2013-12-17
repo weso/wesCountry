@@ -309,4 +309,4 @@ wesCountry.charts.pieChart = function(options) {
 			legendItemSize: legendItemSize
 		};
 	}		
-}
+};

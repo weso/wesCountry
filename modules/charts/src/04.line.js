@@ -261,4 +261,4 @@ wesCountry.charts.generateLineChart = function(options, area) {
 			legendItemSize: legendItemSize
 		};
 	}
-}		
+};
