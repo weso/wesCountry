@@ -1,10 +1,13 @@
-var richTable = new Object();
+if (typeof(wesCountry) === "undefined")
+	var wesCountry = {};
+
+wesCountry.table = new Object();
 
 ////////////////////////////////////////////////////////////////
 // Pages
 ////////////////////////////////////////////////////////////////
 
-richTable.pages = new (function() {
+wesCountry.table.pages = new (function() {
 	var firstShownRow = 0;
 	var numberFooterAnchors = 5; // Must be odd
 
@@ -351,7 +354,7 @@ richTable.pages = new (function() {
 // Sortable 
 ////////////////////////////////////////////////////////////////
 
-richTable.sort = new (function() {
+wesCountry.table.sort = new (function() {
 	(function init() {
 		var tables = document.querySelectorAll("table.sortable");
 		var length = tables.length;
