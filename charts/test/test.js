@@ -268,31 +268,31 @@ function generateCharts(options) {
 }
 
 function renderBarChart(options) {
-	var chart = jGraf.barChart(options);
+	var chart = wesCountry.charts.barChart(options);
 	document.getElementById("barDiv").appendChild(chart.render());
 }
 
 function renderLineChart(options) {
-	var chart = jGraf.lineChart(options);
+	var chart = wesCountry.charts.lineChart(options);
 	document.getElementById("lineDiv").appendChild(chart.render());
 }
 
 function renderPieChart(options) {
-	var chart = jGraf.pieChart(options);
+	var chart = wesCountry.charts.pieChart(options);
 	document.getElementById("pieDiv").appendChild(chart.render());
 }
 
 function renderPolarChart(options) {
-	var chart = jGraf.polarChart(options);
+	var chart = wesCountry.charts.polarChart(options);
 	document.getElementById("polarDiv").appendChild(chart.render());
 }
 
 function renderScatterPlot(options) {
-	var chart = jGraf.scatterPlot(options);
+	var chart = wesCountry.charts.scatterPlot(options);
 	document.getElementById("scatterDiv").appendChild(chart.render());
 }
 
 function renderAreaChart(options) {
-	var chart = jGraf.areaChart(options);
+	var chart = wesCountry.charts.areaChart(options);
 	document.getElementById("areaDiv").appendChild(chart.render());
 }
