@@ -1,3 +1,7 @@
+Element.prototype.insertAfter = function (newNode) { 
+	this.parentNode.insertBefore(newNode, this.nextSibling); 
+}
+
 if (typeof(wesCountry) === "undefined")
 	var wesCountry = new Object();
 
@@ -5,8 +9,11 @@ wesCountry.data = new (function() {
 	var myData = null;
 	var options = {};
 	var allSeries = [];
+	var tablePosition = null;
+	var tableElement;
 
 	this.parseJSON = function (receivedOptions) {
+		allSeries = []; //Reset if new call
 		options = wesCountry.charts.mergeOptionsAndDefaultOptions(receivedOptions, wesCountry.charts.defaultOptions);
 		options.xAxis.values = []; //removeXAxisValues
 		var json = options.data;
@@ -46,6 +53,7 @@ wesCountry.data = new (function() {
 	this.parseTable = function (receivedOptions) {
 		var tables = document.querySelectorAll(".graphs");
 		for(var i=0;i<tables.length;i++) {
+			tableElement = tables[i]; //current table
 			var headers = tables[i].querySelectorAll("th");
 			var rows = tables[i].querySelectorAll("tr");
 			var json = [];
@@ -58,6 +66,8 @@ wesCountry.data = new (function() {
 				json.push(obj);
 			}
 			receivedOptions.data = json;
+			if(receivedOptions.container === undefined)
+				tablePosition = receivedOptions.tablePosition;
 			this.parseJSON(receivedOptions).iterate();
 		}
 	}
@@ -71,10 +81,10 @@ wesCountry.data = new (function() {
 			select.onchange = onIndicatorChanged;
 			var indicators = myData.keys();
 			indicators = indicators.array;
-			for(var i in indicators) {
+			for(var i=0;i<indicators.length;i++) {
 				var countries = myData.getItem(indicators[i]).keys().array;
 				var seriesByIndicator = [];
-				for(var c in countries) {
+				for(var c=0;c<countries.length;c++) {
 					seriesByIndicator.push({
 						name: countries[c],
 						values: myData.getItem(indicators[i]).getItem(countries[c])
@@ -86,13 +96,18 @@ wesCountry.data = new (function() {
 				select.appendChild(option);
 			}
 			var wrapperDiv = document.createElement("div");
-			document.querySelector(options.container).appendChild(wrapperDiv);
+			if(tablePosition === null) {
+				document.querySelector(options.container).appendChild(wrapperDiv);
+			}
+			else {
+				if(tablePosition.toLowerCase() === "above")
+					tableElement.insertAfter(wrapperDiv);
+				else if(tablePosition.toLowerCase() === "below")
+					tableElement.parentNode.insertBefore(wrapperDiv, tableElement);
+			}
 			drawSelectedIndicator();
 		}
 		function onIndicatorChanged() {
-			//this.parentNode.parentNode.querySelector(".chartDiv").remove();
-			//this.parentNode.parentNode.querySelector(".seriesSelector").remove();
-			//this.parentNode.parentNode.querySelector(".chartSelector").remove();
 			var div = this.parentNode.parentNode;
 			var wrapperDiv = div.parentNode;
 			div.remove();

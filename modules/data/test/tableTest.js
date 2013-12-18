@@ -1,6 +1,6 @@
 window.onload = function () {
 	var myOptions = {
-		container: "body",
+		tablePosition: "above",
 		chartType: ["line", "bar", "pie", "area"],
 		xAxis: {
 				title: "Years"
