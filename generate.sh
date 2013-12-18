@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cat ./modules/charts/src/*.js ./modules/data/src/*.js ./modules/table/src/js/*.js ./modules/selector/src/*.js > ./bin/wesCountry.js
+cat ./util/*.js ./modules/charts/src/*.js ./modules/data/src/*.js ./modules/table/src/js/*.js ./modules/selector/src/*.js > ./bin/wesCountry.js
 cat ./modules/table/src/css/*.css > ./bin/wesCountry.css
 
 mkdir -p bin/images

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns='http://www.w3.org/1999/xhtml' lang="es">
+	<head>
+		<meta name="viewport" content="width=device-width"/>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<link href='http://fonts.googleapis.com/css?family=Kite+One' rel='stylesheet' type='text/css'>
+		<title>wesCountry</title>
+		<style>
+			body {
+				font-family: "Kite One";
+			}
+			
+			textarea {
+				width: 100%;
+				height: 15em;
+				background-color: #F7F8E0;
+				border: none;
+			}
+			
+			h2 {
+				margin: 0;
+				font-size: 0.9em;
+				text-transform: uppercase;
+				color: #555;
+			}
+			
+			button {
+				text-transform: uppercase;
+				font-size: 1.2em;
+				padding: 0.3em 0.6em;
+				border: none;
+				background-color: #333;
+				color: #fff;
+				float: right;
+			}
+			
+			#graphs {
+				clear: both;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>wesCountry</h1>
+		<h2>Data source</h2>
+		<textarea id="source">[
+	{"countryCode":"BR", "countryName":"Brazil", "year":"2009", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"243.951870842302", "dataset":""},
+	{"countryCode":"BR", "countryName":"Brazil", "year":"2008", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"309.008997833499", "dataset":"World Bank"},
+	{"countryCode":"BR", "countryName":"Brazil", "year":"2007", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"326.585848270781", "dataset":"World Bank"},
+	{"countryCode":"IT", "countryName":"Italy", "year":"2009", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"256.268026665139", "dataset":"World Bank"},
+	{"countryCode":"IT", "countryName":"Italy", "year":"2008", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"222.458534003048", "dataset":"World Bank"},
+	{"countryCode":"IT", "countryName":"Italy", "year":"2007", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"430.564095118456", "dataset":"World Bank"},
+	{"countryCode":"ES", "countryName":"Spain", "year":"2009", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"106.145003684811", "dataset":"World Bank"},
+	{"countryCode":"ES", "countryName":"Spain", "year":"2008", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"89.1699567127999", "dataset":"World Bank"},
+	{"countryCode":"ES", "countryName":"Spain", "year":"2007", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"117.185367443222", "dataset":"World Bank"}
+]</textarea>
+		<button id="generate">Generate</button>
+		<div id="graphs"></div>
+	</body>
+	<script src="bin/wesCountry.min.js"></script>
+	<script>
+		function update() {
+			document.getElementById("graphs").innerHTML = "";
+	
+			var source = document.getElementById("source").value;
+			var data = JSON.parse(source);
+			
+			wesCountry.data.parseJSON({
+				container: "#graphs",
+				data: data
+			}).iterate();
+		}
+		
+		document.getElementById("generate").onclick = update;
+		
+		update();
+	</script>
+</html>
