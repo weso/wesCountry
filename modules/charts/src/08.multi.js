@@ -1,3 +1,9 @@
+NodeList.prototype.indexOf = function (element) {
+	for(var i=0;i<this.length;i++) {
+		if(this[i] == element)
+			return i;
+	} return -1;
+};
 ////////////////////////////////////////////////////////////////////////////////
 //                                  CHART
 ////////////////////////////////////////////////////////////////////////////////	
@@ -7,7 +13,7 @@ wesCountry.charts.chart = function (options) {
 	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container; 
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	var chart;
-	switch(options.chartType) {
+	switch(options.chartType.toLowerCase()) {
 		case "bar":
 			chart = this.barChart(options);
 			break;
@@ -26,13 +32,23 @@ wesCountry.charts.chart = function (options) {
 	container.appendChild(chart.render());
 	return container.parentNode;
 }
-
 ////////////////////////////////////////////////////////////////////////////////
 //                                MULTI CHART
 ////////////////////////////////////////////////////////////////////////////////
-wesCountry.charts.multiChart = function (options) {
+var graphicsItemsSave = {
+	series: [],
+	xAxisValues: []
+};
+wesCountry.charts.multiChart = function (options, newGraphic, element) {
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
-	seriesSave = wesCountry.charts.clone(options.series);
+	if(newGraphic || newGraphic === undefined) {
+		graphicsItemsSave.series.push(wesCountry.charts.clone(options.series));
+		graphicsItemsSave.xAxisValues.push(wesCountry.charts.clone(options.xAxis.values));
+	} else {
+		var index = getIndexOfElement(element);
+		graphicsItemsSave.series[index] = wesCountry.charts.clone(options.series);
+		graphicsItemsSave.xAxisValues[index] = wesCountry.charts.clone(options.xAxis.values);
+	}
 	var charts = options.chartType;
 	charts = charts instanceof Array ? charts : [charts]; //if not array convert to array
 	var container = document.createElement("div");
@@ -63,16 +79,16 @@ wesCountry.charts.multiChart = function (options) {
 	function createSeriesSelector() {
 		var div = document.createElement('div');
 		div.className = "seriesSelector";
-		for(var i=0; i<seriesSave.length;i++) {
+		for(var i=0; i<options.series.length;i++) {
 			var input = document.createElement('input');
 			var label = document.createElement('label');
-			input.id = seriesSave[i].name + "Checkbox" + wesCountry.charts.guid();
+			input.id = options.series[i].name + "Checkbox" + wesCountry.charts.guid();
 			input.type = "checkbox";
 			input.className = "checks";
 			input.onchange = onSeriesChanged;
 			input.checked = true;
 			label.for = input.id;
-			label.innerHTML = seriesSave[i].name;
+			label.innerHTML = options.series[i].name;
 			div.appendChild(input);
 			div.appendChild(label);
 		} container.appendChild(div);
@@ -122,21 +138,40 @@ wesCountry.charts.multiChart = function (options) {
 	}
 
 	function onSeriesChanged() {
-		var series = wesCountry.charts.clone(seriesSave);
+		var seriesAndXAxisValues = recoverSeriesAndXValuesItem(this);
 		var checkBoxes = this.parentNode.querySelectorAll("input");
-		var length = series.length;
+		var length = seriesAndXAxisValues.series.length;
 		for(var i=0;i<length;i++) 
 			if(!checkBoxes[i].checked)
-				delete series[i];
+				delete seriesAndXAxisValues.series[i];
 		optionSeriesWithoutUndefined();
+		putXAxisValuesOnOptions();
 		loadGraph(this.parentNode.parentNode); //div of the grap
+
+		function putXAxisValuesOnOptions() {
+			options.xAxis.values = seriesAndXAxisValues.xAxisValues;
+		} 
 
 		function optionSeriesWithoutUndefined() {
 			var seriesReturned = [];
 			for(var i=0;i<length;i++) 
-				if(series[i] !== undefined)
-					seriesReturned.push(series[i]);
+				if(seriesAndXAxisValues.series[i] !== undefined)
+					seriesReturned.push(seriesAndXAxisValues.series[i]);
 			options.series = seriesReturned;
 		}
+
+		function recoverSeriesAndXValuesItem(element) {
+			var index = getIndexOfElement(element);
+			return {
+				series: wesCountry.charts.clone(graphicsItemsSave.series[index]),
+				xAxisValues: wesCountry.charts.clone(graphicsItemsSave.xAxisValues[index])
+			};
+		}
+	}
+
+	function getIndexOfElement(element) {
+		var parent = element.parentNode; //get a div
+		var allDivs = document.querySelectorAll("."+parent.className);
+		return allDivs.indexOf(parent);
 	}
 };
