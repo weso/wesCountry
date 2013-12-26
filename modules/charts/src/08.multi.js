@@ -35,19 +35,15 @@ wesCountry.charts.chart = function (options) {
 ////////////////////////////////////////////////////////////////////////////////
 //                                MULTI CHART
 ////////////////////////////////////////////////////////////////////////////////
-var graphicsItemsSave = {
-	series: [],
-	xAxisValues: []
-};
+var optionsSave = [];
 wesCountry.charts.multiChart = function (options, newGraphic, element) {
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	if(newGraphic || newGraphic === undefined) {
-		graphicsItemsSave.series.push(wesCountry.charts.clone(options.series));
-		graphicsItemsSave.xAxisValues.push(wesCountry.charts.clone(options.xAxis.values));
+		optionsSave.push(wesCountry.charts.clone(options));
 	} else {
 		var index = getIndexOfElement(element);
-		graphicsItemsSave.series[index] = wesCountry.charts.clone(options.series);
-		graphicsItemsSave.xAxisValues[index] = wesCountry.charts.clone(options.xAxis.values);
+		optionsSave[index].series = wesCountry.charts.clone(options.series);
+		options.xAxis = optionsSave[index].xAxis;
 	}
 	var charts = options.chartType;
 	charts = charts instanceof Array ? charts : [charts]; //if not array convert to array
@@ -163,8 +159,8 @@ wesCountry.charts.multiChart = function (options, newGraphic, element) {
 		function recoverSeriesAndXValuesItem(element) {
 			var index = getIndexOfElement(element);
 			return {
-				series: wesCountry.charts.clone(graphicsItemsSave.series[index]),
-				xAxisValues: wesCountry.charts.clone(graphicsItemsSave.xAxisValues[index])
+				series: wesCountry.charts.clone(optionsSave[index].series),
+				xAxisValues: wesCountry.charts.clone(optionsSave[index].xAxis.values)
 			};
 		}
 	}

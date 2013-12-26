@@ -63,5 +63,11 @@ window.onload = function () {
 	wesCountry.data.parseJSON(myOptions).iterate().byIndicator("Agriculture, value added (% of GDP)");
 	wesCountry.data.parseJSON(myOptions).iterate().byTime("2007");
 	wesCountry.data.parseJSON(myOptions).iterate().byRegion("Spain");
+	wesCountry.data.parseJSON(myOptions).iterate().byIndicatorAndTime();
+	wesCountry.data.parseJSON(myOptions).iterate().byIndicatorAndRegion();
+	wesCountry.data.parseJSON(myOptions).iterate().byTimeAndRegion();
+	wesCountry.data.parseJSON(myOptions).iterate().byIndicatorAndTime("Fertilizer consumption (% of fertilizer production)", "2008");
+	wesCountry.data.parseJSON(myOptions).iterate().byIndicatorAndRegion("Rural population", "Italy");
+	wesCountry.data.parseJSON(myOptions).iterate().byTimeAndRegion("2007", "Brazil");
 
 }

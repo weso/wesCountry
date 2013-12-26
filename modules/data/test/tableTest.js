@@ -8,4 +8,6 @@ window.onload = function () {
 	};
 
 	wesCountry.data.parseTable(myOptions, "byIndicator");
+	wesCountry.data.parseTable(myOptions, "byIndicatorAndTime");
+
 }
