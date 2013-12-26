@@ -44,7 +44,7 @@ window.onload = function () {
 	{"countryCode":"IT", "countryName":"Italy", "year":"2007", "indicatorCode":"Rural population growth (annual %)", "value":"0.340997807364338", "dataset":"World Bank"},
 	{"countryCode":"ES", "countryName":"Spain", "year":"2009", "indicatorCode":"Rural population growth (annual %)", "value":"0.262249013369087", "dataset":"World Bank"},
 	{"countryCode":"ES", "countryName":"Spain", "year":"2008", "indicatorCode":"Rural population growth (annual %)", "value":"0.989942701499551", "dataset":"World Bank"},
-	{"countryCode":"ES", "countryName":"Spain", "year":"2007", "indicatorCode":"Rural population growth (annual %)", "value":"1.20938599518874", "dataset":"World Bank"},
+	{"countryCode":"ES", "countryName":"Spain", "year":"2007", "indicatorCode":"Rural population growth (annual %)", "value":"1.20938599518874", "dataset":"World Bank"}
 	];
 
 
@@ -53,10 +53,21 @@ window.onload = function () {
 		container: "body",
 		chartType: ["line", "bar", "pie", "area"],
 		xAxis: {
-				title: "Years",
-				values: ["2007", "2008", "2009"]
+				title: "Years"
 		}
 	};
 
-	wesCountry.data.parseJSON(myOptions).iterate();
+	wesCountry.data.parseJSON(myOptions).iterate().byIndicator();
+	wesCountry.data.parseJSON(myOptions).iterate().byTime();
+	wesCountry.data.parseJSON(myOptions).iterate().byRegion();
+	wesCountry.data.parseJSON(myOptions).iterate().byIndicator("Agriculture, value added (% of GDP)");
+	wesCountry.data.parseJSON(myOptions).iterate().byTime("2007");
+	wesCountry.data.parseJSON(myOptions).iterate().byRegion("Spain");
+	wesCountry.data.parseJSON(myOptions).iterate().byIndicatorAndTime();
+	wesCountry.data.parseJSON(myOptions).iterate().byIndicatorAndRegion();
+	wesCountry.data.parseJSON(myOptions).iterate().byTimeAndRegion();
+	wesCountry.data.parseJSON(myOptions).iterate().byIndicatorAndTime("Fertilizer consumption (% of fertilizer production)", "2008");
+	wesCountry.data.parseJSON(myOptions).iterate().byIndicatorAndRegion("Rural population", "Italy");
+	wesCountry.data.parseJSON(myOptions).iterate().byTimeAndRegion("2007", "Brazil");
+
 }

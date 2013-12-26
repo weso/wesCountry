@@ -2374,6 +2374,42 @@ if (typeof (wesCountry) === "undefined")
     var wesCountry = new Object();
 
 wesCountry.data = new (function() {
+<<<<<<< HEAD
+	var myData = null;
+	var options = {};
+	var allSeries = [];
+
+	this.parseJSON = function (receivedOptions) {
+		allSeries = [];
+		var filterByIndicator = function (element) {
+			return element.indicatorCode === indicatorCode;
+		}
+		options = receivedOptions;
+		var json = options.data;
+		var hashTableIndicator = new HashTable();
+		for(var i=0;i<json.length;i++) {
+			var indicatorCode = json[i].indicatorCode;
+			if(!hashTableIndicator.hasItem(indicatorCode)) {
+				var filtered = json.filter(filterByIndicator);
+				var filtered = filtered.sort(sortByYear);
+				var hashTable = new HashTable();
+				for(var j=0;j<filtered.length;j++) {
+					if(hashTable.hasItem(filtered[j].countryName)) {
+						var values = hashTable.getItem(filtered[j].countryName);
+						values.push(parseFloat(filtered[j].value));
+						options.xAxis.values.indexOf(filtered[j].year) > -1
+					} else {
+						var values = [parseFloat(filtered[j].value)];	
+					}
+					hashTable.setItem(filtered[j].countryName, values);
+					insertXAxisValue(filtered[j].year);
+				}
+				hashTableIndicator.setItem(json[i].indicatorCode, hashTable);
+			}
+		}
+		myData = hashTableIndicator;
+		return this;
+=======
     var myData = {};
     var options = {};
     var tablePosition = null;
@@ -2414,6 +2450,7 @@ wesCountry.data = new (function() {
                 tablePosition = receivedOptions.tablePosition;
             var iterator = this.parseJSON(receivedOptions).iterate()[functionName](argumentToGraphic);
         }
+>>>>>>> enhancement-#19
 
     };
 

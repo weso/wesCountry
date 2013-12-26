@@ -1,89 +1,4 @@
-function HashTable(obj)
-{
-    this.length = 0;
-    var items = {};
-    var keys = new SortedArray();
-    
-    
-    for (var p in obj) {
-        if (obj.hasOwnProperty(p)) {
-            items[p] = obj[p];
-            this.length++;
-        }
-    }
-
-    this.setItem = function(key, value)
-    {
-        var previous = undefined;
-        
-        if (keys.search(key) != -1) {
-            previous = items[key];
-        }
-        else {
-            this.length++;
-        }
-        
-        items[key] = value;
-        keys.uniqueInsert(key);
-        
-        return previous;
-    }
-
-    this.getItem = function(key) {
-        return keys.search(key) != -1 ? items[key] : undefined;
-    }
-
-    this.hasItem = function(key)
-    {
-        return keys.search(key) != -1;
-    }
-   
-    this.removeItem = function(key)
-    {
-        if (keys.search(key) != -1) {
-            previous = items[key];
-            this.length--;
-            delete items[key];
-            keys.remove(key);
-            
-            return previous;
-        }
-        else {
-            return undefined;
-        }
-    }
-
-    this.keys = function()
-    {
-        return keys;
-    }
-
-    this.values = function()
-    {
-        var values = [];
-        var key;
-        
-        for (var i = 0; i < keys.getArray().length; i++) {
-	        key = keys.getArray()[i];
-            values.push(items[key]);
-        }
-        
-        return values;
-    }
-
-    this.each = function(fn) {
-        for (var k in keys) {
-                fn(k, items[k]);
-        }
-    }
-
-    this.clear = function()
-    {
-        items = {}
-        keys = new SortedArray();
-        this.length = 0;
-    }
-}var jSVG = new (function() {
+var jSVG = new (function() {
 	function jSVGElement(elementName) {
 		var namespace = "http://www.w3.org/2000/svg";
 		var version = "1.1";
@@ -2193,13 +2108,7 @@ wesCountry.charts.scatterPlot = function(options) {
 			inc: maxAndMinValues.inc
 		};
 	}		
-};NodeList.prototype.indexOf = function (element) {
-	for(var i=0;i<this.length;i++) {
-		if(this[i] == element)
-			return i;
-	} return -1;
-};
-////////////////////////////////////////////////////////////////////////////////
+};////////////////////////////////////////////////////////////////////////////////
 //                                  CHART
 ////////////////////////////////////////////////////////////////////////////////	
 wesCountry.charts.chart = function (options) {
@@ -2208,7 +2117,7 @@ wesCountry.charts.chart = function (options) {
 	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container; 
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	var chart;
-	switch(options.chartType.toLowerCase()) {
+	switch(options.chartType) {
 		case "bar":
 			chart = this.barChart(options);
 			break;
@@ -2227,19 +2136,13 @@ wesCountry.charts.chart = function (options) {
 	container.appendChild(chart.render());
 	return container.parentNode;
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                MULTI CHART
 ////////////////////////////////////////////////////////////////////////////////
-var optionsSave = [];
-wesCountry.charts.multiChart = function (options, newGraphic, element) {
+wesCountry.charts.multiChart = function (options) {
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
-	if(newGraphic || newGraphic === undefined) {
-		optionsSave.push(wesCountry.charts.clone(options));
-	} else {
-		var index = getIndexOfElement(element);
-		optionsSave[index].series = wesCountry.charts.clone(options.series);
-		options.xAxis = optionsSave[index].xAxis;
-	}
+	seriesSave = wesCountry.charts.clone(options.series);
 	var charts = options.chartType;
 	charts = charts instanceof Array ? charts : [charts]; //if not array convert to array
 	var container = document.createElement("div");
@@ -2270,16 +2173,16 @@ wesCountry.charts.multiChart = function (options, newGraphic, element) {
 	function createSeriesSelector() {
 		var div = document.createElement('div');
 		div.className = "seriesSelector";
-		for(var i=0; i<options.series.length;i++) {
+		for(var i=0; i<seriesSave.length;i++) {
 			var input = document.createElement('input');
 			var label = document.createElement('label');
-			input.id = options.series[i].name + "Checkbox" + wesCountry.charts.guid();
+			input.id = seriesSave[i].name + "Checkbox" + wesCountry.charts.guid();
 			input.type = "checkbox";
 			input.className = "checks";
 			input.onchange = onSeriesChanged;
 			input.checked = true;
 			label.for = input.id;
-			label.innerHTML = options.series[i].name;
+			label.innerHTML = seriesSave[i].name;
 			div.appendChild(input);
 			div.appendChild(label);
 		} container.appendChild(div);
@@ -2329,431 +2232,137 @@ wesCountry.charts.multiChart = function (options, newGraphic, element) {
 	}
 
 	function onSeriesChanged() {
-		var seriesAndXAxisValues = recoverSeriesAndXValuesItem(this);
+		var series = wesCountry.charts.clone(seriesSave);
 		var checkBoxes = this.parentNode.querySelectorAll("input");
-		var length = seriesAndXAxisValues.series.length;
+		var length = series.length;
 		for(var i=0;i<length;i++) 
 			if(!checkBoxes[i].checked)
-				delete seriesAndXAxisValues.series[i];
+				delete series[i];
 		optionSeriesWithoutUndefined();
-		putXAxisValuesOnOptions();
 		loadGraph(this.parentNode.parentNode); //div of the grap
-
-		function putXAxisValuesOnOptions() {
-			options.xAxis.values = seriesAndXAxisValues.xAxisValues;
-		} 
 
 		function optionSeriesWithoutUndefined() {
 			var seriesReturned = [];
 			for(var i=0;i<length;i++) 
-				if(seriesAndXAxisValues.series[i] !== undefined)
-					seriesReturned.push(seriesAndXAxisValues.series[i]);
+				if(series[i] !== undefined)
+					seriesReturned.push(series[i]);
 			options.series = seriesReturned;
 		}
+	}
+};
+if (typeof(wesCountry) === "undefined")
+	var wesCountry = new Object();
 
-		function recoverSeriesAndXValuesItem(element) {
-			var index = getIndexOfElement(element);
-			return {
-				series: wesCountry.charts.clone(optionsSave[index].series),
-				xAxisValues: wesCountry.charts.clone(optionsSave[index].xAxis.values)
-			};
+wesCountry.data = new (function() {
+	var myData = null;
+	var options = {};
+	var allSeries = [];
+
+	this.parseJSON = function (receivedOptions) {
+		options = wesCountry.charts.mergeOptionsAndDefaultOptions(receivedOptions, wesCountry.charts.defaultOptions);
+		options.xAxis.values = []; //removeXAxisValues
+		var json = options.data;
+		var hashTableIndicator = new HashTable();
+		for(var i=0;i<json.length;i++) {
+			var indicatorCode = json[i].indicatorCode;
+			if(!hashTableIndicator.hasItem(indicatorCode)) {
+				var filtered = json.filter(filterByIndicator);
+				var filtered = filtered.sort(sortByYear);
+				var hashTable = new HashTable();
+				for(var j=0;j<filtered.length;j++) {
+					if(hashTable.hasItem(filtered[j].countryName)) {
+						var values = hashTable.getItem(filtered[j].countryName);
+						values.push(parseFloat(filtered[j].value));
+						options.xAxis.values.indexOf(filtered[j].year) > -1
+					} else {
+						var values = [parseFloat(filtered[j].value)];	
+					}
+					hashTable.setItem(filtered[j].countryName, values);
+					insertXAxisValue(filtered[j].year);
+				}
+				hashTableIndicator.setItem(json[i].indicatorCode, hashTable);
+			}
+		}
+		myData = hashTableIndicator;
+		return this;
+
+		function filterByIndicator(element) {
+			return element.indicatorCode === indicatorCode;
+		}
+		function insertXAxisValue(value) {
+			if(options.xAxis.values.indexOf(value) < 0)
+				options.xAxis.values.push(value);
 		}
 	}
 
-	function getIndexOfElement(element) {
-		var parent = element.parentNode; //get a div
-		var allDivs = document.querySelectorAll("."+parent.className);
-		return allDivs.indexOf(parent);
+	this.parseTable = function (receivedOptions) {
+		var tables = document.querySelectorAll(".graphs");
+		for(var i=0;i<tables.length;i++) {
+			var headers = tables[i].querySelectorAll("th");
+			var rows = tables[i].querySelectorAll("tr");
+			var json = [];
+			for(var j=1;j<rows.length;j++) {
+				var obj = new Object();
+				var data = rows[j].querySelectorAll("td");
+				for(var k=0;k<data.length;k++) {
+					obj[headers[k].className] = data[k].innerHTML;
+				}
+				json.push(obj);
+			}
+			receivedOptions.data = json;
+			this.parseJSON(receivedOptions).iterate();
+		}
 	}
-};
-Element.prototype.insertAfter = function(newNode) {
-    this.parentNode.insertBefore(newNode, this.nextSibling);
-};
 
-if (typeof (wesCountry) === "undefined")
-    var wesCountry = new Object();
+	this.iterate = function () {
+		if(myData !== null) {
+			var div = document.createElement("div");
+			div.className = "indicatorSelector";
+			var select = document.createElement("select");
+			div.appendChild(select);
+			select.onchange = onIndicatorChanged;
+			var indicators = myData.keys();
+			indicators = indicators.array;
+			for(var i in indicators) {
+				var countries = myData.getItem(indicators[i]).keys().array;
+				var seriesByIndicator = [];
+				for(var c in countries) {
+					seriesByIndicator.push({
+						name: countries[c],
+						values: myData.getItem(indicators[i]).getItem(countries[c])
+					});
+				}
+				allSeries.push(seriesByIndicator);
+				var option = document.createElement("option");
+				option.innerHTML = indicators[i];
+				select.appendChild(option);
+			}
+			var wrapperDiv = document.createElement("div");
+			document.querySelector(options.container).appendChild(wrapperDiv);
+			drawSelectedIndicator();
+		}
+		function onIndicatorChanged() {
+			//this.parentNode.parentNode.querySelector(".chartDiv").remove();
+			//this.parentNode.parentNode.querySelector(".seriesSelector").remove();
+			//this.parentNode.parentNode.querySelector(".chartSelector").remove();
+			var div = this.parentNode.parentNode;
+			var wrapperDiv = div.parentNode;
+			div.remove();
+			drawSelectedIndicator();
+		}
 
-wesCountry.data = new (function() {
-    var myData = {};
-    var options = {};
-    var tablePosition = null;
-    var tableElement;
-    var xAxisValues = {};
-    var series = {};
+		function drawSelectedIndicator() {
+			var index = select.selectedIndex;
+			options.series = allSeries[index];
+			var container = wesCountry.charts.multiChart(options);
+			container.insertBefore(div, container.childNodes[0]);
+			wrapperDiv.appendChild(container);
+		}
+	}
 
-    this.parseJSON = function(receivedOptions) {
-        options = wesCountry
-                .charts.mergeOptionsAndDefaultOptions(receivedOptions, wesCountry.charts.defaultOptions);
-        var json = options.data;
-        xAxisValues.time =  new JsonParser(json).parseByTime();
-        xAxisValues.indicator =  new JsonParser(json).parseByIndicator();
-        xAxisValues.region =  new JsonParser(json).parseByRegion();
-        xAxisValues.indicatorAndTime = new JsonParser(json).parseByIndicatorAndTime();
-        xAxisValues.indicatorAndRegion = new JsonParser(json).parseByIndicatorAndRegion();
-        xAxisValues.timeAndRegion = new JsonParser(json).parseByTimeAndRegion();
-        return this;
-    };
-
-    this.parseTable = function(receivedOptions, functionName, argumentToGraphic) {
-        var tables = document.querySelectorAll(".graphs");
-        for (var i = 0; i < tables.length; i++) {
-            tableElement = tables[i]; //current table
-            var headers = tables[i].querySelectorAll("th");
-            var rows = tables[i].querySelectorAll("tr");
-            var json = [];
-            for (var j = 1; j < rows.length; j++) {
-                var obj = new Object();
-                var data = rows[j].querySelectorAll("td");
-                for (var k = 0; k < data.length; k++) {
-                    obj[headers[k].className] = data[k].innerHTML;
-                }
-                json.push(obj);
-            }
-            receivedOptions.data = json;
-            if (receivedOptions.container === undefined)
-                tablePosition = receivedOptions.tablePosition;
-            var iterator = this.parseJSON(receivedOptions).iterate()[functionName](argumentToGraphic);
-        }
-
-    };
-
-    this.iterate = function() {
-        return new Iterator(myData);
-    };
-
-    function JsonParser(json) {
-
-        this.parseByIndicator = function() {
-            var returned = myData.indicator = getHashTable(sortByYear, "indicatorCode", "countryName", "value", "year");
-            myData.indicator = returned[0];
-            return returned[1];
-        };
-
-        this.parseByTime = function() {
-            var sortByIndicator = undefined;
-            
-            var returned = getHashTable(sortByIndicator, "year", "countryName", "value", "indicatorCode");
-            myData.time = returned[0];
-            return returned[1];
-        };
-
-        this.parseByRegion = function() {
-            var returned = getHashTable(sortByYear, "countryName", "indicatorCode", "value", "year");
-            myData.region = returned[0];
-            return returned[1];
-        };
-
-        this.parseByIndicatorAndTime = function() {
-            var returned = getHashTable(sortByYear, "indicatorCode", "year", "value", "countryName");
-            myData.indicatorAndTime = returned[0];
-            return returned[1];
-        };
-
-        this.parseByIndicatorAndRegion = function() {
-            var returned = getHashTable(sortByYear, "indicatorCode", "countryName", "value", "year");
-            myData.indicatorAndRegion = returned[0];
-            return returned[1];
-        };
-
-        this.parseByTimeAndRegion = function() {
-            var returned = getHashTable(sortByYear, "year", "countryName", "value", "indicatorCode");
-            myData.timeAndRegion = returned[0];
-            return returned[1];
-        }
-
-        var sortByYear = function(a,b) {
-            return a.year - b.year;
-        };
-
-        var getHashTable = function(sortFunction, selectorProperty, itemProperty, valueProperty, xAxisValueProperty) {
-            var xAxisValues = [];
-            var hashTableSelector = new HashTable();
-            for (var i = 0; i < json.length; i++) {
-                var indicatorSelector = json[i][selectorProperty];
-                if (!hashTableSelector.hasItem(indicatorSelector)) {
-                    var filtered = json.filter(filterByIndicator);
-                    filtered = filtered.sort(sortFunction);
-                    var hashTable = new HashTable();
-                    for (var j = 0; j < filtered.length; j++) {
-                        if (hashTable.hasItem(filtered[j][itemProperty])) {
-                            var values = hashTable.getItem(filtered[j][itemProperty]);
-                            values.push(parseFloat(filtered[j][valueProperty]));
-                        } else {
-                            var values = [parseFloat(filtered[j][valueProperty])];
-                        }
-                        hashTable.setItem(filtered[j][itemProperty], values);
-                        insertXAxisValue(filtered[j][xAxisValueProperty]);
-                    }
-                    hashTableSelector.setItem(json[i][selectorProperty], hashTable);
-                }
-            } return [hashTableSelector, xAxisValues];
-
-            function filterByIndicator(element) {
-                return element[selectorProperty] === indicatorSelector;
-            }
-
-            function insertXAxisValue(value) {
-                if (xAxisValues.indexOf(value) < 0)
-                    xAxisValues.push(value);
-            }
-        };
-    }
-
-    function Iterator(data) {
-
-        this.byIndicator = function(indicator) {
-            var myData = data.indicator;
-            series.indicator = [];
-            var by = new ByOneFunctions();
-            by.by(myData, xAxisValues.indicator, series.indicator, indicator);
-        };
-
-        this.byTime = function(time) {
-            var myData = data.time;
-            series.time = [];
-            var by = new ByOneFunctions();
-            by.by(myData, xAxisValues.time, series.time, time);
-        };
-
-        this.byRegion = function(region) {
-            var myData = data.region;
-            series.region = [];
-            var by = new ByOneFunctions();
-            by.by(myData, xAxisValues.region, series.region, region);
-        };
-
-        this.byIndicatorAndTime = function(indicator, time) {
-            var myData = data.indicatorAndTime;
-            series.indicatorAndTime = [];
-            var by = new ByTwoFunctions();
-            by.by(myData, xAxisValues.indicatorAndTime, series.indicatorAndTime, indicator, time);
-        };
-
-        this.byIndicatorAndRegion = function(indicator, region) {
-            var myData = data.indicatorAndRegion;
-            series.indicatorAndRegion = [];
-            var by = new ByTwoFunctions();
-            by.by(myData, xAxisValues.indicatorAndRegion, series.indicatorAndRegion, indicator, region);
-        };
-
-        this.byTimeAndRegion = function(time, region) {
-            var myData = data.timeAndRegion;
-            series.timeAndRegion = [];
-            var by = new ByTwoFunctions();
-            by.by(myData, xAxisValues.timeAndRegion, series.timeAndRegion, time, region);
-        };
-
-        function ByOneFunctions() {
-            var select;
-            var mySeries;
-            var div;
-            var wrapperDiv;
-            var indicators;
-
-            this.createSelect = function(div, indicators) {
-                select = document.createElement("select");
-                div.appendChild(select);
-                select.onchange = this.onIndicatorChanged;
-                for(var i=0;i<indicators.length;i++) {
-                    var option = document.createElement("option");
-                    option.innerHTML = indicators[i];
-                    select.appendChild(option);    
-                }
-            };
-
-            this.drawSelectedIndicator = function(index, _mySeries, _div, _wrapperDiv, _indicators, newGraphic) {
-                mySeries = _mySeries;
-                div = _div;
-                wrapperDiv = _wrapperDiv;
-                indicators = _indicators;
-                drawSelectedIndicator(index, newGraphic);
-            };
-
-            var drawSelectedIndicator = function(index, newGraphic) {
-                options.series = mySeries[index];
-                if (select.childNodes.length === 1) {
-                    var element = document.createElement("p");
-                    element.innerHTML = indicators[0];
-                    select.parentNode.insertBefore(element, select);
-                    select.remove();
-                }
-                var container = wesCountry.charts.multiChart(options, newGraphic, select);
-                container.insertBefore(div, container.childNodes[0]);
-                wrapperDiv.appendChild(container);
-            }
-
-            this.onIndicatorChanged = function() {
-                var div = this.parentNode.parentNode;
-                var wrapperDiv = div.parentNode;
-                drawSelectedIndicator(select.selectedIndex, false);
-                div.remove();
-            };
-
-            this.by = function(myData, xAxisValues, mySeries, indicatorFilter) {
-                if (myData !== null) {
-                    var div = document.createElement("div");
-                    div.className = "indicatorSelector";
-                    var indicators = indicatorFilter !== undefined ?
-                                     myData.keys().array.filter(filterIndicator) :
-                                     myData.keys().array;
-                    for (var i = 0; i < indicators.length; i++) {
-                        var countries = myData.getItem(indicators[i]).keys().array;
-                        var seriesByIndicator = [];
-                        for (var c = 0; c < countries.length; c++) {
-                            seriesByIndicator.push({
-                                name: countries[c],
-                                values: myData.getItem(indicators[i]).getItem(countries[c])
-                            });
-                        }
-                        mySeries.push(seriesByIndicator);
-                    }
-                    this.createSelect(div, indicators, countries);
-                    var wrapperDiv = document.createElement("div");
-                    setTablePosition();
-                    options.xAxis.values = xAxisValues;
-                    this.drawSelectedIndicator(0, mySeries, div, wrapperDiv, indicators);
-                }
-
-                function filterIndicator(element) {
-                    return element === indicatorFilter;
-                }
-
-                function filterSecond(element) {
-                    return element === secondFilter;
-                }
-
-                function setTablePosition() {
-                    if (tablePosition === null) {
-                        document.querySelector(options.container).appendChild(wrapperDiv);
-                    }
-                    else {
-                        if (tablePosition.toLowerCase() === "above")
-                            tableElement.insertAfter(wrapperDiv);
-                        else if (tablePosition.toLowerCase() === "below")
-                            tableElement.parentNode.insertBefore(wrapperDiv, tableElement);
-                    }
-                }   
-            };
-        }
-
-        function ByTwoFunctions() {
-            var select;
-            var select2;
-            var mySeries;
-            var div;
-            var wrapperDiv;
-            var indicators;
-            var secondIndicators;
-
-            this.createSelect = function(div, indicators, secondIndicators) {
-                select = document.createElement("select");
-                select2 = document.createElement("select");
-                div.appendChild(select);
-                div.appendChild(select2);
-                select.onchange = this.onIndicatorChanged;
-                select2.onchange = this.onIndicatorChanged;
-                for(var i=0;i<indicators.length;i++) {
-                    var option = document.createElement("option");
-                    option.innerHTML = indicators[i];
-                    select.appendChild(option);    
-                }
-                for(var i=0;i<secondIndicators.length;i++) {
-                    var option = document.createElement("option");
-                    option.innerHTML = secondIndicators[i];
-                    select2.appendChild(option);
-                }
-            };
-
-            this.drawSelectedIndicator = function(index, index2, _mySeries, _div, _wrapperDiv, _indicators, _secondIndicators, newGraphic) {
-                mySeries = _mySeries;
-                div = _div;
-                wrapperDiv = _wrapperDiv;
-                indicators = _indicators;
-                secondIndicators = _secondIndicators;
-                drawSelectedIndicator(index, index2, newGraphic);
-            };
-
-            var drawSelectedIndicator = function(index, index2, newGraphic) {
-                options.series = mySeries[index][index2];
-                if (select.childNodes.length === 1) {
-                    var element = document.createElement("p");
-                    element.innerHTML = indicators[0];
-                    select.parentNode.insertBefore(element, select);
-                    select.remove();
-                }
-                if (select2.childNodes.length === 1) {
-                    var element = document.createElement("p");
-                    element.innerHTML = secondIndicators[0];
-                    select2.parentNode.insertBefore(element, select2);
-                    select2.remove();
-                }
-                var container = wesCountry.charts.multiChart(options, newGraphic, select);
-                container.insertBefore(div, container.childNodes[0]);
-                wrapperDiv.appendChild(container);
-            };
-
-            this.onIndicatorChanged = function() {
-                var div = this.parentNode.parentNode;
-                var wrapperDiv = div.parentNode;
-                drawSelectedIndicator(select.selectedIndex, select2.selectedIndex, false);
-                div.remove();
-            };
-
-            this.by = function(myData, xAxisValues, mySeries, indicatorFilter, indicatorFilter2) {
-                if (myData !== null) {
-                    var div = document.createElement("div");
-                    div.className = "indicatorSelector";
-                    var indicators = indicatorFilter !== undefined ?
-                                     myData.keys().array.filter(filterIndicator) :
-                                     myData.keys().array;
-                    for (var i = 0; i < indicators.length; i++) {
-                        var countries = indicatorFilter2 !== undefined ?
-                                        myData.getItem(indicators[i]).keys().array.filter(filterSecondIndicator) :
-                                        myData.getItem(indicators[i]).keys().array;
-                        var seriesByIndicator = [];
-                        for (var c = 0; c < countries.length; c++) {
-                            seriesByIndicator[c] = [];
-                            seriesByIndicator[c].push({
-                                name: countries[c],
-                                values: myData.getItem(indicators[i]).getItem(countries[c])
-                            });
-                        }
-                        mySeries.push(seriesByIndicator);
-                    }
-                    this.createSelect(div, indicators, countries);
-                    var wrapperDiv = document.createElement("div");
-                    setTablePosition();
-                    options.xAxis.values = xAxisValues;
-                    this.drawSelectedIndicator(0, 0, mySeries, div, wrapperDiv, indicators, countries);
-                }
-
-                function filterIndicator(element) {
-                    return element === indicatorFilter;
-                }
-
-                function filterSecondIndicator(element) {
-                    return element === indicatorFilter2;
-                }
-
-                function setTablePosition() {
-                    if (tablePosition === null) {
-                        document.querySelector(options.container).appendChild(wrapperDiv);
-                    }
-                    else {
-                        if (tablePosition.toLowerCase() === "above")
-                            tableElement.insertAfter(wrapperDiv);
-                        else if (tablePosition.toLowerCase() === "below")
-                            tableElement.parentNode.insertBefore(wrapperDiv, tableElement);
-                    }
-                }   
-            };
-
-        }
-
-        
-    }
-
-    
+	var sortByYear = function (a,b) {
+		return a.year - b.year;
+	}
 
 })();if (typeof(wesCountry) === "undefined")
 	var wesCountry = {};
