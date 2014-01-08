@@ -36,14 +36,20 @@ wesCountry.charts.chart = function (options) {
 //                                MULTI CHART
 ////////////////////////////////////////////////////////////////////////////////
 var optionsSave = [];
-wesCountry.charts.multiChart = function (options, newGraphic, element) {
-	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+wesCountry.charts.multiChartRemoveData = function () {
+	optionsSave = [];
+};
+
+wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
+	options = wesCountry.charts.mergeOptionsAndDefaultOptions(optionsReceived, wesCountry.charts.defaultOptions);
 	if(newGraphic || newGraphic === undefined) {
-		optionsSave.push(wesCountry.charts.clone(options));
+		var optionsToSave = wesCountry.charts.clone(options);
+		optionsToSave.xAxis = wesCountry.charts.clone(options.xAxis);
+		optionsSave.push(optionsToSave);
 	} else {
 		var index = getIndexOfElement(element);
 		optionsSave[index].series = wesCountry.charts.clone(options.series);
-		options.xAxis = optionsSave[index].xAxis;
+		options.xAxis = wesCountry.charts.clone(options.xAxis);
 	}
 	var charts = options.chartType;
 	charts = charts instanceof Array ? charts : [charts]; //if not array convert to array
