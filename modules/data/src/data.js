@@ -189,22 +189,48 @@ wesCountry.data = new (function() {
             select.onchange = drawFilteredGraphics.bind(this);
 
             function getAllModules() {
+                return document.querySelectorAll(".chartDiv");
+            }
+
+            function getContainerModules() {
                 return container.querySelectorAll(".chartDiv");
             }
 
+            function getGlobalFilters() {
+                var divs = document.querySelectorAll(".chartDiv");
+                var containers = [];
+                for(var i=0;i<divs.length;i++)
+                        containers.pushIfNotExist(divs[i]
+                            .parentNode.parentNode.parentNode);
+                return containers;
+            }
+
             function drawFilteredGraphics() {
-                var divs = getAllModules();
+                var allDivs = getAllModules();
+                var divs = getContainerModules();
+                var allContainers = getGlobalFilters();
                 var filters = {};
                 filters[selector] = select.options[select.selectedIndex].innerHTML;
-                wesCountry.charts.multiChartRemoveData(); //delete all previous series saved
-                if(divs.length <= 0)
+                if(getContainerModules().length <= 0)
                     for(var i=0;i<graphicFunctionNames.length;i++)
                         this[graphicFunctionNames[i]+"Filtered"](filters);
-                else
-                    for(var i=0;i<divs.length;i++) {
+                else {
+                    var div = divs[0];
+                    var index = allDivs.indexOf(div);
+                    wesCountry.charts.multiChartRemoveData(index, divs.length);
+                    var length = divs.length;
+                    options.container = div.parentNode.parentNode.parentNode;
+                    var indexes = [];
+                    for(var i=0;i<length;i++) {
+                        indexes.push(allDivs.indexOf(divs[i]));
                         divs[i].parentNode.parentNode.remove();
-                        this[graphicFunctionNames[i]+"Filtered"](filters);
                     }
+                    for(var j=0;j<length;j++) {
+                        wesCountry.charts.setPushIndex(indexes[j]);
+                        this[graphicFunctionNames[j]+"Filtered"](filters);
+                        wesCountry.charts.setPushIndex("length");
+                    }
+                }
             }
         };
 
@@ -489,7 +515,10 @@ wesCountry.data = new (function() {
 
                 function setTablePosition() {
                     if (tablePosition === null) {
-                        document.querySelector(options.container).appendChild(wrapperDiv);
+                        var container = typeof options.container === "string" ? 
+                            document.querySelector(options.container) : 
+                            options.container;
+                        container.appendChild(wrapperDiv);
                     }
                     else {
                         if (tablePosition.toLowerCase() === "above")

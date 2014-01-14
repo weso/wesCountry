@@ -50,7 +50,7 @@ window.onload = function () {
 
 	var myOptions = {
 		data: info,
-		container: "body",
+		container: "div#indicator",
 		chartType: ["line", "bar", "pie", "area"],
 		xAxis: {
 				title: "Years"
@@ -60,4 +60,8 @@ window.onload = function () {
 	
 	var graphicFunctionNames = ["byIndicator", "byRegion", "byTime", "byIndicatorAndTime", "byIndicatorAndRegion", "byTimeAndRegion"];
 	wesCountry.data.parseJSON(myOptions).iterate().selectBy("indicator", graphicFunctionNames);
+	myOptions.container = "div#region";
+	wesCountry.data.parseJSON(myOptions).iterate().selectBy("region", graphicFunctionNames);
+	myOptions.container = "div#time";
+	wesCountry.data.parseJSON(myOptions).iterate().selectBy("time", graphicFunctionNames);
 }

@@ -36,16 +36,30 @@ wesCountry.charts.chart = function (options) {
 //                                MULTI CHART
 ////////////////////////////////////////////////////////////////////////////////
 var optionsSave = [];
-wesCountry.charts.multiChartRemoveData = function () {
-	optionsSave = [];
+var pushIndex = optionsSave.length;
+wesCountry.charts.multiChartRemoveData = function (from, numberOf) {
+	optionsSave.splice(from, numberOf);
+};
+
+wesCountry.charts.setPushIndex = function (index) {
+	if(index === "length") {
+		pushIndex = optionsSave.length;
+	} else {
+		pushIndex = index;
+	}
 };
 
 wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
+	var containerReceived = optionsReceived.container;
+	optionsReceived.container = "body";
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(optionsReceived, wesCountry.charts.defaultOptions);
+	options.container = containerReceived;
+	optionsReceived.container = containerReceived;
 	if(newGraphic || newGraphic === undefined) {
 		var optionsToSave = wesCountry.charts.clone(options);
 		optionsToSave.xAxis = wesCountry.charts.clone(options.xAxis);
-		optionsSave.push(optionsToSave);
+		optionsSave.splice(pushIndex, 0, optionsToSave);
+		wesCountry.charts.setPushIndex("length");
 	} else {
 		var index = getIndexOfElement(element);
 		optionsSave[index].series = wesCountry.charts.clone(options.series);
@@ -54,7 +68,10 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	var charts = options.chartType;
 	charts = charts instanceof Array ? charts : [charts]; //if not array convert to array
 	var container = document.createElement("div");
-	document.querySelector(options.container).appendChild(container);
+	if(typeof options.container === "string")
+		document.querySelector(options.container).appendChild(container);
+	else 
+		options.container.appendChild(container);
 	createChartSelector();
 	createSeriesSelector();
 	return createChart();

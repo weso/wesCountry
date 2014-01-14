@@ -2231,16 +2231,30 @@ wesCountry.charts.chart = function (options) {
 //                                MULTI CHART
 ////////////////////////////////////////////////////////////////////////////////
 var optionsSave = [];
-wesCountry.charts.multiChartRemoveData = function () {
-	optionsSave = [];
+var pushIndex = optionsSave.length;
+wesCountry.charts.multiChartRemoveData = function (from, numberOf) {
+	optionsSave.splice(from, numberOf);
+};
+
+wesCountry.charts.setPushIndex = function (index) {
+	if(index === "length") {
+		pushIndex = optionsSave.length;
+	} else {
+		pushIndex = index;
+	}
 };
 
 wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
+	var containerReceived = optionsReceived.container;
+	optionsReceived.container = "body";
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(optionsReceived, wesCountry.charts.defaultOptions);
+	options.container = containerReceived;
+	optionsReceived.container = containerReceived;
 	if(newGraphic || newGraphic === undefined) {
 		var optionsToSave = wesCountry.charts.clone(options);
 		optionsToSave.xAxis = wesCountry.charts.clone(options.xAxis);
-		optionsSave.push(optionsToSave);
+		optionsSave.splice(pushIndex, 0, optionsToSave);
+		wesCountry.charts.setPushIndex("length");
 	} else {
 		var index = getIndexOfElement(element);
 		optionsSave[index].series = wesCountry.charts.clone(options.series);
@@ -2249,7 +2263,10 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	var charts = options.chartType;
 	charts = charts instanceof Array ? charts : [charts]; //if not array convert to array
 	var container = document.createElement("div");
-	document.querySelector(options.container).appendChild(container);
+	if(typeof options.container === "string")
+		document.querySelector(options.container).appendChild(container);
+	else 
+		options.container.appendChild(container);
 	createChartSelector();
 	createSeriesSelector();
 	return createChart();
@@ -2563,22 +2580,47 @@ wesCountry.data = new (function() {
             select.onchange = drawFilteredGraphics.bind(this);
 
             function getAllModules() {
+                return document.querySelectorAll(".chartDiv");
+            }
+
+            function getContainerModules() {
                 return container.querySelectorAll(".chartDiv");
             }
 
+            function getGlobalFilters() {
+                var divs = document.querySelectorAll(".chartDiv");
+                var containers = [];
+                for(var i=0;i<divs.length;i++)
+                        containers.pushIfNotExist(divs[i]
+                            .parentNode.parentNode.parentNode);
+                return containers;
+            }
+
             function drawFilteredGraphics() {
-                var divs = getAllModules();
+                var allDivs = getAllModules();
+                var divs = getContainerModules();
+                var allContainers = getGlobalFilters();
                 var filters = {};
                 filters[selector] = select.options[select.selectedIndex].innerHTML;
-                wesCountry.charts.multiChartRemoveData(); //delete all previous series saved
-                if(divs.length <= 0)
+                if(getContainerModules().length <= 0)
                     for(var i=0;i<graphicFunctionNames.length;i++)
                         this[graphicFunctionNames[i]+"Filtered"](filters);
-                else
-                    for(var i=0;i<divs.length;i++) {
+                else {
+                    var div = divs[0];
+                    var index = allDivs.indexOf(div);
+                    wesCountry.charts.multiChartRemoveData(index, divs.length);
+                    var length = divs.length;
+                    options.container = div.parentNode.parentNode.parentNode;
+                    for(var i=0;i<length;i++) {
+                        index = allDivs.indexOf(divs[i]);
                         divs[i].parentNode.parentNode.remove();
-                        this[graphicFunctionNames[i]+"Filtered"](filters);
                     }
+                    for(var j=0;j<length;j++) {
+                        wesCountry.charts.setPushIndex(index);
+                        this[graphicFunctionNames[j]+"Filtered"](filters);
+                        wesCountry.charts.setPushIndex("length");
+                    }
+                }
             }
         };
 
@@ -2593,7 +2635,7 @@ wesCountry.data = new (function() {
             var myData = data.indicator;
             series.indicator = [];
             var by = new ByOneFunctions();
-            by.by(myData, xAxisValues.indicator, series.indicator, filters.indicator, filters.time, filters.region);
+            by.by(myData, xAxisValues.indicator, series.indicator, filters.indicator, filters.region, filters.time);
         };
 
         this.byTime = function(time) {
@@ -2863,7 +2905,10 @@ wesCountry.data = new (function() {
 
                 function setTablePosition() {
                     if (tablePosition === null) {
-                        document.querySelector(options.container).appendChild(wrapperDiv);
+                        var container = typeof options.container === "string" ? 
+                            document.querySelector(options.container) : 
+                            options.container;
+                        container.appendChild(wrapperDiv);
                     }
                     else {
                         if (tablePosition.toLowerCase() === "above")
