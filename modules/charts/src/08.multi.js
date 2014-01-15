@@ -153,6 +153,9 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	function onGraphSelected() {
 		setSelectedGraphToActive(this.innerHTML, this.parentNode.parentNode);
 		var div = this.parentNode.parentNode.parentNode.parentNode;
+		var recovered = recoverSeriesAndXValuesItem(this.parentNode.parentNode);
+		options.series = recovered.series;
+		options.xAxis.values = recovered.xAxisValues;
 		loadGraph(div);
 	}
 
@@ -178,14 +181,14 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 					seriesReturned.push(seriesAndXAxisValues.series[i]);
 			options.series = seriesReturned;
 		}
+	}
 
-		function recoverSeriesAndXValuesItem(element) {
+	function recoverSeriesAndXValuesItem(element) {
 			var index = getIndexOfElement(element);
 			return {
 				series: wesCountry.charts.clone(optionsSave[index].series),
 				xAxisValues: wesCountry.charts.clone(optionsSave[index].xAxis.values)
 			};
-		}
 	}
 
 	function getIndexOfElement(element) {
