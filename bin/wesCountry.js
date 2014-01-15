@@ -2348,6 +2348,9 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	function onGraphSelected() {
 		setSelectedGraphToActive(this.innerHTML, this.parentNode.parentNode);
 		var div = this.parentNode.parentNode.parentNode.parentNode;
+		var recovered = recoverSeriesAndXValuesItem(this.parentNode.parentNode);
+		options.series = recovered.series;
+		options.xAxis.values = recovered.xAxisValues;
 		loadGraph(div);
 	}
 
@@ -2373,14 +2376,14 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 					seriesReturned.push(seriesAndXAxisValues.series[i]);
 			options.series = seriesReturned;
 		}
+	}
 
-		function recoverSeriesAndXValuesItem(element) {
+	function recoverSeriesAndXValuesItem(element) {
 			var index = getIndexOfElement(element);
 			return {
 				series: wesCountry.charts.clone(optionsSave[index].series),
 				xAxisValues: wesCountry.charts.clone(optionsSave[index].xAxis.values)
 			};
-		}
 	}
 
 	function getIndexOfElement(element) {
@@ -2611,12 +2614,13 @@ wesCountry.data = new (function() {
                     wesCountry.charts.multiChartRemoveData(index, divs.length);
                     var length = divs.length;
                     options.container = div.parentNode.parentNode.parentNode;
+                    var indexes = [];
                     for(var i=0;i<length;i++) {
-                        index = allDivs.indexOf(divs[i]);
+                        indexes.push(allDivs.indexOf(divs[i]));
                         divs[i].parentNode.parentNode.remove();
                     }
                     for(var j=0;j<length;j++) {
-                        wesCountry.charts.setPushIndex(index);
+                        wesCountry.charts.setPushIndex(indexes[j]);
                         this[graphicFunctionNames[j]+"Filtered"](filters);
                         wesCountry.charts.setPushIndex("length");
                     }
@@ -2706,6 +2710,27 @@ wesCountry.data = new (function() {
             series.timeAndRegion = [];
             var by = new ByTwoFunctions();
             by.by(myData, xAxisValues.timeAndRegion, series.timeAndRegion, filters.time, filters.region, filters.indicator);
+        };
+
+        this.max = function(numberOfItems, indicator, time) {
+            var myData = data.indicatorAndTime;
+            series.indicatorAndTime = [];
+            var by = new ByMaxAndMin(numberOfItems, "max");
+            by.by(myData, xAxisValues.indicatorAndTime, series.indicatorAndTime, indicator, time);
+        };
+
+        this.min = function(numberOfItems, indicator, time) {
+            var myData = data.indicatorAndTime;
+            series.indicatorAndTime = [];
+            var by = new ByMaxAndMin(numberOfItems, "min");
+            by.by(myData, xAxisValues.indicatorAndTime, series.indicatorAndTime, indicator, time);
+        };
+
+        this.statisticalAggregates = function(indicator, region) {
+            var myData = data.indicatorAndRegion;
+            series.indicatorAndRegion = [];
+            var by = new ByStatisticalAggregates();
+            by.by(myData, xAxisValues.indicatorAndRegion, series.indicatorAndRegion, indicator, region);
         };
 
         function ByOneFunctions() {
@@ -2869,6 +2894,175 @@ wesCountry.data = new (function() {
                 }
             };
 
+            this.by = new By().by;
+        }
+
+        function ByMaxAndMin(numberOfItems, method) {
+            var select;
+            var select2;
+            var mySeries;
+            var div;
+            var wrapperDiv;
+            var indicators;
+            var secondIndicators;
+
+            this.createSelect = function() {};
+
+            this.drawSelectedIndicator = function(index, index2, _mySeries, _div, _wrapperDiv, _indicators, _secondIndicators, newGraphic) {
+                mySeries = _mySeries;
+                div = _div;
+                wrapperDiv = _wrapperDiv;
+                indicators = _indicators;
+                secondIndicators = _secondIndicators;
+                drawSelectedIndicator(index, index2, newGraphic);
+            };
+
+            var drawSelectedIndicator = function(index, index2, newGraphic) {
+                options.series = mySeries[index][index2];
+                var container = wesCountry.charts.multiChart(options, newGraphic, select);
+                container.insertBefore(div, container.childNodes[0]);
+                wrapperDiv.appendChild(container);
+            };
+
+            this.putSeriesByIndicator = function(myData, seriesByIndicator, indicators, countries, i, filter, xAxisValues) {
+                var item = getIndexOfXValue();
+                for (var c = 0; c < countries.length; c++) {
+                    if(filter !== undefined) {
+                        seriesByIndicator[c] = [];
+                        seriesByIndicator[c].push({
+                            name: countries[c],
+                            values: [myData.getItem(indicators[i]).getItem(countries[c])[item]]
+                        });
+                    } else {
+                        seriesByIndicator[c] = [];
+                        seriesByIndicator[c].push({
+                            name: countries[c],
+                            values: myData.getItem(indicators[i]).getItem(countries[c])
+                        });
+                    }
+                }
+                var compare;
+                if(method === "max")
+                    compare = function(a,b) {
+                        return a < b;
+                    }
+                else if(method === "min")
+                    compare = function(a,b) {
+                        return a > b;
+                    }
+                var series = seriesByIndicator[0][0].values;
+                for(var i = 0; i < series.length; i++) {
+                    for(var j = series.length; j > i; j--) {
+                        if(compare(series[i], series[j])) {
+                            var temp = series[i];
+                            series[i] = series[j];
+                            series[j] = temp;
+                            temp = xAxisValues[i];
+                            xAxisValues[i] = xAxisValues[j];
+                            xAxisValues[j] = temp;
+                        }
+                    }
+                }
+                series = series.slice(0, numberOfItems);
+                function getIndexOfXValue() {
+                    for(var i=0;i<xAxisValues.length;i++)
+                        if(xAxisValues[i] === filter)
+                            return i;
+                    }
+            };
+
+            this.by = new By().by;
+        }
+
+        function ByStatisticalAggregates() {
+            var select;
+            var select2;
+            var mySeries;
+            var div;
+            var wrapperDiv;
+            var indicators;
+            var secondIndicators;
+
+            this.createSelect = function() {};
+
+            this.drawSelectedIndicator = function(index, index2, _mySeries, _div, _wrapperDiv, _indicators, _secondIndicators, newGraphic) {
+                mySeries = _mySeries;
+                div = _div;
+                wrapperDiv = _wrapperDiv;
+                indicators = _indicators;
+                secondIndicators = _secondIndicators;
+                drawSelectedIndicator(index, index2, newGraphic);
+            };
+
+            var drawSelectedIndicator = function(index, index2, newGraphic) {
+                var series =  mySeries[0][0][0].values;
+                var statitics = {};
+                statitics.sum = series.reduce(function(a,b) {return a+b;});
+                statitics.average = statitics.sum / series.length;
+                statitics.max = series.reduce(function(a,b) {return a>b ? a : b});
+                statitics.min = series.reduce(function(a,b) {return a<b ? a : b});
+                series.sort();
+                if(series.length % 2 == 0)
+                    statitics.median = (series[series.length/2]+series[series.length/2-1])/2;
+                else
+                    statitics.median = series[(series.length-1) / 2];
+                createStatiticsTable();
+
+                function createStatiticsTable() {
+                    var table = document.createElement("table");
+                    var theader = document.createElement("thead");
+                    table.appendChild(theader);
+                    var tr = document.createElement("tr");
+                    theader.appendChild(tr);
+                    var headers = ["Statistical aggregate", "Value"];
+                    for(var i=0;i<headers.length;i++) {
+                        var td = document.createElement("td");
+                        td.innerHTML = headers[i];
+                        tr.appendChild(td);
+                    }
+                    var tbody = document.createElement("tbody");
+                    table.appendChild(tbody);
+                    for(var a in statitics) {
+                        var tr = document.createElement("tr");
+                        tbody.appendChild(tr);
+                        var td = document.createElement("td");
+                        td.innerHTML = a;
+                        tr.appendChild(td);
+                        td = document.createElement("td");
+                        td.innerHTML = statitics[a];
+                        tr.appendChild(td);
+                    }
+                    var container = typeof options.container === "string" ? 
+                            document.querySelector(options.container) : 
+                            options.container;
+                    container.appendChild(table);
+                }
+            };
+
+            this.putSeriesByIndicator = function(myData, seriesByIndicator, indicators, countries, i, filter, xAxisValues) {
+                var item = getIndexOfXValue();
+                for (var c = 0; c < countries.length; c++) {
+                    if(filter !== undefined) {
+                        seriesByIndicator[c] = [];
+                        seriesByIndicator[c].push({
+                            name: countries[c],
+                            values: [myData.getItem(indicators[i]).getItem(countries[c])[item]]
+                        });
+                    } else {
+                        seriesByIndicator[c] = [];
+                        seriesByIndicator[c].push({
+                            name: countries[c],
+                            values: myData.getItem(indicators[i]).getItem(countries[c])
+                        });
+                    }
+                }
+
+                function getIndexOfXValue() {
+                    for(var i=0;i<xAxisValues.length;i++)
+                        if(xAxisValues[i] === filter)
+                            return i;
+                }
+            };
             this.by = new By().by;
         }
 
