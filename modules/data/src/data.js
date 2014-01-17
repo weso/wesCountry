@@ -332,6 +332,13 @@ wesCountry.data = new (function() {
             by.by(myData, xAxisValues.indicatorAndTime, series.indicatorAndTime, indicator, time);
         };
 
+        this.byOneElementChangingYears = function(indicator, region, time) {
+            var myData = data.indicatorAndRegion;
+            series.indicatorAndRegion = [];
+            var by = new ByOneElementChangingYears();
+            by.by(myData, xAxisValues.indicatorAndRegion, series.indicatorAndRegion, indicator, region);
+        };
+
         this.statisticalAggregates = function(indicator, region) {
             var myData = data.indicatorAndRegion;
             series.indicatorAndRegion = [];
@@ -575,6 +582,97 @@ wesCountry.data = new (function() {
                         if(xAxisValues[i] === filter)
                             return i;
                     }
+            };
+
+            this.by = new By().by;
+        }
+
+        function ByOneElementChangingYears() {
+            var mySeries;
+            var div;
+            var wrapperDiv;
+            var indicators;
+            var secondIndicators;
+            var years;
+            var currentYear;
+            var buttonBackward;
+            var buttonForward;
+
+            this.createSelect = function(div, indicators, secondIndicators) {
+                var indicator = document.createElement("p");
+                indicator.innerHTML = indicators[0];
+                div.appendChild(indicator);
+                var country = document.createElement("p");
+                country.innerHTML = secondIndicators[0];
+                div.appendChild(country);
+                var controlDiv = document.createElement("div");
+                div.appendChild(controlDiv);
+                buttonBackward = document.createElement("button");
+                buttonBackward.innerHTML = String.fromCharCode(8656);
+                buttonBackward.onclick = onPreviousYear;
+                div.appendChild(buttonBackward);
+                currentYear = document.createElement("div");
+                currentYear.innerHTML = years[0];
+                controlDiv.appendChild(currentYear);
+                buttonForward = document.createElement("button");
+                buttonForward.innerHTML = String.fromCharCode(8658);
+                buttonForward.onclick = onNextYear;
+                div.appendChild(buttonForward);
+            };
+
+            var onNextYear = function() {
+                onYearChanged.bind(this)(1);
+            };
+
+            var onPreviousYear = function() {
+                onYearChanged.bind(this)(-1);
+            };
+
+            var onYearChanged = function(advance) {
+                var index = years.indexOf(currentYear.innerHTML)+advance;
+                currentYear.innerHTML = years[index];
+                var div = this.parentNode.parentNode;
+                var wrapperDiv = div.parentNode;
+                drawSelectedIndicator(0, index, false);
+                div.remove();
+                //disable buttons for avoiding errors
+                if(index+1 >= years.length) {
+                    buttonForward.disabled = true;
+                    buttonBackward.disabled = false;
+                } else if(index <= 0) {
+                    buttonForward.disabled = false;
+                    buttonBackward.disabled = true;
+                } else {
+                    buttonForward.disabled = false;
+                    buttonBackward.disabled = false;
+                }
+            };
+
+            this.drawSelectedIndicator = function(index, index2, _mySeries, _div, _wrapperDiv, _indicators, _secondIndicators, newGraphic) {
+                mySeries = _mySeries;
+                div = _div;
+                wrapperDiv = _wrapperDiv;
+                indicators = _indicators;
+                secondIndicators = _secondIndicators;
+                drawSelectedIndicator(index, index2, newGraphic);
+            };
+
+            var drawSelectedIndicator = function(index, index2, newGraphic) {
+                var container = document.createElement("p");
+                container.innerHTML = mySeries[index][index2][0].values[0];
+                container.insertBefore(div, container.childNodes[0]);
+                wrapperDiv.appendChild(container);
+            };
+
+            this.putSeriesByIndicator = function(myData, seriesByIndicator, indicators, countries, i, filter, xAxisValues) {
+                for (var c = 0; c < xAxisValues.length; c++) {
+                        seriesByIndicator[c] = [];
+                        seriesByIndicator[c].push({
+                            name: countries[0],
+                            values: [myData.getItem(indicators[i]).getItem(countries[0])[c]]
+                        });
+                }
+                years = xAxisValues;
             };
 
             this.by = new By().by;
