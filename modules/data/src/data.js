@@ -609,6 +609,7 @@ wesCountry.data = new (function() {
                 div.appendChild(controlDiv);
                 buttonBackward = document.createElement("button");
                 buttonBackward.innerHTML = String.fromCharCode(8656);
+                buttonBackward.disabled = true;
                 buttonBackward.onclick = onPreviousYear;
                 div.appendChild(buttonBackward);
                 currentYear = document.createElement("div");
