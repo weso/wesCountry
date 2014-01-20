@@ -346,6 +346,13 @@ wesCountry.data = new (function() {
             by.by(myData, xAxisValues.indicatorAndRegion, series.indicatorAndRegion, indicator, region);
         };
 
+        this.semaphore = function(colors, limits, time, region) {
+            var myData = data.timeAndRegion;
+            series.timeAndRegion = [];
+            var by = new BySemaphore(colors, limits);
+            by.by(myData, xAxisValues.timeAndRegion, series.timeAndRegion, time, region);
+        };
+
         function ByOneFunctions() {
             var select;
             var mySeries;
@@ -699,50 +706,140 @@ wesCountry.data = new (function() {
                 drawSelectedIndicator(index, index2, newGraphic);
             };
 
-            var drawSelectedIndicator = function(index, index2, newGraphic) {
-                var series =  mySeries[0][0][0].values;
-                var statitics = {};
-                statitics.sum = series.reduce(function(a,b) {return a+b;});
-                statitics.average = statitics.sum / series.length;
-                statitics.max = series.reduce(function(a,b) {return a>b ? a : b});
-                statitics.min = series.reduce(function(a,b) {return a<b ? a : b});
-                series.sort();
-                if(series.length % 2 == 0)
-                    statitics.median = (series[series.length/2]+series[series.length/2-1])/2;
-                else
-                    statitics.median = series[(series.length-1) / 2];
-                createStatiticsTable();
-
-                function createStatiticsTable() {
-                    var table = document.createElement("table");
-                    var theader = document.createElement("thead");
-                    table.appendChild(theader);
-                    var tr = document.createElement("tr");
-                    theader.appendChild(tr);
-                    var headers = ["Statistical aggregate", "Value"];
-                    for(var i=0;i<headers.length;i++) {
-                        var td = document.createElement("td");
-                        td.innerHTML = headers[i];
-                        tr.appendChild(td);
+            f
+            this.putSeriesByIndicator = function(myData, seriesByIndicator, indicators, countries, i, filter, xAxisValues) {
+                var item = getIndexOfXValue();
+                for (var c = 0; c < countries.length; c++) {
+                    if(filter !== undefined) {
+                        seriesByIndicator[c] = [];
+                        seriesByIndicator[c].push({
+                            name: countries[c],
+                            values: [myData.getItem(indicators[i]).getItem(countries[c])[item]]
+                        });
+                    } else {
+                        seriesByIndicator[c] = [];
+                        seriesByIndicator[c].push({
+                            name: countries[c],
+                            values: myData.getItem(indicators[i]).getItem(countries[c])
+                        });
                     }
+                }
+
+                function getIndexOfXValue() {
+                    for(var i=0;i<xAxisValues.length;i++)
+                        if(xAxisValues[i] === filter)
+                            return i;
+                }
+            };
+            this.by = new By().by;
+        }
+
+        function BySemaphore(colors, limits) {
+            var select;
+            var select2;
+            var mySeries;
+            var div;
+            var semaphoreDiv;
+            var indicators;
+            var secondIndicators;
+            putLimitsIfNofDefined(); //create limits if not defined by the user
+            putColorsIfNotDefined(); //create colors if not defined by the user
+
+            function putLimitsIfNofDefined() {
+                if(limits===undefined)
+                    limits = []; 
+                limits[0] = limits[0]===undefined ? 10 : limits[0];
+                limits[1] = limits[1]===undefined ? 100 : limits[1];
+            }
+
+            function putColorsIfNotDefined() {
+                if(colors===undefined)
+                    colors = [];
+                colors[0] = colors[0]===undefined ? "#00FF00" : colors[0];
+                colors[1] = colors[1]===undefined ? "#FF8000" : colors[1];
+                colors[2] = colors[2]===undefined ? "#FF0000" : colors[2];
+            }
+
+            this.createSelect = function(div, indicators, secondIndicators) {
+                select = document.createElement("select");
+                select2 = document.createElement("select");
+                div.appendChild(select);
+                div.appendChild(select2);
+                select.onchange = this.onIndicatorChanged;
+                select2.onchange = this.onIndicatorChanged;
+                for(var i=0;i<indicators.length;i++) {
+                    var option = document.createElement("option");
+                    option.innerHTML = indicators[i];
+                    select.appendChild(option);    
+                }
+                for(var i=0;i<secondIndicators.length;i++) {
+                    var option = document.createElement("option");
+                    option.innerHTML = secondIndicators[i];
+                    select2.appendChild(option);
+                }
+            };
+
+            this.drawSelectedIndicator = function(index, index2, _mySeries, _div, _wrapperDiv, _indicators, _secondIndicators, newGraphic) {
+                mySeries = _mySeries;
+                div = _div;
+                wrapperDiv = _wrapperDiv;
+                indicators = _indicators;
+                secondIndicators = _secondIndicators;
+                if (select.options.length === 1) {
+                    var element = document.createElement("p");
+                    element.innerHTML = indicators[0];
+                    select.parentNode.insertBefore(element, select);
+                    select.style.display="none";
+                }
+                if (select2.options.length === 1) {
+                    var element = document.createElement("p");
+                    element.innerHTML = secondIndicators[0];
+                    select2.parentNode.insertBefore(element, select2);
+                    select2.style.display="none";
+                }
+                drawSelectedIndicator(index, index2, newGraphic);
+            };
+
+            var drawSelectedIndicator = function(index, index2, newGraphic) {
+                var series =  mySeries[index][index2][0].values;
+                createTable();
+
+                function createTable() {
+                    var table = document.createElement("table");
                     var tbody = document.createElement("tbody");
                     table.appendChild(tbody);
-                    for(var a in statitics) {
+                    for(var i=0;i<series.length;i++) {
                         var tr = document.createElement("tr");
                         tbody.appendChild(tr);
                         var td = document.createElement("td");
-                        td.innerHTML = a;
+                        td.innerHTML = xAxisValues.timeAndRegion[i];
                         tr.appendChild(td);
                         td = document.createElement("td");
-                        td.innerHTML = statitics[a];
+                        if(series[i] <= limits[0]) 
+                            td.style["background-color"] = colors[0];
+                        else if(series[i] > limits[0] && series[i] < limits[1])
+                            td.style["background-color"] = colors[1];
+                        else
+                            td.style["background-color"] = colors[2];
+                        td.innerHTML = series[i].toFixed(2);
                         tr.appendChild(td);
                     }
                     var container = typeof options.container === "string" ? 
                             document.querySelector(options.container) : 
                             options.container;
-                    container.appendChild(table);
+                    semaphoreDiv = document.createElement("div");
+                    semaphoreDiv.className = "semaphoreDiv";
+                    container.appendChild(semaphoreDiv);
+                    semaphoreDiv.appendChild(div);
+                    semaphoreDiv.appendChild(table);
                 }
             };
+
+            this.onIndicatorChanged = function() {
+                semaphoreDiv.childNodes[1].remove();
+                drawSelectedIndicator(select.selectedIndex, select2.selectedIndex, false);
+            };
+
 
             this.putSeriesByIndicator = function(myData, seriesByIndicator, indicators, countries, i, filter, xAxisValues) {
                 var item = getIndexOfXValue();
@@ -768,6 +865,7 @@ wesCountry.data = new (function() {
                             return i;
                 }
             };
+
             this.by = new By().by;
         }
 
