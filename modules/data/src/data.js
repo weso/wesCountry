@@ -710,7 +710,51 @@ wesCountry.data = new (function() {
                 drawSelectedIndicator(index, index2, newGraphic);
             };
 
-            f
+            var drawSelectedIndicator = function(index, index2, newGraphic) {
+                var series =  mySeries[0][0][0].values;
+                var statitics = {};
+                statitics.sum = series.reduce(function(a,b) {return a+b;});
+                statitics.average = statitics.sum / series.length;
+                statitics.max = series.reduce(function(a,b) {return a>b ? a : b});
+                statitics.min = series.reduce(function(a,b) {return a<b ? a : b});
+                series.sort();
+                if(series.length % 2 == 0)
+                    statitics.median = (series[series.length/2]+series[series.length/2-1])/2;
+                else
+                    statitics.median = series[(series.length-1) / 2];
+                createStatiticsTable();
+
+                function createStatiticsTable() {
+                    var table = document.createElement("table");
+                    var theader = document.createElement("thead");
+                    table.appendChild(theader);
+                    var tr = document.createElement("tr");
+                    theader.appendChild(tr);
+                    var headers = ["Statistical aggregate", "Value"];
+                    for(var i=0;i<headers.length;i++) {
+                        var td = document.createElement("td");
+                        td.innerHTML = headers[i];
+                        tr.appendChild(td);
+                    }
+                    var tbody = document.createElement("tbody");
+                    table.appendChild(tbody);
+                    for(var a in statitics) {
+                        var tr = document.createElement("tr");
+                        tbody.appendChild(tr);
+                        var td = document.createElement("td");
+                        td.innerHTML = a;
+                        tr.appendChild(td);
+                        td = document.createElement("td");
+                        td.innerHTML = statitics[a];
+                        tr.appendChild(td);
+                    }
+                    var container = typeof options.container === "string" ? 
+                            document.querySelector(options.container) : 
+                            options.container;
+                    container.appendChild(table);
+                }
+            };
+
             this.putSeriesByIndicator = function(myData, seriesByIndicator, indicators, countries, i, filter, xAxisValues) {
                 var item = getIndexOfXValue();
                 for (var c = 0; c < countries.length; c++) {
