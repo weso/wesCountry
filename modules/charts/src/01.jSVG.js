@@ -41,32 +41,10 @@ var jSVG = new (function() {
 		var myChildNodes = [];
 	
 		this.svg = function(options) {
-			/*if (options) {
-				if (typeof options === "string")
-					options = { container: options };
-				
-				//options = mergeOptions(defaultSVGOptions, options);
-			}
-			else
-				options = {};
-				*/
 			if (!options)
 				options = { };
 		
-			//this = document.createElementNS(namespace, "svg");
 			return createElement(null, "svg", options, defaultSVGOptions);
-	
-			//setAttributes(this, options);
-			//this.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
-			
-			//var container = options.container;
-		
-			//if (typeof container === "string")
-			//	container = document.querySelector(container);
-			
-			//container.appendChild(this);
-				
-			//return this;
 		}
 		
 		this.elementByName = function(name, options) {

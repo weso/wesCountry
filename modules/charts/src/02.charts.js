@@ -78,7 +78,12 @@ wesCountry.charts = new (function() {
 	        itemSize: 1,
 	        "font-colour": "#666",
 			"font-family": "Helvetica",
-			"font-size": "16px"
+			"font-size": "16px",
+			onchange: function(graphId, options, series) {
+				var length = series.length;
+				for (var i = 0; i < series.length; i++)
+					console.log(series[i]);
+			}
         },
         tooltip: {
 	        show: true,
@@ -159,24 +164,62 @@ wesCountry.charts = new (function() {
 		var length = options.series.length;
 	
 		var xPos = sizes.width - sizes.marginRight * 0.2;
+		
+		var legend = container.g({
+			"class": "legend"
+		});
+		
+		var series = [];
+		
+		for (var i = 0; i < length; i++)
+			series.push(true);
 	
 		for (var i = 0; i < length; i++) {
 			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
 		
-			container.circle({
+			var element = legend.g({
+				selected: "true",
+				pos: i,
+				graphId: options.legend.graphId, // Graph container identifier (used in onchange)
+				graphOptions: options
+			}).style("cursor:pointer");
+			
+			var colour = options.serieColours[i % options.serieColours.length];
+		
+			element.circle({
 				cx: xPos,
 				cy: yPos,
-				r: sizes.legendItemSize
-			}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]));
+				r: sizes.legendItemSize,
+				fill: colour,
+				stroke: colour
+			});
 			
-			container.text({
+			element.text({
 				x: xPos - 2 * sizes.legendItemSize,
 				y: yPos,
 				value: options.series[i].name
-			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle", 
+			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle;user-select: none;-webkit-user-select: none;-moz-user-select: none;", 
 				options.legend["font-colour"],
 				options.legend["font-family"],
 				options.legend["font-size"]));
+				
+			element.event("onclick", function() {console.log(this.getAttribute("graphId"))
+				var value = this.getAttribute("selected");
+				value = value === "true" ? "false" : "true";
+				
+				this.setAttribute("selected", value);
+				
+				var circle = this.querySelector("circle");
+	
+				var fill = value === "true" ? circle.getAttribute("stroke") : "#fff";
+				circle.setAttribute("fill", fill);
+				
+				var pos = parseInt(this.getAttribute("pos"));
+				series[pos] = value === "true";
+				
+				var graphId = this.getAttribute("graphId");
+				options.legend.onchange.call(null, graphId, options, series);
+			});
 		}
 	}
 	
@@ -218,16 +261,15 @@ wesCountry.charts = new (function() {
 	};
 	
 	this.clone = function(obj) {
-		// Not valid for copying objects that contain methods
-	    //return JSON.parse(JSON.stringify(obj));
-	    if (null == obj || "object" != typeof obj) return obj;
+	    if (null == obj || "object" != typeof obj) 
+	    	return obj;
 	    
 	    var copy = obj.constructor();
 	    
 	    for (var attr in obj) {
 	        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
 	    }
-	    
+	   
 	    return copy;
 	}
 	

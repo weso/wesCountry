@@ -3,6 +3,7 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<title>jGraf</title>
+		<script src="../../../bin/wesCountry.js"></script>
 		<script src="../src/01.jSVG.js"></script>
 		<script src="../src/02.charts.js"></script>
 		<script src="../src/03.bar.js"></script>
@@ -19,7 +20,9 @@
 		<h1>jGraf</h1>
 		<nav>
 			<ul>
-				<li><a id="lineA" class="active">Line</a></li>
+				<li><a id="multiA" class="active">MultiChart</a></li>
+				<li><a id="chartA" class="inactive">Chart</a></li>
+				<li><a id="lineA" class="inactive">Line</a></li>
 				<li><a id="areaA" class="inactive">Area</a></li>
 				<li><a id="barA" class="inactive">Bar</a></li>
 				<li><a id="pieA" class="inactive">Pie</a></li>
@@ -27,7 +30,9 @@
 				<li><a id="scatterA" class="inactive">Scatter</a></li>
 			</ul>
 		</nav>
-		<div id="lineDiv" class="visible"></div>
+		<div id="multiDiv" class="visible"></div>
+		<div id="chartDiv" class="invisible"></div>
+		<div id="lineDiv" class="invisible"></div>
 		<div id="areaDiv" class="invisible"></div>
 		<div id="barDiv" class="invisible"></div>
 		<div id="pieDiv" class="invisible"></div>

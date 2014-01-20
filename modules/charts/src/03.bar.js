@@ -2,7 +2,9 @@
 //                                  BAR CHART
 ////////////////////////////////////////////////////////////////////////////////
 	
-wesCountry.charts.barChart = function(options) {
+wesCountry.charts.barChart = function(options, svg) {
+	var id = wesCountry.guid();
+
 	return renderChart();
 
 	function renderChart() {
@@ -14,7 +16,8 @@ wesCountry.charts.barChart = function(options) {
 			options.series = wesCountry.charts.sortSeries(options.series);
 		
 		// SVG creation
-		var svg = wesCountry.charts.getSVG(options);
+		if (svg === undefined)
+			var svg = wesCountry.charts.getSVG(options);
 		
 		// Size and margins (%)
 		var sizes = getSizes(svg, options);
@@ -128,12 +131,17 @@ wesCountry.charts.barChart = function(options) {
 		
 		// Legend
 		if (options.legend.show)
-			wesCountry.charts.showLegend(g, sizes, options);
+			new wesCountry.charts.showLegend(g, sizes, options);
 		
 		// Tooltip
 		wesCountry.charts.createTooltip(options);			
 			
-		return svg;
+		return {
+			svg: svg,
+			sizes: sizes,
+			render: function() { return svg.render(); },
+			toString: function() { return svg.toString(); }
+		};
 	}
 	
 	function getSizes(svg, options) {

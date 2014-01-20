@@ -1,5 +1,7 @@
 window.onload = function() {
 	generateLinks([
+		"multi",
+		"chart",
 		"line",
 		"area",
 		"bar",
@@ -41,6 +43,27 @@ function generateLinks(links) {
 }
 
 function generateCharts(options) {
+	// Chart
+	var options1 = {
+		container: "#chartDiv",
+		chartType: "bar"
+	};
+	wesCountry.charts.chart(options1);
+
+	// Multi
+
+	var options2 = {
+		container: "#multiDiv",
+		chartType: ["bar", "bar", "bar", "bar"]
+	};
+	new wesCountry.charts.multiChart(options2);
+	
+	var options2 = {
+		container: "#multiDiv",
+		chartType: ["bar", "bar", "bar", "bar"]
+	};
+	new wesCountry.charts.multiChart(options2);
+
 	var options = {
 		sortSeries: true,
 		xAxis: {

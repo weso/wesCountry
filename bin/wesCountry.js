@@ -83,7 +83,34 @@ function HashTable(obj)
         keys = new SortedArray();
         this.length = 0;
     }
-}var jSVG = new (function() {
+}String.format = function(pattern)
+{
+	for (var i = 1; i < arguments.length; i++)
+	{
+		var regex = new RegExp('\\{' + (i - 1) + '\\}', 'g');
+		pattern = pattern.replace(regex, arguments[i]);
+	}
+	return pattern;
+};
+
+/**
+ * wesCountry object.
+ * @constructor
+ */
+var wesCountry = new (function() {
+	this.version = "1.0.0.0";
+	
+	function s4() {
+  		return Math.floor((1 + Math.random()) * 0x10000)
+    		.toString(16)
+        	.substring(1);
+	}
+
+	this.guid = function() {
+  		return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+         	s4() + '-' + s4() + s4() + s4();
+	}
+})();var jSVG = new (function() {
 	function jSVGElement(elementName) {
 		var namespace = "http://www.w3.org/2000/svg";
 		var version = "1.1";
@@ -392,7 +419,12 @@ wesCountry.charts = new (function() {
 	        itemSize: 1,
 	        "font-colour": "#666",
 			"font-family": "Helvetica",
-			"font-size": "16px"
+			"font-size": "16px",
+			onchange: function(graphId, options, series) {
+				var length = series.length;
+				for (var i = 0; i < series.length; i++)
+					console.log(series[i]);
+			}
         },
         tooltip: {
 	        show: true,
@@ -473,24 +505,62 @@ wesCountry.charts = new (function() {
 		var length = options.series.length;
 	
 		var xPos = sizes.width - sizes.marginRight * 0.2;
+		
+		var legend = container.g({
+			"class": "legend"
+		});
+		
+		var series = [];
+		
+		for (var i = 0; i < length; i++)
+			series.push(true);
 	
 		for (var i = 0; i < length; i++) {
 			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
 		
-			container.circle({
+			var element = legend.g({
+				selected: "true",
+				pos: i,
+				graphId: options.legend.graphId, // Graph container identifier (used in onchange)
+				graphOptions: options
+			}).style("cursor:pointer");
+			
+			var colour = options.serieColours[i % options.serieColours.length];
+		
+			element.circle({
 				cx: xPos,
 				cy: yPos,
-				r: sizes.legendItemSize
-			}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]));
+				r: sizes.legendItemSize,
+				fill: colour,
+				stroke: colour
+			});
 			
-			container.text({
+			element.text({
 				x: xPos - 2 * sizes.legendItemSize,
 				y: yPos,
 				value: options.series[i].name
-			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle", 
+			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle;user-select: none;-webkit-user-select: none;-moz-user-select: none;", 
 				options.legend["font-colour"],
 				options.legend["font-family"],
 				options.legend["font-size"]));
+				
+			element.event("onclick", function() {
+				var value = this.getAttribute("selected");
+				value = value === "true" ? "false" : "true";
+				
+				this.setAttribute("selected", value);
+				
+				var circle = this.querySelector("circle");
+				
+				var fill = value === "true" ? circle.getAttribute("stroke") : "#fff";
+				circle.setAttribute("fill", fill);
+				
+				var pos = parseInt(this.getAttribute("pos"));
+				series[pos] = value === "true";
+				
+				var graphId = this.getAttribute("graphId");
+				options.legend.onchange(graphId, options, series);
+			});
 		}
 	}
 	
@@ -532,16 +602,15 @@ wesCountry.charts = new (function() {
 	};
 	
 	this.clone = function(obj) {
-		// Not valid for copying objects that contain methods
-	    //return JSON.parse(JSON.stringify(obj));
-	    if (null == obj || "object" != typeof obj) return obj;
+	    if (null == obj || "object" != typeof obj) 
+	    	return obj;
 	    
 	    var copy = obj.constructor();
 	    
 	    for (var attr in obj) {
 	        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
 	    }
-	    
+	   
 	    return copy;
 	}
 	
@@ -943,13 +1012,23 @@ wesCountry.charts.barChart = function(options) {
 		}
 		
 		// Legend
-		if (options.legend.show)
-			wesCountry.charts.showLegend(g, sizes, options);
+		//if (options.legend.show)
+		//	wesCountry.charts.showLegend(g, sizes, options);
 		
 		// Tooltip
 		wesCountry.charts.createTooltip(options);			
 			
-		return svg;
+		return { 
+			svg: svg,
+			g: g,
+			sizes: sizes,
+			render: function() {
+				return svg.render();
+			},
+			toString: function() {
+				return svg.toString();
+			}
+		}
 	}
 	
 	function getSizes(svg, options) {
@@ -1020,7 +1099,7 @@ wesCountry.charts.barChart = function(options) {
 ////////////////////////////////////////////////////////////////////////////////
 	
 wesCountry.charts.lineChart = function(options) {
-	return this.generateLineChart(options, false);
+	return wesCountry.charts.generateLineChart(options, false);
 }	
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1028,7 +1107,7 @@ wesCountry.charts.lineChart = function(options) {
 ////////////////////////////////////////////////////////////////////////////////
 	
 wesCountry.charts.areaChart = function(options) {
-	return this.generateLineChart(options, true);
+	return wesCountry.charts.generateLineChart(options, true);
 }
 	
 // Auxiliary line fuction	
@@ -2196,35 +2275,58 @@ wesCountry.charts.scatterPlot = function(options) {
 };////////////////////////////////////////////////////////////////////////////////
 //                                  CHART
 ////////////////////////////////////////////////////////////////////////////////	
+
 wesCountry.charts.chart = function (options) {
 	var container;
 	container = typeof options.container !== "string" ? options.container : undefined;
 	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container; 
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+	
 	var chart;
-	switch(options.chartType) {
-		case "bar":
-			chart = this.barChart(options);
-			break;
-		case "line":
-			chart = this.lineChart(options);
-			break;
-		case "pie":
-			chart = this.pieChart(options);
-			break;
-		case "area":
-			chart = this.areaChart(options);
-			break;
-	}
-	if(container === undefined)
+	
+	if (container === undefined)
 		container = document.querySelector(options.container);
-	container.appendChild(chart.render());
-	return container.parentNode;
+	
+	var div = document.createElement("div");
+	div.id = wesCountry.charts.guid();
+	container.appendChild(div);	
+	
+	options.legend.graphId = div.id;
+			
+	options.legend.onchange = function(container, options, series) {
+		render(document.getElementById(container), options);
+		console.log(1)
+	}
+	
+	return render(div, options);
+	
+	function render(div, options) {
+		div.innerHTML = "";
+		
+		switch (options.chartType) {
+			case "bar":
+				chart = wesCountry.charts.barChart(options);
+				break;
+			case "line":
+				chart = wesCountry.charts.lineChart(options);
+				break;
+			case "pie":
+				chart = wesCountry.charts.pieChart(options);
+				break;
+			case "area":
+				chart = wesCountry.charts.areaChart(options);
+				break;
+		}
+		
+		div.appendChild(chart.render());
+		return container.parentNode;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                MULTI CHART
 ////////////////////////////////////////////////////////////////////////////////
+
 wesCountry.charts.multiChart = function (options) {
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	seriesSave = wesCountry.charts.clone(options.series);
@@ -2287,7 +2389,7 @@ wesCountry.charts.multiChart = function (options) {
 			options.container = ".chartDiv";
 		else
 			options.container = div;
-		return wesCountry.charts.chart(options);
+		return new wesCountry.charts.chart(options);
 	}
 
 	function loadGraph(div) {
@@ -2335,6 +2437,10 @@ wesCountry.charts.multiChart = function (options) {
 		}
 	}
 };
+Element.prototype.insertAfter = function (newNode) { 
+	this.parentNode.insertBefore(newNode, this.nextSibling); 
+}
+
 if (typeof(wesCountry) === "undefined")
 	var wesCountry = new Object();
 
@@ -2342,13 +2448,13 @@ wesCountry.data = new (function() {
 	var myData = null;
 	var options = {};
 	var allSeries = [];
+	var tablePosition = null;
+	var tableElement;
 
 	this.parseJSON = function (receivedOptions) {
-		allSeries = [];
-		var filterByIndicator = function (element) {
-			return element.indicatorCode === indicatorCode;
-		}
-		options = receivedOptions;
+		allSeries = []; //Reset if new call
+		options = wesCountry.charts.mergeOptionsAndDefaultOptions(receivedOptions, wesCountry.charts.defaultOptions);
+		options.xAxis.values = []; //removeXAxisValues
 		var json = options.data;
 		var hashTableIndicator = new HashTable();
 		for(var i=0;i<json.length;i++) {
@@ -2386,6 +2492,7 @@ wesCountry.data = new (function() {
 	this.parseTable = function (receivedOptions) {
 		var tables = document.querySelectorAll(".graphs");
 		for(var i=0;i<tables.length;i++) {
+			tableElement = tables[i]; //current table
 			var headers = tables[i].querySelectorAll("th");
 			var rows = tables[i].querySelectorAll("tr");
 			var json = [];
@@ -2398,6 +2505,8 @@ wesCountry.data = new (function() {
 				json.push(obj);
 			}
 			receivedOptions.data = json;
+			if(receivedOptions.container === undefined)
+				tablePosition = receivedOptions.tablePosition;
 			this.parseJSON(receivedOptions).iterate();
 		}
 	}
@@ -2411,10 +2520,10 @@ wesCountry.data = new (function() {
 			select.onchange = onIndicatorChanged;
 			var indicators = myData.keys();
 			indicators = indicators.array;
-			for(var i in indicators) {
+			for(var i=0;i<indicators.length;i++) {
 				var countries = myData.getItem(indicators[i]).keys().array;
 				var seriesByIndicator = [];
-				for(var c in countries) {
+				for(var c=0;c<countries.length;c++) {
 					seriesByIndicator.push({
 						name: countries[c],
 						values: myData.getItem(indicators[i]).getItem(countries[c])
@@ -2426,13 +2535,18 @@ wesCountry.data = new (function() {
 				select.appendChild(option);
 			}
 			var wrapperDiv = document.createElement("div");
-			document.querySelector(options.container).appendChild(wrapperDiv);
+			if(tablePosition === null) {
+				document.querySelector(options.container).appendChild(wrapperDiv);
+			}
+			else {
+				if(tablePosition.toLowerCase() === "above")
+					tableElement.insertAfter(wrapperDiv);
+				else if(tablePosition.toLowerCase() === "below")
+					tableElement.parentNode.insertBefore(wrapperDiv, tableElement);
+			}
 			drawSelectedIndicator();
 		}
 		function onIndicatorChanged() {
-			//this.parentNode.parentNode.querySelector(".chartDiv").remove();
-			//this.parentNode.parentNode.querySelector(".seriesSelector").remove();
-			//this.parentNode.parentNode.querySelector(".chartSelector").remove();
 			var div = this.parentNode.parentNode;
 			var wrapperDiv = div.parentNode;
 			div.remove();

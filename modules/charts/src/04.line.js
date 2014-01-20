@@ -3,7 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 	
 wesCountry.charts.lineChart = function(options) {
-	return this.generateLineChart(options, false);
+	return wesCountry.charts.generateLineChart(options, false);
 }	
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -11,7 +11,7 @@ wesCountry.charts.lineChart = function(options) {
 ////////////////////////////////////////////////////////////////////////////////
 	
 wesCountry.charts.areaChart = function(options) {
-	return this.generateLineChart(options, true);
+	return wesCountry.charts.generateLineChart(options, true);
 }
 	
 // Auxiliary line fuction	

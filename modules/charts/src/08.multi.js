@@ -1,35 +1,59 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                                  CHART
 ////////////////////////////////////////////////////////////////////////////////	
+
 wesCountry.charts.chart = function (options) {
 	var container;
 	container = typeof options.container !== "string" ? options.container : undefined;
 	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container; 
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+	
 	var chart;
-	switch(options.chartType) {
-		case "bar":
-			chart = this.barChart(options);
-			break;
-		case "line":
-			chart = this.lineChart(options);
-			break;
-		case "pie":
-			chart = this.pieChart(options);
-			break;
-		case "area":
-			chart = this.areaChart(options);
-			break;
-	}
-	if(container === undefined)
+	
+	if (container === undefined)
 		container = document.querySelector(options.container);
-	container.appendChild(chart.render());
-	return container.parentNode;
-}
+	
+	var div = document.createElement("div");
+	div.id = wesCountry.charts.guid();
+	container.appendChild(div);	
+
+	options.legend.graphId = div.id;
+			
+	options.legend.onchange = function(container, options, series) {
+		render(document.getElementById(container), options);
+	}
+	
+	return render(div, options);
+	
+	function render(div, options) {
+		div.innerHTML = "";
+		
+		switch (options.chartType) {
+			case "bar":
+				chart = wesCountry.charts.barChart(options);
+				break;
+			case "line":
+				chart = wesCountry.charts.lineChart(options);
+				break;
+			case "pie":
+				chart = wesCountry.charts.pieChart(options);
+				break;
+			case "area":
+				chart = wesCountry.charts.areaChart(options);
+				break;
+		}
+		
+		//new wesCountry.charts.showLegend(chart.svg, chart.sizes, options)
+
+		div.appendChild(chart.render());
+		return container.parentNode;
+	}
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                MULTI CHART
 ////////////////////////////////////////////////////////////////////////////////
+
 wesCountry.charts.multiChart = function (options) {
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	seriesSave = wesCountry.charts.clone(options.series);
@@ -92,7 +116,7 @@ wesCountry.charts.multiChart = function (options) {
 			options.container = ".chartDiv";
 		else
 			options.container = div;
-		return wesCountry.charts.chart(options);
+		return new wesCountry.charts.chart(options);
 	}
 
 	function loadGraph(div) {
