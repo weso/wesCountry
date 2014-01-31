@@ -866,11 +866,11 @@ wesCountry.data = new (function() {
                         tr.appendChild(td);
                         td = document.createElement("td");
                         if(series[i] <= limits[0]) 
-                            td.style["background-color"] = colors[0];
+                            td.style.backgroundColor = colors[0];
                         else if(series[i] > limits[0] && series[i] < limits[1])
-                            td.style["background-color"] = colors[1];
+                            td.style.backgroundColor = colors[1];
                         else
-                            td.style["background-color"] = colors[2];
+                            td.style.backgroundColor = colors[2];
                         td.innerHTML = series[i].toFixed(2);
                         tr.appendChild(td);
                     }
@@ -959,9 +959,9 @@ wesCountry.data = new (function() {
                     }
                     else {
                         if (tablePosition.toLowerCase() === "above")
-                            tableElement.insertAfter(wrapperDiv);
-                        else if (tablePosition.toLowerCase() === "below")
                             tableElement.parentNode.insertBefore(wrapperDiv, tableElement);
+                        else if (tablePosition.toLowerCase() === "below")
+                            tableElement.insertAfter(wrapperDiv);
                     }
                 }   
             };
