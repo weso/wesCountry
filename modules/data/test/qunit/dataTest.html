@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Data test</title>
+  <link rel="stylesheet" href="qunit.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <script src="qunit.js"></script>
+  <script src="../../src/data.js"></script>
+  <script src="../../../../bin/wesCountry.js"></script>
+  <script>
+    var info = [
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2009", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"243.951870842302", "dataset":""},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2008", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"309.008997833499", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2007", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"326.585848270781", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2009", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"256.268026665139", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2008", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"222.458534003048", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2007", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"430.564095118456", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2009", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"106.145003684811", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2008", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"89.1699567127999", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2007", "indicatorCode":"Fertilizer consumption (% of fertilizer production)", "value":"117.185367443222", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2009", "indicatorCode":"Arable land (% of land area)", "value":"8.3244477753794", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2008", "indicatorCode":"Arable land (% of land area)", "value":"8.30305150944155", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2007", "indicatorCode":"Arable land (% of land area)", "value":"8.01846935132669", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2009", "indicatorCode":"Arable land (% of land area)", "value":"23.5500101992249", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2008", "indicatorCode":"Arable land (% of land area)", "value":"25.402869381927", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2007", "indicatorCode":"Arable land (% of land area)", "value":"24.3795471544163", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2009", "indicatorCode":"Arable land (% of land area)", "value":"25.0541299117883", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2008", "indicatorCode":"Arable land (% of land area)", "value":"25.0360866078589", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2007", "indicatorCode":"Arable land (% of land area)", "value":"25.2168860571818", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2009", "indicatorCode":"Agriculture, value added (% of GDP)", "value":"5.62672623388818", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2008", "indicatorCode":"Agriculture, value added (% of GDP)", "value":"5.9141622585208", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2007", "indicatorCode":"Agriculture, value added (% of GDP)", "value":"5.56271655090331", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2009", "indicatorCode":"Agriculture, value added (% of GDP)", "value":"1.89142918105124", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2008", "indicatorCode":"Agriculture, value added (% of GDP)", "value":"2.01178849487375", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2007", "indicatorCode":"Agriculture, value added (% of GDP)", "value":"2.04609396554568", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2009", "indicatorCode":"Agriculture, value added (% of GDP)", "value":"2.66654201229147", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2008", "indicatorCode":"Agriculture, value added (% of GDP)", "value":"2.65729482291889", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2007", "indicatorCode":"Agriculture, value added (% of GDP)", "value":"2.87540037421114", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2009", "indicatorCode":"Rural population", "value":"30891212.679144", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2008", "indicatorCode":"Rural population", "value":"31191436.534818", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2007", "indicatorCode":"Rural population", "value":"31474139.056256", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2009", "indicatorCode":"Rural population", "value":"19205322.994672", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2008", "indicatorCode":"Rural population", "value":"19165922.234712", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2007", "indicatorCode":"Rural population", "value":"19094617.940088", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2009", "indicatorCode":"Rural population", "value":"10482125.633644", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2008", "indicatorCode":"Rural population", "value":"10454672.376272", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2007", "indicatorCode":"Rural population", "value":"10351687.69581", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2009", "indicatorCode":"Rural population growth (annual %)", "value":"-0.967182295925118", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2008", "indicatorCode":"Rural population growth (annual %)", "value":"-0.902263919618411", "dataset":"World Bank"},
+      {"countryCode":"BR", "countryName":"Brazil", "year":"2007", "indicatorCode":"Rural population growth (annual %)", "value":"-0.810763984537661", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2009", "indicatorCode":"Rural population growth (annual %)", "value":"0.205366146301866", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2008", "indicatorCode":"Rural population growth (annual %)", "value":"0.372730635007465", "dataset":"World Bank"},
+      {"countryCode":"IT", "countryName":"Italy", "year":"2007", "indicatorCode":"Rural population growth (annual %)", "value":"0.340997807364338", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2009", "indicatorCode":"Rural population growth (annual %)", "value":"0.262249013369087", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2008", "indicatorCode":"Rural population growth (annual %)", "value":"0.989942701499551", "dataset":"World Bank"},
+      {"countryCode":"ES", "countryName":"Spain", "year":"2007", "indicatorCode":"Rural population growth (annual %)", "value":"1.20938599518874", "dataset":"World Bank"}
+      ];
+    var myOptions = {
+        data: info,
+        container: "body",
+        chartType: ["line", "bar", "pie", "area"],
+        xAxis: {
+          title: "Years"
+        }
+      };
+    test("Push if not exist test", function() {
+      var array = [2, 4];
+      var length = array.length;
+      array.pushIfNotExist(2); //not inserted
+      array.pushIfNotExist(4); //not inserted
+      deepEqual(length, array.length);
+      array.pushIfNotExist(3); //inserted
+      array.pushIfNotExist(5); //inserted
+      array.pushIfNotExist(1); //inserted
+      deepEqual(length+3, array.length);
+    });
+    test("Insert after test", function() {
+      var wrapperDiv = document.createElement("div");
+      document.body.appendChild(wrapperDiv);
+      var div1 = document.createElement("div");
+      div1.id = "1";
+      wrapperDiv.appendChild(div1);
+      var div3 = document.createElement("div");
+      div3.id = "3";
+      wrapperDiv.appendChild(div3);
+      var div5 = document.createElement("div");
+      div5.id = "5";
+      wrapperDiv.appendChild(div5);
+      var div2 = document.createElement("div");
+      div2.id = "2";
+      div1.insertAfter(div2);
+      var div4 = document.createElement("div");
+      div4.id = "4";
+      div3.insertAfter(div4);
+      var childNodes = wrapperDiv.childNodes;
+      for(var i=0;i<childNodes.length;i++) {
+        deepEqual(childNodes[i].id, (i+1).toString());
+      }
+    });
+    test("Container test", function () {
+      var div = document.createElement("div");
+      div.id = "testDivForContainerTest";
+      div.style.visibility = "hidden";
+      document.querySelector("body").appendChild(div);
+      myOptions.container = "#"+div.id;
+      var iterator = wesCountry.data.parseJSON(myOptions).iterate();
+      var graphicFunctionNames = ["byIndicator", "byIndicatorAndTime", "byIndicatorAndRegion"];
+      iterator.selectBy("region" , graphicFunctionNames); //insert three elements
+      equal(div.childNodes.length, 4);
+      iterator.byIndicator();
+      equal(div.childNodes.length, 5);
+      iterator.byTime();
+      equal(div.childNodes.length, 6);
+      iterator.byRegion();
+      equal(div.childNodes.length, 7);
+      iterator.byIndicatorAndTime();
+      equal(div.childNodes.length, 8);
+      iterator.byIndicatorAndRegion();
+      equal(div.childNodes.length, 9);
+      iterator.byTimeAndRegion();
+      equal(div.childNodes.length, 10);
+      iterator.byOneElementChangingYears();
+      equal(div.childNodes.length, 11);
+      iterator.max();
+      equal(div.childNodes.length, 12);
+      iterator.min();
+      equal(div.childNodes.length, 13);
+      iterator.statisticalAggregates();
+      equal(div.childNodes.length, 15);
+      div.remove();
+    });
+    test("Order of max and min", function() {
+      expect(6);
+      var div = document.createElement("div");
+      div.id = "testDivForOrderMaxAndMinTest";
+      var values = [430.56, 326.59, 117.19];
+      var valuesReverse = values;
+      valuesReverse.reverse();
+      div.style.visibility = "hidden";
+      document.querySelector("body").appendChild(div);
+      myOptions.container = "#"+div.id;
+      wesCountry.data.parseJSON(myOptions).iterate().max(3, "Fertilizer consumption (% of fertilizer production)", "2007");
+      wesCountry.data.parseJSON(myOptions).iterate().min(3, "Fertilizer consumption (% of fertilizer production)", "2007");
+      var texts = document.querySelectorAll("svg g text");
+      var j=0;
+      for(var i=0;i<texts.length;i++) {
+        if(parseFloat(texts[i].innerHTML) === values[j]) {
+          equal(parseFloat(texts[i].innerHTML), values[j]);
+          j++;
+        } 
+      } j=0;
+      for(i=texts.length-1;i>=0;i--) {
+        if(parseFloat(texts[i].innerHTML) === valuesReverse[j]) {
+          equal(parseFloat(texts[i].innerHTML), valuesReverse[j]);
+          j++;
+        }
+      }
+      div.remove();
+    });
+    test("Table position test", function () {
+      var tableOptions = {
+        chartType: ["line", "bar", "pie", "area"],
+        xAxis: {
+            title: "Years"
+        }
+      };
+      var div = document.querySelector("#testDivForTablePositionTest");
+      document.querySelector("body").appendChild(div);
+      tableOptions.tablePosition = "below";
+      wesCountry.data.parseTable(tableOptions, "byIndicator");
+      equal(div.childNodes[1].nodeName, "TABLE");
+      equal(div.childNodes[2].nodeName, "DIV");
+      tableOptions.tablePosition = "above";
+      wesCountry.data.parseTable(tableOptions, "byIndicator");
+      equal(div.childNodes[1].nodeName, "DIV");
+      equal(div.childNodes[2].nodeName, "TABLE");
+      equal(div.childNodes[3].nodeName, "DIV");
+      div.remove();
+    });
+    
+  </script>
+  <div id="testDivForTablePositionTest">
+    <table border="1" class="graphs" style="visibility: hidden;">
+      <tr>
+        <th class="countryName">Country Name</th>
+        <th class="year">Year</th>
+        <th class="indicatorCode">Indicator</th>
+        <th class="value">Value</th>
+      </tr>
+      <tr>
+        <td>Brazil</td>
+        <td>2009</td>
+        <td>Fertilizer consumption (% of fertilizer production)</td>
+        <td>243.951870842302</td>
+      </tr>
+      <tr>
+        <td>Brazil</td>
+        <td>2008</td>
+        <td>Fertilizer consumption (% of fertilizer production)</td>
+        <td>309.008997833499</td>
+      </tr>
+      <tr>
+        <td>Brazil</td>
+        <td>2007</td>
+        <td>Fertilizer consumption (% of fertilizer production)</td>
+        <td>326.585848270781</td>
+      </tr>
+      <tr>
+        <td>Italy</td>
+        <td>2009</td>
+        <td>Fertilizer consumption (% of fertilizer production)</td>
+        <td>256.268026665139</td>
+      </tr>
+      <tr>
+        <td>Italy</td>
+        <td>2008</td>
+        <td>Fertilizer consumption (% of fertilizer production)</td>
+        <td>222.458534003048</td>
+      </tr>
+      <tr>
+        <td>Italy</td>
+        <td>2007</td>
+        <td>Fertilizer consumption (% of fertilizer production)</td>
+        <td>430.564095118456</td>
+      </tr>
+      <tr>
+        <td>Spain</td>
+        <td>2009</td>
+        <td>Fertilizer consumption (% of fertilizer production)</td>
+        <td>106.145003684811</td>
+      </tr>
+      <tr>
+        <td>Spain</td>
+        <td>2008</td>
+        <td>Fertilizer consumption (% of fertilizer production)</td>
+        <td>89.1699567127999</td>
+      </tr>
+      <tr>
+        <td>Spain</td>
+        <td>2007</td>
+        <td>Fertilizer consumption (% of fertilizer production)</td>
+        <td>117.185367443222</td>
+      </tr>
+      <tr>
+        <td>Brazil</td>
+        <td>2009</td>
+        <td>Agriculture, value added (% of GDP)</td>
+        <td>5.62672623388818</td>
+      </tr>
+      <tr>
+        <td>Brazil</td>
+        <td>2008</td>
+        <td>Agriculture, value added (% of GDP)</td>
+        <td>5.9141622585208</td>
+      </tr>
+      <tr>
+        <td>Brazil</td>
+        <td>2007</td>
+        <td>Agriculture, value added (% of GDP)</td>
+        <td>5.56271655090331</td>
+      </tr>
+      <tr>
+        <td>Italy</td>
+        <td>2009</td>
+        <td>Agriculture, value added (% of GDP)</td>
+        <td>1.89142918105124"</td>
+      </tr>
+      <tr>
+        <td>Italy</td>
+        <td>2008</td>
+        <td>Agriculture, value added (% of GDP)</td>
+        <td>2.01178849487375</td>
+      </tr>
+      <tr>
+        <td>Italy</td>
+        <td>2007</td>
+        <td>Agriculture, value added (% of GDP)</td>
+        <td>2.04609396554568</td>
+      </tr>
+      <tr>
+        <td>Spain</td>
+        <td>2009</td>
+        <td>Agriculture, value added (% of GDP)</td>
+        <td>2.66654201229147</td>
+      </tr>
+      <tr>
+        <td>Spain</td>
+        <td>2008</td>
+        <td>Agriculture, value added (% of GDP)</td>
+        <td>2.65729482291889</td>
+      </tr>
+      <tr>
+        <td>Spain</td>
+        <td>2007</td>
+        <td>Agriculture, value added (% of GDP)</td>
+        <td>2.87540037421114</td>
+      </tr>
+    </table>  
+  </div>
+  
+</body>
+</html>
