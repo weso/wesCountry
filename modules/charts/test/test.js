@@ -259,6 +259,10 @@ function generateCharts(options) {
             values: [1, 1, 1]
         }       
     ];
+    
+    options.vertex = {
+    	show: false
+    };
 	
 	renderBarChart(options);	
 	renderLineChart(options);
