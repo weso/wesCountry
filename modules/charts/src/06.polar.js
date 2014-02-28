@@ -207,16 +207,18 @@ wesCountry.charts.polarChart = function(options) {
 				var serie = options.series[i].name;
 				var pos = options.xAxis.values[j];
 			
-				g.circle({
-					cx: vertex.x,
-					cy: vertex.y,
-					r: 5,
-					serie: serie,
-					value: value,
-					pos: pos,
-					"class": lineId
-				}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]))
-				.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+				if (options.vertex.show) {
+					g.circle({
+						cx: vertex.x,
+						cy: vertex.y,
+						r: 5,
+						serie: serie,
+						value: value,
+						pos: pos,
+						"class": lineId
+					}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]))
+					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+				}
 				
 				g.line({
 			  		x1: vertexPrev.x,

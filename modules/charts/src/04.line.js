@@ -121,14 +121,16 @@ wesCountry.charts.generateLineChart = function(options, area) {
 					options.events.onclick(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
 				};
 				
-				if (url && url != "") {
-					var a = g.a({}, url ? url : "")
-					a.circle(pointOptions)
-					.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
-				}
-				else {
-					g.circle(pointOptions)
-					.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+				if (options.vertex.show) {
+					if (url && url != "") {
+						var a = g.a({}, url ? url : "")
+						a.circle(pointOptions)
+						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+					}
+					else {
+						g.circle(pointOptions)
+						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+					}
 				}
 							
 				// Value on bar		

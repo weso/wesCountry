@@ -445,6 +445,9 @@ wesCountry.charts = new (function() {
 	        "onclick": function() {
 	        
 	        }
+        },
+        vertex: {
+        	show: true
         }
 	};
 	
@@ -1165,14 +1168,16 @@ wesCountry.charts.generateLineChart = function(options, area) {
 					options.events.onclick(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
 				};
 				
-				if (url && url != "") {
-					var a = g.a({}, url ? url : "")
-					a.circle(pointOptions)
-					.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
-				}
-				else {
-					g.circle(pointOptions)
-					.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+				if (options.vertex.show) {
+					if (url && url != "") {
+						var a = g.a({}, url ? url : "")
+						a.circle(pointOptions)
+						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+					}
+					else {
+						g.circle(pointOptions)
+						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+					}
 				}
 							
 				// Value on bar		
@@ -1825,16 +1830,18 @@ wesCountry.charts.polarChart = function(options) {
 				var serie = options.series[i].name;
 				var pos = options.xAxis.values[j];
 			
-				g.circle({
-					cx: vertex.x,
-					cy: vertex.y,
-					r: 5,
-					serie: serie,
-					value: value,
-					pos: pos,
-					"class": lineId
-				}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]))
-				.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+				if (options.vertex.show) {
+					g.circle({
+						cx: vertex.x,
+						cy: vertex.y,
+						r: 5,
+						serie: serie,
+						value: value,
+						pos: pos,
+						"class": lineId
+					}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]))
+					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+				}
 				
 				g.line({
 			  		x1: vertexPrev.x,
