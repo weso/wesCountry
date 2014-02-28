@@ -2255,6 +2255,12 @@ wesCountry.charts.chart = function (options) {
 		case "area":
 			chart = this.areaChart(options);
 			break;
+		case "scatter":
+			chart = this.scatterPlot(options);
+			break;
+		case "polar":
+			chart = this.polarChart(options);
+			break;
 	}
 	if(container === undefined)
 		container = document.querySelector(options.container);
