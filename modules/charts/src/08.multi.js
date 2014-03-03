@@ -13,7 +13,10 @@ wesCountry.charts.chart = function (options) {
 	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container; 
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	var chart;
-	switch(options.chartType.toLowerCase()) {
+	
+	var chartType = options.chartType ? options.chartType.toLowerCase() : "bar";
+	
+	switch(chartType) {
 		case "bar":
 			chart = this.barChart(options);
 			break;
@@ -130,7 +133,13 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	}
 
 	function showChart(div) {
-		var typeOfGraph = container.querySelector(".active").innerHTML.toLowerCase();
+		var typeOfGraph = "bar";
+		
+		var active = container.querySelector(".active");
+		
+		if (active && active.innerHTML)
+			typeOfGraph = active.innerHTML.toLowerCase();
+			
 		options.chartType = typeOfGraph;
 		if(div === undefined)
 			options.container = ".chartDiv";

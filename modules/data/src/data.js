@@ -36,7 +36,8 @@ wesCountry.data = new (function() {
     };
 
     this.parseTable = function(receivedOptions, functionName, argumentToGraphic) {
-        var tables = document.querySelectorAll(".graphs");
+    	var container = receivedOptions.container ? document.querySelector(receivedOptions.container) : document;
+        var tables = container.querySelectorAll(".graphs");
         for (var i = 0; i < tables.length; i++) {
             tableElement = tables[i]; //current table
             var headers = tables[i].querySelectorAll("th");
@@ -951,7 +952,7 @@ wesCountry.data = new (function() {
                 }
 
                 function setTablePosition() {
-                    if (tablePosition === null) {
+                    if (!tablePosition) {
                         var container = typeof options.container === "string" ? 
                             document.querySelector(options.container) : 
                             options.container;

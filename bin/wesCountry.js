@@ -2242,7 +2242,10 @@ wesCountry.charts.chart = function (options) {
 	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container; 
 	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	var chart;
-	switch(options.chartType.toLowerCase()) {
+	
+	var chartType = options.chartType ? options.chartType.toLowerCase() : "bar";
+	
+	switch(chartType) {
 		case "bar":
 			chart = this.barChart(options);
 			break;
@@ -2359,7 +2362,13 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	}
 
 	function showChart(div) {
-		var typeOfGraph = container.querySelector(".active").innerHTML.toLowerCase();
+		var typeOfGraph = "bar";
+		
+		var active = container.querySelector(".active");
+		
+		if (active && active.innerHTML)
+			typeOfGraph = active.innerHTML.toLowerCase();
+			
 		options.chartType = typeOfGraph;
 		if(div === undefined)
 			options.container = ".chartDiv";
@@ -2473,7 +2482,8 @@ wesCountry.data = new (function() {
     };
 
     this.parseTable = function(receivedOptions, functionName, argumentToGraphic) {
-        var tables = document.querySelectorAll(".graphs");
+    	var container = receivedOptions.container ? document.querySelector(receivedOptions.container) : document;
+        var tables = container.querySelectorAll(".graphs");
         for (var i = 0; i < tables.length; i++) {
             tableElement = tables[i]; //current table
             var headers = tables[i].querySelectorAll("th");
@@ -3388,7 +3398,7 @@ wesCountry.data = new (function() {
                 }
 
                 function setTablePosition() {
-                    if (tablePosition === null) {
+                    if (!tablePosition) {
                         var container = typeof options.container === "string" ? 
                             document.querySelector(options.container) : 
                             options.container;
