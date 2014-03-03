@@ -82,7 +82,7 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	createSeriesSelector();
 	return createChart();
 
-	function createChartSelector() {
+	function createChartSelector() {	
 		var div = document.createElement('div');
 		div.className = "chartSelector";
 		var ul = document.createElement('ul');
@@ -99,6 +99,9 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 		div.appendChild(ul);
 		div.querySelector("li a").className= "active";
 		container.appendChild(div);
+		
+		if (charts.length <= 1)
+			div.style.display = "none";
 	}
 
 	function createSeriesSelector() {

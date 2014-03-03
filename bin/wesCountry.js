@@ -2311,7 +2311,7 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	createSeriesSelector();
 	return createChart();
 
-	function createChartSelector() {
+	function createChartSelector() {	
 		var div = document.createElement('div');
 		div.className = "chartSelector";
 		var ul = document.createElement('ul');
@@ -2328,6 +2328,9 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 		div.appendChild(ul);
 		div.querySelector("li a").className= "active";
 		container.appendChild(div);
+		
+		if (charts.length <= 1)
+			div.style.display = "none";
 	}
 
 	function createSeriesSelector() {
@@ -2817,11 +2820,11 @@ wesCountry.data = new (function() {
 
             var drawSelectedIndicator = function(index, newGraphic) {
                 options.series = mySeries[index];
-                if (select.options.length === 1) {
+                if (select.options.length <= 1) {
                     var element = document.createElement("p");
                     element.innerHTML = indicators[0];
                     select.parentNode.insertBefore(element, select);
-                    select.remove();
+                    select.style.display = "none";
                 }
                 var container = wesCountry.charts.multiChart(options, newGraphic, select);
                 container.insertBefore(div, container.childNodes[0]);
@@ -2897,13 +2900,13 @@ wesCountry.data = new (function() {
                 wrapperDiv = _wrapperDiv;
                 indicators = _indicators;
                 secondIndicators = _secondIndicators;
-                if (select.options.length === 1) {
+                if (select.options.length <= 1) {
                     var element = document.createElement("p");
                     element.innerHTML = indicators[0];
                     select.parentNode.insertBefore(element, select);
                     select.style.display="none";
                 }
-                if (select2.options.length === 1) {
+                if (select2.options.length <= 1) {
                     var element = document.createElement("p");
                     element.innerHTML = secondIndicators[0];
                     select2.parentNode.insertBefore(element, select2);
@@ -3269,13 +3272,13 @@ wesCountry.data = new (function() {
                 wrapperDiv = _wrapperDiv;
                 indicators = _indicators;
                 secondIndicators = _secondIndicators;
-                if (select.options.length === 1) {
+                if (select.options.length <= 1) {
                     var element = document.createElement("p");
                     element.innerHTML = indicators[0];
                     select.parentNode.insertBefore(element, select);
                     select.style.display="none";
                 }
-                if (select2.options.length === 1) {
+                if (select2.options.length <= 1) {
                     var element = document.createElement("p");
                     element.innerHTML = secondIndicators[0];
                     select2.parentNode.insertBefore(element, select2);
