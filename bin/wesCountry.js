@@ -2488,7 +2488,7 @@ wesCountry.data = new (function() {
                 json.push(obj);
             }
             receivedOptions.data = json;
-            if (receivedOptions.container === undefined)
+            //if (receivedOptions.container === undefined)
                 tablePosition = receivedOptions.tablePosition;
             var iterator = this.parseJSON(receivedOptions).iterate()[functionName](argumentToGraphic);
         }
@@ -3395,9 +3395,9 @@ wesCountry.data = new (function() {
                         container.appendChild(wrapperDiv);
                     }
                     else {
-                        if (tablePosition.toLowerCase() === "above")
+                        if (tablePosition.toLowerCase() == "below")
                             tableElement.parentNode.insertBefore(wrapperDiv, tableElement);
-                        else if (tablePosition.toLowerCase() === "below")
+                        else
                             tableElement.insertAfter(wrapperDiv);
                     }
                 }   

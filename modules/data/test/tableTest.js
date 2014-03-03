@@ -1,6 +1,6 @@
 window.onload = function( ) {
 	var myOptions = {
-		tablePosition: "above",
+		tablePosition: "below",
 		chartType: ["line", "bar", "pie", "area", "polar"],
 		xAxis: {
 				title: "Years"
@@ -8,7 +8,7 @@ window.onload = function( ) {
 	};
 
 	wesCountry.data.parseTable(myOptions, "byIndicator");
-	myOptions.tablePosition = "below";
-	wesCountry.data.parseTable(myOptions, "byIndicatorAndTime");
+	//myOptions.tablePosition = "below";
+	//wesCountry.data.parseTable(myOptions, "byIndicatorAndTime");
 
 }
