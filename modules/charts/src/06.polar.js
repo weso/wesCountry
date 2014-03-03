@@ -196,10 +196,12 @@ wesCountry.charts.polarChart = function(options) {
 		};			
 		
 		// Polygon drawing
-		
+        
 		for (var i = 0; i < length; i++) {
 			var lineId = "l" + wesCountry.charts.guid();
-		
+            
+            var pathD = "";
+        
 			for (var j = 0; j < numberOfVertices; j++) {
 				var vertex = polygonVertices[i][j];
 				var vertexPrev = j == 0 ? polygonVertices[i][numberOfVertices - 1] : polygonVertices[i][j - 1];
@@ -227,7 +229,18 @@ wesCountry.charts.polarChart = function(options) {
 			  		y2: vertex.y,
 			  		"class": lineId
 			  	}).style(String.format("stroke: {0};", options.serieColours[i % options.serieColours.length]));
+                
+                pathD += String.format("{0}{1} {2}", j == 0 ? "M" : "L", vertex.x, vertex.y);
 			}
+            
+            if (length > 0) {
+                var vertex = polygonVertices[i][0];
+                pathD += String.format(" L{0} {1} Z", vertex.x, vertex.y);
+            
+                g.path({
+                    d: pathD
+                }).style(String.format("stroke: {0}; fill: {0}; opacity: 0.5", options.serieColours[i % options.serieColours.length]));
+            }
 		}
 	
 		// Legend
