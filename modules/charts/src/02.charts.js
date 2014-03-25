@@ -107,6 +107,9 @@ wesCountry.charts = new (function() {
         },
         vertex: {
         	show: true
+        },
+        stroke: {
+        	width: 1
         }
 	};
 	

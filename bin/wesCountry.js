@@ -448,6 +448,9 @@ wesCountry.charts = new (function() {
         },
         vertex: {
         	show: true
+        },
+        stroke: {
+        	width: 1
         }
 	};
 	
@@ -1199,11 +1202,11 @@ wesCountry.charts.generateLineChart = function(options, area) {
 						x2: xPos,
 						y1: yPosPrev,
 						y2: yPos,
-						"stroke-width": 1,
+						"stroke-width": options.stroke.width,
 						"class": lineId
 					}).style(String.format("stroke: {0}", options.serieColours[i % options.serieColours.length]))
-					.event("onmouseover", function() { setLineWidth(this, 2); })
-					.event("onmouseout", function() { setLineWidth(this, 1); });
+					.event("onmouseover", function() { setLineWidth(this, options.stroke.width * 1.5); })
+					.event("onmouseout", function() { setLineWidth(this, options.stroke.width); });
 					
 					pathD += String.format(" L{0} {1}", xPos, yPos);
 				}
