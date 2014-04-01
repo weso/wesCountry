@@ -110,6 +110,57 @@ var wesCountry = new (function() {
   		return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
          	s4() + '-' + s4() + s4() + s4();
 	}
+	
+	////////////////////////////////////////////////////////////////////////////////
+	//                              MERGING OPTIONS
+	////////////////////////////////////////////////////////////////////////////////
+	
+	this.mergeOptionsAndDefaultOptions = function(options, defaultOptions) {
+		if (options) {
+			if (typeof options === "string")
+				options = { container: options };
+		
+			var auxOptions = this.clone(defaultOptions);
+			
+			for (var option in options)
+				auxOptions[option] = mergeOptions(auxOptions[option], options[option]);
+			
+			options = auxOptions;
+		}
+		else
+			options = this.clone(defaultOptions);
+			
+		return options;
+	};
+	
+	function mergeOptions(to, from) {
+		if (from instanceof Array) {
+			return from;
+		}
+		else if (typeof from === "object") {
+			for (var option in from) {
+				to[option] = mergeOptions(to[option], from[option]);
+			}
+
+			return to;
+		}
+		else
+			return from;
+	};
+	
+	this.clone = function(obj) {
+		// Not valid for copying objects that contain methods
+	    //return JSON.parse(JSON.stringify(obj));
+	    if (null == obj || "object" != typeof obj) return obj;
+	    
+	    var copy = obj.constructor();
+	    
+	    for (var attr in obj) {
+	        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+	    }
+	    
+	    return copy;
+	}
 })();var jSVG = new (function() {
 	function jSVGElement(elementName) {
 		var namespace = "http://www.w3.org/2000/svg";
@@ -528,57 +579,6 @@ wesCountry.charts = new (function() {
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////
-	//                              MERGING OPTIONS
-	////////////////////////////////////////////////////////////////////////////////
-	
-	this.mergeOptionsAndDefaultOptions = function(options, defaultOptions) {
-		if (options) {
-			if (typeof options === "string")
-				options = { container: options };
-		
-			var auxOptions = this.clone(defaultOptions);
-			
-			for (var option in options)
-				auxOptions[option] = mergeOptions(auxOptions[option], options[option]);
-			
-			options = auxOptions;
-		}
-		else
-			options = this.clone(defaultOptions);
-			
-		return options;
-	};
-	
-	function mergeOptions(to, from) {
-		if (from instanceof Array) {
-			return from;
-		}
-		else if (typeof from === "object") {
-			for (var option in from) {
-				to[option] = mergeOptions(to[option], from[option]);
-			}
-
-			return to;
-		}
-		else
-			return from;
-	};
-	
-	this.clone = function(obj) {
-		// Not valid for copying objects that contain methods
-	    //return JSON.parse(JSON.stringify(obj));
-	    if (null == obj || "object" != typeof obj) return obj;
-	    
-	    var copy = obj.constructor();
-	    
-	    for (var attr in obj) {
-	        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
-	    }
-	    
-	    return copy;
-	}
-	
-	////////////////////////////////////////////////////////////////////////////////
 	//                                   AXIS
 	////////////////////////////////////////////////////////////////////////////////
 	
@@ -856,7 +856,7 @@ wesCountry.charts.barChart = function(options) {
 
 	function renderChart() {
 		// Options and default options
-		options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
 		options.yAxis["from-zero"] = true;
 		
 		if (options.sortSeries)
@@ -1071,7 +1071,7 @@ wesCountry.charts.generateLineChart = function(options, area) {
 
 	function renderChart() {
 		// Options and default options
-		options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
 
 		if (options.sortSeries)
 			options.series = wesCountry.charts.sortSeries(options.series);
@@ -1322,7 +1322,7 @@ wesCountry.charts.pieChart = function(options) {
 
 	function renderChart() {
 		// Options and default options
-		options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
 		
 		if (options.sortSeries)
 			options.series = wesCountry.charts.sortSeries(options.series);			
@@ -1633,7 +1633,7 @@ wesCountry.charts.polarChart = function(options) {
 
 	function renderChart() {
 		// Options and default options
-		options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);				
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);				
 		
 		// SVG creation
 		var svg = wesCountry.charts.getSVG(options);
@@ -1951,7 +1951,7 @@ wesCountry.charts.scatterPlot = function(options) {
 
 	function renderChart() {
 		// Options and default options
-		options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
 	
 		// SVG creation
 		var svg = wesCountry.charts.getSVG(options);
@@ -2256,7 +2256,7 @@ wesCountry.charts.chart = function (options) {
 	var container;
 	container = typeof options.container !== "string" ? options.container : undefined;
 	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container; 
-	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+	options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	var chart;
 	
 	var chartType = options.chartType ? options.chartType.toLowerCase() : "bar";
@@ -2306,18 +2306,18 @@ wesCountry.charts.setPushIndex = function (index) {
 wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	var containerReceived = optionsReceived.container;
 	optionsReceived.container = "body";
-	options = wesCountry.charts.mergeOptionsAndDefaultOptions(optionsReceived, wesCountry.charts.defaultOptions);
+	options = wesCountry.mergeOptionsAndDefaultOptions(optionsReceived, wesCountry.charts.defaultOptions);
 	options.container = containerReceived;
 	optionsReceived.container = containerReceived;
 	if(newGraphic || newGraphic === undefined) {
-		var optionsToSave = wesCountry.charts.clone(options);
-		optionsToSave.xAxis = wesCountry.charts.clone(options.xAxis);
+		var optionsToSave = wesCountry.clone(options);
+		optionsToSave.xAxis = wesCountry.clone(options.xAxis);
 		optionsSave.splice(pushIndex, 0, optionsToSave);
 		wesCountry.charts.setPushIndex("length");
 	} else {
 		var index = getIndexOfElement(element);
-		optionsSave[index].series = wesCountry.charts.clone(options.series);
-		options.xAxis = wesCountry.charts.clone(options.xAxis);
+		optionsSave[index].series = wesCountry.clone(options.series);
+		options.xAxis = wesCountry.clone(options.xAxis);
 	}
 	var charts = options.chartType;
 	charts = charts instanceof Array ? charts : [charts]; //if not array convert to array
@@ -2449,8 +2449,8 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	function recoverSeriesAndXValuesItem(element) {
 			var index = getIndexOfElement(element);
 			return {
-				series: wesCountry.charts.clone(optionsSave[index].series),
-				xAxisValues: wesCountry.charts.clone(optionsSave[index].xAxis.values)
+				series: wesCountry.clone(optionsSave[index].series),
+				xAxisValues: wesCountry.clone(optionsSave[index].xAxis.values)
 			};
 	}
 
@@ -2486,7 +2486,7 @@ wesCountry.data = new (function() {
 
     this.parseJSON = function(receivedOptions) {
         options = wesCountry
-                .charts.mergeOptionsAndDefaultOptions(receivedOptions, wesCountry.charts.defaultOptions);
+                .mergeOptionsAndDefaultOptions(receivedOptions, wesCountry.charts.defaultOptions);
         var json = options.data;
         xAxisValues.time =  new JsonParser(json).parseByTime();
         xAxisValues.indicator =  new JsonParser(json).parseByIndicator();

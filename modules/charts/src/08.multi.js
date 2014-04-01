@@ -11,7 +11,7 @@ wesCountry.charts.chart = function (options) {
 	var container;
 	container = typeof options.container !== "string" ? options.container : undefined;
 	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container; 
-	options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+	options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	var chart;
 	
 	var chartType = options.chartType ? options.chartType.toLowerCase() : "bar";
@@ -61,18 +61,18 @@ wesCountry.charts.setPushIndex = function (index) {
 wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	var containerReceived = optionsReceived.container;
 	optionsReceived.container = "body";
-	options = wesCountry.charts.mergeOptionsAndDefaultOptions(optionsReceived, wesCountry.charts.defaultOptions);
+	options = wesCountry.mergeOptionsAndDefaultOptions(optionsReceived, wesCountry.charts.defaultOptions);
 	options.container = containerReceived;
 	optionsReceived.container = containerReceived;
 	if(newGraphic || newGraphic === undefined) {
-		var optionsToSave = wesCountry.charts.clone(options);
-		optionsToSave.xAxis = wesCountry.charts.clone(options.xAxis);
+		var optionsToSave = wesCountry.clone(options);
+		optionsToSave.xAxis = wesCountry.clone(options.xAxis);
 		optionsSave.splice(pushIndex, 0, optionsToSave);
 		wesCountry.charts.setPushIndex("length");
 	} else {
 		var index = getIndexOfElement(element);
-		optionsSave[index].series = wesCountry.charts.clone(options.series);
-		options.xAxis = wesCountry.charts.clone(options.xAxis);
+		optionsSave[index].series = wesCountry.clone(options.series);
+		options.xAxis = wesCountry.clone(options.xAxis);
 	}
 	var charts = options.chartType;
 	charts = charts instanceof Array ? charts : [charts]; //if not array convert to array
@@ -204,8 +204,8 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	function recoverSeriesAndXValuesItem(element) {
 			var index = getIndexOfElement(element);
 			return {
-				series: wesCountry.charts.clone(optionsSave[index].series),
-				xAxisValues: wesCountry.charts.clone(optionsSave[index].xAxis.values)
+				series: wesCountry.clone(optionsSave[index].series),
+				xAxisValues: wesCountry.clone(optionsSave[index].xAxis.values)
 			};
 	}
 

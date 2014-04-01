@@ -24,7 +24,7 @@ wesCountry.data = new (function() {
 
     this.parseJSON = function(receivedOptions) {
         options = wesCountry
-                .charts.mergeOptionsAndDefaultOptions(receivedOptions, wesCountry.charts.defaultOptions);
+                .mergeOptionsAndDefaultOptions(receivedOptions, wesCountry.charts.defaultOptions);
         var json = options.data;
         xAxisValues.time =  new JsonParser(json).parseByTime();
         xAxisValues.indicator =  new JsonParser(json).parseByIndicator();

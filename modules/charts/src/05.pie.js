@@ -7,7 +7,7 @@ wesCountry.charts.pieChart = function(options) {
 
 	function renderChart() {
 		// Options and default options
-		options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
 		
 		if (options.sortSeries)
 			options.series = wesCountry.charts.sortSeries(options.series);			

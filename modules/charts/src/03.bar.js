@@ -7,7 +7,7 @@ wesCountry.charts.barChart = function(options) {
 
 	function renderChart() {
 		// Options and default options
-		options = wesCountry.charts.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
 		options.yAxis["from-zero"] = true;
 		
 		if (options.sortSeries)

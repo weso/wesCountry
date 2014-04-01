@@ -187,57 +187,6 @@ wesCountry.charts = new (function() {
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////
-	//                              MERGING OPTIONS
-	////////////////////////////////////////////////////////////////////////////////
-	
-	this.mergeOptionsAndDefaultOptions = function(options, defaultOptions) {
-		if (options) {
-			if (typeof options === "string")
-				options = { container: options };
-		
-			var auxOptions = this.clone(defaultOptions);
-			
-			for (var option in options)
-				auxOptions[option] = mergeOptions(auxOptions[option], options[option]);
-			
-			options = auxOptions;
-		}
-		else
-			options = this.clone(defaultOptions);
-			
-		return options;
-	};
-	
-	function mergeOptions(to, from) {
-		if (from instanceof Array) {
-			return from;
-		}
-		else if (typeof from === "object") {
-			for (var option in from) {
-				to[option] = mergeOptions(to[option], from[option]);
-			}
-
-			return to;
-		}
-		else
-			return from;
-	};
-	
-	this.clone = function(obj) {
-		// Not valid for copying objects that contain methods
-	    //return JSON.parse(JSON.stringify(obj));
-	    if (null == obj || "object" != typeof obj) return obj;
-	    
-	    var copy = obj.constructor();
-	    
-	    for (var attr in obj) {
-	        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
-	    }
-	    
-	    return copy;
-	}
-	
-	////////////////////////////////////////////////////////////////////////////////
 	//                                   AXIS
 	////////////////////////////////////////////////////////////////////////////////
 	
