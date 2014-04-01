@@ -11,7 +11,7 @@ wesCountry.table.pages = new (function() {
 	var firstShownRow = 0;
 	var numberFooterAnchors = 5; // Must be odd
 
-	(function init() {
+	this.apply = function() {
 		var tables = document.querySelectorAll("table.pages");
 		var length = tables.length;
 		
@@ -41,7 +41,9 @@ wesCountry.table.pages = new (function() {
 			// Header select
 			createHeaderSelect(table);
 		}
-	})();
+	}
+	
+	this.apply();
 	
 	function prepareTable(table) {
 		// Fitst we remove empty rows (Added to complete last page)
@@ -354,14 +356,16 @@ wesCountry.table.pages = new (function() {
 // Sortable 
 ////////////////////////////////////////////////////////////////
 
-wesCountry.table.sort = new (function() {
-	(function init() {
+wesCountry.table.sort = new (function() {	
+	this.apply = function() {
 		var tables = document.querySelectorAll("table.sortable");
 		var length = tables.length;
 		
 		for (var i = 0; i < length; i++)
 			iterateOverRows(tables[i]);
-	})();
+	}
+	
+	this.apply();
 	
 	function iterateOverRows(table) {
 		var headers = table.tHead.rows;
@@ -414,6 +418,8 @@ wesCountry.table.sort = new (function() {
 			header.sort = "up";
 		else
 			header.sort = "down";	
+			
+		var columnSortType = header.getAttribute('data-sort-type');
 		
 		rows.sort(function(row1, row2) {
 			if (row1.className == "empty" || row2.className == "empty")
@@ -421,7 +427,12 @@ wesCountry.table.sort = new (function() {
 
 			var row1 = row1.cells[index].innerHTML.toString();
 			var row2 = row2.cells[index].innerHTML.toString();	
-		
+				
+			if (columnSortType == 'number') {
+				row1 = parseFloat(row1);
+				row2 = parseFloat(row2);
+			}	
+				
 			if (row1 < row2)
 				return header.sort == "up" ? - 1 : 1;
 			else if (row1 > row2)
