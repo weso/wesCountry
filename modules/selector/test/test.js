@@ -91,11 +91,21 @@ function countryCallback(element, selectedItems) {
 	document.getElementById("second_result").innerHTML = result;
 }
 
-var yearSelector = new Selector(dataYears, { callback: timeCallback, maxSelectedItems: 3 });
+var yearSelector = new wesCountry.selector.basic(dataYears, { callback: timeCallback, maxSelectedItems: 3 });
 document.getElementById("first").appendChild(yearSelector.render());
 
-var countrySelector = new Selector(dataCountries, { callback: countryCallback, selectedItems: ["ESP"], maxSelectedItems: 3 });
+var countrySelector = new wesCountry.selector.basic(dataCountries, { callback: countryCallback, selectedItems: ["ESP"], maxSelectedItems: 3 });
 document.getElementById("second").appendChild(countrySelector.render());
+
+wesCountry.selector.timeline({ 
+	container: '#third',
+	elements: [
+		2008,
+		2009, 
+		2010
+	]
+});
+
 
 function clearYearSelector() {
 	yearSelector.clear();

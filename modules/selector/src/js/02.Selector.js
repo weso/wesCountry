@@ -1,7 +1,9 @@
-if (typeof(exports) === "undefined")
-	exports = new Object();
+if (typeof (wesCountry) === "undefined")
+    var wesCountry = new Object();
 
-var Selector = exports.Selector = function(data, options) {
+wesCountry.selector = new Object();
+
+wesCountry.selector.basic = function(data, options) {
 	var defaultOptions = {
 		"ul-class": "default-selector",
 		callback: null,
@@ -402,4 +404,109 @@ var Selector = exports.Selector = function(data, options) {
 		// Not valid for copying objects that contain methods
 	    return JSON.parse(JSON.stringify(obj));
 	}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+//                                    TIMELINE
+////////////////////////////////////////////////////////////////////////////////
+	
+wesCountry.selector.timeline = function(options) {
+	var defaultOptions = {
+		"container": "body",
+		"elements": [
+			2010,
+			2011,
+			2012
+		],
+		"selected": 2012,
+		"onChange": function(element) {
+			console.log(element);
+		}
+	};
+	
+	var selectedElement = options.selected ? options.selected : null;
+	
+	return new (function() {
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
+	
+		var container = document.querySelector(options.container);
+	
+		var timeline = document.createElement('div');
+		timeline.className = 'timeline';
+		container.appendChild(timeline);
+	
+		var line = document.createElement('div');
+		line.className = 'line';
+		timeline.appendChild(line);
+	
+		var years = document.createElement('div');
+		years.className = 'elements';
+		timeline.appendChild(years);
+	
+		var elementWidth = 100 / (options.elements.length > 0 ? options.elements.length : 1);
+		elementWidth += '%';
+	
+		var elements = [];
+	
+		for (var i = 0; i < options.elements.length; i++) {
+			// Circle
+			var element = document.createElement('div');
+			element.className = options.elements[i] == options.selected ? 'element selected' : 'element';
+			element.title = options.elements[i];
+			element.style.width = elementWidth;
+			line.appendChild(element);
+		
+			elements.push(element);
+		
+			var a = document.createElement('a');
+			a.className = 'circle';
+			a.title = options.elements[i];
+			element.appendChild(a);
+		
+			a.onclick = function() {
+				for (var j = 0; j < elements.length; j++)
+					elements[j].className = "element";
+			
+				this.parentNode.className = "element selected";
+		
+				selectedElement = this.title;
+		
+				if (options.onChange)
+					options.onChange(selectedElement);
+		
+				return false;	
+			}
+		
+			// Text
+			var element = document.createElement('div');
+			element.className = 'element';
+			element.style.width = elementWidth;
+			years.appendChild(element);
+		
+			var a = document.createElement('a');
+			a.title = options.elements[i];
+			a.index = i;
+			element.appendChild(a);
+			
+			a.onclick = function() {
+				for (var j = 0; j < elements.length; j++)
+					elements[j].className = "element";
+			
+				elements[this.index].className = "element selected";
+		
+				selectedElement = this.title;
+		
+				if (options.onChange)
+					options.onChange(selectedElement);
+		
+				return false;	
+			}
+		
+			a.appendChild(document.createTextNode(options.elements[i]));
+		}
+		
+		this.selected = function() {
+			return selectedElement;
+		}
+	})();
 };

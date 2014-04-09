@@ -369,9 +369,14 @@ wesCountry.table.sort = new (function() {
 	
 	function iterateOverRows(table) {
 		var headers = table.tHead.rows;
-		//var headers = table.querySelectorAll("tHead tr");
+
 		var length = headers.length;
-	
+		
+		var images = document.querySelectorAll('img[data-type=sorter]');
+		
+		for (var i = 0; i < images.length; i++)
+			images[i].parentNode.removeChild(images[i]);
+
 		for (var i = 0; i < length; i++) {
 			if (headers[i].className == "select")
 				continue;
@@ -387,12 +392,20 @@ wesCountry.table.sort = new (function() {
 				
 				var img = new Image();
 				img.className = "empty";
+				img.setAttribute('data-type', 'sorter');
 				headers[i].cells[j].appendChild(img);
 				
 				headers[i].cells[j].onclick = function() {
 					sortRows(this.table, this.index, this);
 				};
 			}
+		}
+		
+		table.sort = function(index) {
+			var headers = this.tHead.rows;
+			
+			if (headers.length > 0 && index < headers[0].cells.length)
+				headers[0].cells[index].onclick();
 		}
 	}
 	
