@@ -4957,8 +4957,8 @@ wesCountry.maps = new (function() {
 			
 			for (var i = 0; i < options.selectedRegions.length; i++) {
 				var region = options.selectedRegions[i];
-				styleContent += String.format("\n.region-{0} { fill: {1}; }", region, options.selectedRegionColour);
-				styleContent += String.format("\n.region-{0}:hover { fill: {1}; }", region, options.hoverColour);
+				styleContent += String.format("\n.region-{0} { fill: {1} !important; }", region, options.selectedRegionColour);
+				styleContent += String.format("\n.region-{0}:hover { fill: {1} !important; }", region, options.hoverColour);
 			}
 			
 			style.appendChild(document.createTextNode(styleContent));
