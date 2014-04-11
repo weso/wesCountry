@@ -10,14 +10,17 @@ wesCountry.maps = new (function() {
 			"countries": [],
 			"countryCode": "iso3",
 			"backgroundColour": "#fff",
+			"landColour": "#fff",
 			"borderColour": "#ccc",
 			"borderWidth": 1.5,
 			"hoverColour": "#ddd",
 			"colourRange": ['#A9F5BC', '#1184a7'],
 			"container": "body",
 			"zoom": true,
+			"zoomToCountryFactor": 0.8,
 			"selectedRegions": [],
 			"selectedRegionColour": '#333',
+			"selectedRegionBorderColour": "#ccc",
 			"onCountryClick": function(info) {
 				alert(info.iso3);
 			},
@@ -84,6 +87,12 @@ wesCountry.maps = new (function() {
 			
 			container.appendChild(svg);
 			
+			// Water
+			
+			var ocean = document.createElementNS(namespace, "rect");
+			ocean.setAttributeNS(null, "class", "water"); 
+			svg.appendChild(ocean);			
+			
 			// Panel
 			
 			panel = document.createElementNS(namespace, "g");
@@ -95,21 +104,21 @@ wesCountry.maps = new (function() {
 			style.setAttributeNS(null, 'type', 'text/css');
 			svg.appendChild(style);
 			
-			var styleContent = String.format(".water { fill: {0}; }", options.backgroundColour);
-			styleContent += String.format("\n.land { stroke: {0}; stroke-width: {1}; fill: #fff; }", options.borderColour, options.borderWidth);
+			var styleContent = String.format("{0} .water { fill: {1}; width: 100%; height: 100%; }", options.container, options.backgroundColour);
+			styleContent += String.format("\n{0} .land { stroke: {1}; stroke-width: {2}; fill: {3}; }", options.container, options.borderColour, options.borderWidth, options.landColour);
 			
 			if (options.hoverColour) {
-				styleContent += String.format("\n.land:hover { fill: {0}; }", options.hoverColour);
-				styleContent += String.format("\n.land-group:hover, .land-group:hover g, .land-group:hover path { fill: {0}; }", options.hoverColour);
+				styleContent += String.format("\n{0} .land:hover { fill: {1}; }", options.container, options.hoverColour);
+				styleContent += String.format("\n{0} .land-group:hover, {0} .land-group:hover g, {0} .land-group:hover path { fill: {1}; }", options.container, options.hoverColour);
 			}
 			
 			for (var i = 0; i < options.selectedRegions.length; i++) {
 				var region = options.selectedRegions[i];
-				styleContent += String.format("\n.region-{0} { fill: {1} !important; }", region, options.selectedRegionColour);
-				styleContent += String.format("\n.region-{0}:hover { fill: {1} !important; }", region, options.hoverColour);
+				styleContent += String.format("\n{0} .region-{1} { fill: {2} !important; stroke: {3} !important; }", options.container, region, options.selectedRegionColour, options.selectedRegionBorderColour);
+				styleContent += String.format("\n{0} .region-{1}:hover { fill: {2} !important; stroke: {3} !important; }", options.container, region, options.hoverColour, options.selectedRegionBorderColour);
 			}
 			
-			style.appendChild(document.createTextNode(styleContent));
+			style.appendChild(document.createTextNode(styleContent)); 
 			
 			// Countries to highlight
 			
@@ -117,52 +126,72 @@ wesCountry.maps = new (function() {
 
 			// Country creation
 			
-			var countries = options.projection.countries;
+			//var countries = options.projection.countries;
 			
-			for (var i = 0; i < countries.length; i++) {
-				var country = countries[i];
-				
-				var element = null;
-				
-				if (country.path)
-					element = createPath(country);
-					
-				if (country.elements)
-					element = createGroup(country);
-					
-				if (element && options.onCountryClick)
-					element.onclick = function() {
-						if (this.id)
-							options.onCountryClick(this.info);
-					}
+			var regions = getCountriesByRegion();
 			
-				if (element && options.onCountryOver)
-					element.onmouseover = function() {
-						if (this.id)
-							options.onCountryOver(this.info);
+			for (var r in regions) {
+				if (regions[r].length == 0)
+					continue;
+					
+				var regionName = regions[r][0].region.toLowerCase();	
+				
+				var region = document.createElementNS(namespace, "g");
+				region.setAttributeNS(null, "id", "region-" + regionName);
+				region.setAttributeNS(null, "class", "region-" + regionName);
+				panel.appendChild(region); 
+				
+				for (var j = 0; j < regions[r].length; j++) {
+					var country = regions[r][j];
+				
+					var element = null;
+				
+					if (country.path)
+						element = createPath(country);
+					
+					if (country.elements)
+						element = createGroup(country);
+					
+					if (element && options.onCountryClick)
+						element.onclick = function() {
+							if (this.id)
+								options.onCountryClick(this.info);
+						}
+			
+					if (element && options.onCountryOver)
+						element.onmouseover = function() {
+							if (this.id)
+								options.onCountryOver(this.info);
+						}
+					
+					if (element && options.onCountryOut)
+						element.onmouseout = function() {
+							if (this.id)
+								options.onCountryOut(this.info);
+						}
+					
+					if (element) {
+						element.info = country;
+					
+						var value = countryList[element.id] ? countryList[element.id].value : null;
+					
+						element.info.value = value;	
 					}
-					
-				if (element && options.onCountryOut)
-					element.onmouseout = function() {
-						if (this.id)
-							options.onCountryOut(this.info);
-					}
-					
-				if (element) {
-					element.info = country;
-					
-					var value = countryList[element.id] ? countryList[element.id].value : null;
-					
-					element.info.value = value;	
-				}
 	
-				panel.appendChild(element);
+					region.appendChild(element);
+				}
 			}
 			
-			// Initial factor
 			var width = panel.getBoundingClientRect().width;
+			var height = panel.getBoundingClientRect().height;
+			
+			// Water dimensions
+			ocean.setAttributeNS(null, "width", width); 
+			ocean.setAttributeNS(null, "height", height); 
+			
+			// Initial factor
 			var svgWidth = container.offsetWidth;
-	
+
 			factor = initialFactor = svgWidth / width;
 		
 			var start = options.projection.start;
@@ -223,6 +252,39 @@ wesCountry.maps = new (function() {
 			return map;
 		};
 
+		function getCountriesByRegion() {
+			// Cache
+			if (options.projection.countriesByRegion)
+				return options.projection.countriesByRegion;
+		
+			var countries = options.projection.countries;
+			
+			var regions = {};
+			var empty = [];
+			regions['empty'] = empty;
+			
+			for (var i = 0; i < countries.length; i++) {
+				var country = countries[i];	
+				var region = country.region;
+				
+				if (!region)
+					region = empty;
+				else {
+					if (!regions[region])
+						regions[region] = [];
+						
+					region = regions[region];
+				}
+				
+				region.push(country);
+			}
+			
+			// Store in cache
+			options.projection.countriesByRegion = regions;
+			
+			return regions;
+		};
+
 		this.zoomToCountry = function(countryCode) {
 			var country = svg.querySelector('#' + countryCode);
 			
@@ -237,15 +299,15 @@ wesCountry.maps = new (function() {
 			
 			if (widthFactor > heightFactor) {
 				if (countrySize.height * widthFactor > svgSize.height)
-					factor *= (svgSize.height / countrySize.height) * 0.8;
+					factor *= (svgSize.height / countrySize.height) * options.zoomToCountryFactor;
 				else
-					factor *= (svgSize.width / countrySize.width) * 0.8;
+					factor *= (svgSize.width / countrySize.width) * options.zoomToCountryFactor;
 			}
 			else {
 				if (countrySize.width * heightFactor > svgSize.width)
-					factor *= (svgSize.width / countrySize.width) * 0.8;
+					factor *= (svgSize.width / countrySize.width) * options.zoomToCountryFactor;
 				else
-					factor *= (svgSize.height / countrySize.height) * 0.8;
+					factor *= (svgSize.height / countrySize.height) * options.zoomToCountryFactor;
 			}
 
 			updatePositionAndZoom();
@@ -414,8 +476,8 @@ wesCountry.maps = new (function() {
 				countryList[country.code] = country;
 
 				// Create CSS class to asign country colour				
-				styleContent += String.format("\n.{0}, .{0} g, .{0} path { fill: {1} !important; }", country.code, colour);
-				styleContent += String.format("\n.{0}:hover, .{0}:hover g, .{0}:hover path { fill: {1} !important; opacity: 0.9; }", country.code, colour);
+				styleContent += String.format("\n{0} .{1}, {0} .{1} g, {0} .{1} path { fill: {2} !important; }", options.container, country.code, colour);
+				styleContent += String.format("\n{0} .{1}:hover, {0} .{1}:hover g, {0} .{1}:hover path { fill: {2} !important; opacity: 0.9; }", options.container, country.code, colour);
 			}
 	
 			style.appendChild(document.createTextNode(styleContent));
@@ -442,7 +504,7 @@ wesCountry.maps = new (function() {
 				path.setAttributeNS(null, "id", element[options.countryCode]);  
 
 			if (!className) {
-				className = element[options.countryCode] && element[options.countryCode] != '' ? 'land' : 'water';
+				className = 'land';
 				
 				if (element.region)
 					className += ' region-' + element.region;
@@ -469,13 +531,12 @@ wesCountry.maps = new (function() {
 				g.setAttributeNS(null, 'transform', element.transform);
 				
 			if (!className && element[options.countryCode])
-				className = element[options.countryCode] && element[options.countryCode] != '' ? 'land' : 'water';	
+				className = 'land';	
 	
 			if (className) {
 				var c = className;
 				
-				if (className != 'water')
-					c += ' land-group'
+				c += ' land-group'
 			
 				if (element[options.countryCode])
 					c += ' ' + element[options.countryCode];
