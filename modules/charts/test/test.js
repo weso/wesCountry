@@ -269,6 +269,31 @@ function generateCharts(options) {
 	renderAreaChart(options);
 	renderPieChart(options);
 	renderPolarChart(options);
+	
+	options.series = [
+		{
+            name: "2012",
+            values: [5.5, 2, null, null, 3.7]
+        },
+        {  
+        	name: "2013",
+         	values: [null, 50, 7.4, 15, null]
+        },
+        {  
+        	name: "2009",
+         	values: [10, 2.4, 5, 3, 5]
+        }        
+    ];
+    
+    options.vertex = {
+    	show: true
+    };
+	
+	renderBarChart(options);	
+	renderLineChart(options);
+	renderAreaChart(options);
+	renderPieChart(options);
+	renderPolarChart(options);
 }
 
 function renderBarChart(options) {

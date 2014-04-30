@@ -46,6 +46,7 @@ wesCountry.charts.barChart = function(options) {
 		for (var i = 0; i < length; i++) {
 			for (var j = 0; j < numberOfSeries; j++) {
 				var serie = options.series[j].name;
+				var id = options.series[j].id;
 				var value = options.series[j].values[i];
 				var url = options.series[j].urls ? options.series[j].urls[i] : "";
 				var pos = options.xAxis.values[j];
@@ -76,6 +77,7 @@ wesCountry.charts.barChart = function(options) {
 					y: yPos,
 					width: barWidth,
 					height: height,
+					id: id,
 					serie: serie,
 					value: value,
 					pos: pos
@@ -89,17 +91,32 @@ wesCountry.charts.barChart = function(options) {
 					this.colour = this.style.fill;
 					this.style.fill = options.overColour;
 					
-					options.events.onmouseover(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+					options.events.onmouseover({
+						id: this.getAttribute("id"),
+						serie: this.getAttribute("serie"), 
+						pos: this.getAttribute("pos"), 
+						value: this.getAttribute("value")
+					});
 				};
 											
 				var onmouseout = function() { 
 					this.style.fill = this.colour;
-					options.events.onmouseout(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+					options.events.onmouseout({
+						id: this.getAttribute("id"),
+						serie: this.getAttribute("serie"), 
+						pos: this.getAttribute("pos"), 
+						value: this.getAttribute("value")
+					});
 				};
 				
 				var onclick = function() { 
 					this.style.fill = this.colour;
-					options.events.onclick(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+					options.events.onclick({
+						id: this.getAttribute("id"),
+						serie: this.getAttribute("serie"), 
+						pos: this.getAttribute("pos"), 
+						value: this.getAttribute("value")
+					});
 				};
 				
 				if (url && url != "") {

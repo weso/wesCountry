@@ -47,17 +47,32 @@ wesCountry.charts.scatterPlot = function(options) {
 			this.colour = this.style.fill;
 			this.style.fill = options.overColour;
 			
-			options.events.onmouseover(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+			options.events.onmouseover({
+				id: this.getAttribute("id"),
+				serie: this.getAttribute("serie"), 
+				pos: this.getAttribute("pos"), 
+				value: this.getAttribute("value")
+			});
 		};
 									
 		var onmouseout = function() { 
 			this.style.fill = this.colour;
-			options.events.onmouseout(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+			options.events.onmouseout({
+				id: this.getAttribute("id"),
+				serie: this.getAttribute("serie"), 
+				pos: this.getAttribute("pos"), 
+				value: this.getAttribute("value")
+			});
 		};
 		
 		var onclick = function() { 
 			this.style.fill = this.colour;
-			options.events.onclick(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+			options.events.onclick({
+				id: this.getAttribute("id"),
+				serie: this.getAttribute("serie"), 
+				pos: this.getAttribute("pos"), 
+				value: this.getAttribute("value")
+			});
 		};		
 	
 		for (var i = 0; i < length; i++) {
@@ -69,6 +84,7 @@ wesCountry.charts.scatterPlot = function(options) {
 				var valueXPrev = 0;
 				
 				var value = options.series[i].values[j];
+				var id = options.series[i].id;
 				var serie = options.series[i].name;
 				var pos = valueX;
 			
@@ -109,6 +125,7 @@ wesCountry.charts.scatterPlot = function(options) {
 					cx: xPos,
 					cy: yPos,
 					r: 5,
+					id: id,
 					serie: serie,
 					value: value,
 					pos: pos

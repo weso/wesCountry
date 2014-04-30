@@ -180,19 +180,34 @@ wesCountry.charts.polarChart = function(options) {
 		var onmouseover = function() { 
 			this.setAttribute("r", 8);
 			setLineWidth(this, 2);
-			options.events.onmouseover(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+			options.events.onmouseover({
+				id: this.getAttribute("id"),
+				serie: this.getAttribute("serie"), 
+				pos: this.getAttribute("pos"), 
+				value: this.getAttribute("value")
+			});
 		};
 									
 		var onmouseout = function() { 
 			this.setAttribute("r", 5); 
 			setLineWidth(this, 1);
-			options.events.onmouseout(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+			options.events.onmouseout({
+				id: this.getAttribute("id"),
+				serie: this.getAttribute("serie"), 
+				pos: this.getAttribute("pos"), 
+				value: this.getAttribute("value")
+			});
 		};
 		
 		var onclick = function() { 
 			this.setAttribute("r", 5); 
 			setLineWidth(this, 1);
-			options.events.onclick(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+			options.events.onclick({
+				id: this.getAttribute("id"),
+				serie: this.getAttribute("serie"), 
+				pos: this.getAttribute("pos"), 
+				value: this.getAttribute("value")
+			});
 		};			
 		
 		// Polygon drawing
@@ -206,6 +221,7 @@ wesCountry.charts.polarChart = function(options) {
 				var vertex = polygonVertices[i][j];
 				var vertexPrev = j == 0 ? polygonVertices[i][numberOfVertices - 1] : polygonVertices[i][j - 1];
 				var value = options.series[i].values[j];
+				var id = options.series[i].id;
 				var serie = options.series[i].name;
 				var pos = options.xAxis.values[j];
 			
@@ -214,6 +230,7 @@ wesCountry.charts.polarChart = function(options) {
 						cx: vertex.x,
 						cy: vertex.y,
 						r: 5,
+						id: id,
 						serie: serie,
 						value: value,
 						pos: pos,

@@ -47,6 +47,9 @@ wesCountry.maps = new (function() {
 		
 		// Country info visor
 		var visor = null;
+		this.visor = function() {
+			return visor;
+		}
 		
 		var svg = null;
 		
@@ -67,6 +70,8 @@ wesCountry.maps = new (function() {
 			x: 0,
 			y: 0
 		};
+		
+		var fullCountryList = {};
 	
 		options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
 	
@@ -114,8 +119,8 @@ wesCountry.maps = new (function() {
 			
 			for (var i = 0; i < options.selectedRegions.length; i++) {
 				var region = options.selectedRegions[i];
-				styleContent += String.format("\n{0} .region-{1} { fill: {2} !important; stroke: {3} !important; }", options.container, region, options.selectedRegionColour, options.selectedRegionBorderColour);
-				styleContent += String.format("\n{0} .region-{1}:hover { fill: {2} !important; stroke: {3} !important; }", options.container, region, options.hoverColour, options.selectedRegionBorderColour);
+				styleContent += String.format("\n{0} .region-{1} { fill: {2}; stroke: {3}; }", options.container, region, options.selectedRegionColour, options.selectedRegionBorderColour);
+				styleContent += String.format("\n{0} .region-{1}:hover { fill: {2}; stroke: {3}; }", options.container, region, options.hoverColour, options.selectedRegionBorderColour);
 			}
 			
 			style.appendChild(document.createTextNode(styleContent)); 
@@ -125,8 +130,6 @@ wesCountry.maps = new (function() {
 			var countryList = getCountriesToShow(style);
 
 			// Country creation
-			
-			//var countries = options.projection.countries;
 			
 			var regions = getCountriesByRegion();
 			
@@ -155,19 +158,19 @@ wesCountry.maps = new (function() {
 					if (element && options.onCountryClick)
 						element.onclick = function() {
 							if (this.id)
-								options.onCountryClick(this.info);
+								options.onCountryClick.call(this, this.info);
 						}
 			
 					if (element && options.onCountryOver)
 						element.onmouseover = function() {
 							if (this.id)
-								options.onCountryOver(this.info);
+								options.onCountryOver.call(this, this.info);
 						}
 					
 					if (element && options.onCountryOut)
 						element.onmouseout = function() {
 							if (this.id)
-								options.onCountryOut(this.info);
+								options.onCountryOut.call(this, this.info);
 						}
 					
 					if (element) {
@@ -176,6 +179,8 @@ wesCountry.maps = new (function() {
 						var value = countryList[element.id] ? countryList[element.id].value : null;
 					
 						element.info.value = value;	
+						
+						fullCountryList[element.id] = element.info;
 					}
 	
 					region.appendChild(element);
@@ -284,6 +289,10 @@ wesCountry.maps = new (function() {
 			
 			return regions;
 		};
+		
+		this.getCountryInfo = function(countryCode) {
+			return fullCountryList[countryCode];
+		}
 
 		this.zoomToCountry = function(countryCode) {
 			var country = svg.querySelector('#' + countryCode);
@@ -476,8 +485,8 @@ wesCountry.maps = new (function() {
 				countryList[country.code] = country;
 
 				// Create CSS class to asign country colour				
-				styleContent += String.format("\n{0} .{1}, {0} .{1} g, {0} .{1} path { fill: {2} !important; }", options.container, country.code, colour);
-				styleContent += String.format("\n{0} .{1}:hover, {0} .{1}:hover g, {0} .{1}:hover path { fill: {2} !important; opacity: 0.9; }", options.container, country.code, colour);
+				styleContent += String.format("\n{0} .{1}, {0} .{1} g, {0} .{1} path { fill: {2}; }", options.container, country.code, colour);
+				styleContent += String.format("\n{0} .{1}:hover, {0} .{1}:hover g, {0} .{1}:hover path { fill: {2}; opacity: 0.9; }", options.container, country.code, colour);
 			}
 	
 			style.appendChild(document.createTextNode(styleContent));

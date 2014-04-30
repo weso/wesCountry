@@ -95,17 +95,32 @@ wesCountry.charts.pieChart = function(options) {
 				this.colour = this.style.fill;
 				this.style.fill = options.overColour;
 				
-				options.events.onmouseover(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+				options.events.onmouseover({
+					id: this.getAttribute("id"),
+					serie: this.getAttribute("serie"), 
+					pos: this.getAttribute("pos"), 
+					value: this.getAttribute("value")
+				});
 			};
 										
 			var onmouseout = function() { 
 				this.style.fill = this.colour;
-				options.events.onmouseout(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+				options.events.onmouseout({
+					id: this.getAttribute("id"),
+					serie: this.getAttribute("serie"), 
+					pos: this.getAttribute("pos"), 
+					value: this.getAttribute("value")
+				});
 			};
 			
 			var onclick = function() { 
 				this.style.fill = this.colour;
-				options.events.onclick(this.getAttribute("serie"), this.getAttribute("pos"), this.getAttribute("value"));
+				options.events.onclick({
+					id: this.getAttribute("id"),
+					serie: this.getAttribute("serie"), 
+					pos: this.getAttribute("pos"), 
+					value: this.getAttribute("value")
+				});
 			};		
 	
 			// Pie
@@ -147,6 +162,7 @@ wesCountry.charts.pieChart = function(options) {
 		    	for(var j = 0; j < length; j++)
 		    		if (angles[j] != 0) {
 		    			colour = options.serieColours[j];
+		    			id = options.series[j].id;
 		    			serie = options.series[j].name;
 		    			value = Math.abs(options.series[0].values[j]).toFixed(2);
 		    			pos = options.xAxis.values[i];
@@ -157,6 +173,7 @@ wesCountry.charts.pieChart = function(options) {
 			    	cx: cx,
 			    	cy: cy,
 			    	r: radius,
+			    	id: id,
 			    	serie: serie,
 					value: value,
 					pos: pos

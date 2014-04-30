@@ -61,14 +61,17 @@ wesCountry.charts = new (function() {
 			"from-zero": false
 		},
 		series: [{
+			id: "1",
             name: "First",
             values: [-1, 4, 5, 3, 6],
             urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
         }, {
+        	id: "2",
             name: "Second",
             values: [1, 7, 5, 6, 4],
             urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
         }, {
+        	id: "3",
         	name: "Third",
         	values: [0, 1, 2, 3, 4],
         	urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
@@ -93,8 +96,8 @@ wesCountry.charts = new (function() {
 	        }
         },
         events: {
-	        "onmouseover": function(serie, pos, value) {
-		    	var text = String.format("Series '{0}': ({1}, {2})", serie, pos, value);
+	        "onmouseover": function(info) {
+		    	var text = String.format("Series '{0}': ({1}, {2})", info.serie, info.pos, info.value);
 		    	console.log(text);
 		    	wesCountry.charts.showTooltip(text);
 	        },
