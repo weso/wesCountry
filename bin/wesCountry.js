@@ -1206,9 +1206,15 @@ wesCountry.charts.generateLineChart = function(options, area) {
 		
 			var lineId = "l" + wesCountry.charts.guid();
 			
+			// Previous value, it could be null
+			var valuePrevAux = null;
+			// Previous non-null value position
+			var valuePrevPos = 0;
+			
 			for (var j = 0; j < valueLength; j++) {
 				var value = options.series[i].values[j];
 				var valuePrev = j > 0 ? options.series[i].values[j - 1] : 0;
+				
 				var url = options.series[i].urls ? options.series[i].urls[j] : "";
 				
 				var id = options.series[i].id;
@@ -1216,15 +1222,25 @@ wesCountry.charts.generateLineChart = function(options, area) {
 				var pos = options.xAxis.values[j];
 				
 				if (!value)
-					value = 0;
+					continue;
 					
+				// If previous value is null we rescue the last non-null value	
 				if (!valuePrev)
-					valuePrev = 0;
+					valuePrev = valuePrevAux;
+				
+				// We store this as the new previous value
+				valuePrevAux = value;
 				
 				var xPos = getXPos(j, sizes, zeroPos);
 				var yPos = getYPos(value, sizes, zeroPos, maxHeight);
-				var xPosPrev = getXPos(j - 1, sizes, zeroPos);	
-				var yPosPrev = getYPos(valuePrev, sizes, zeroPos, maxHeight);
+				
+				if (valuePrev) {
+					var xPosPrev = getXPos(valuePrevPos, sizes, zeroPos);	
+					var yPosPrev = getYPos(valuePrev, sizes, zeroPos, maxHeight);
+				}
+				
+				// We store this as the new previous value position
+				valuePrevPos = j;
 				
 				var pointOptions = {
 					cx: xPos,
@@ -1307,22 +1323,24 @@ wesCountry.charts.generateLineChart = function(options, area) {
 					);
 				}
 				
-				if (j > 0) {
-					g.line({
-						x1: xPosPrev,
-						x2: xPos,
-						y1: yPosPrev,
-						y2: yPos,
-						"stroke-width": options.stroke.width,
-						"class": lineId
-					}).style(String.format("stroke: {0}", options.serieColours[i % options.serieColours.length]))
-					.event("onmouseover", function() { setLineWidth(this, options.stroke.width * 1.5); })
-					.event("onmouseout", function() { setLineWidth(this, options.stroke.width); });
+				if (valuePrev) {
+					if (j > 0) {
+						g.line({
+							x1: xPosPrev,
+							x2: xPos,
+							y1: yPosPrev,
+							y2: yPos,
+							"stroke-width": options.stroke.width,
+							"class": lineId
+						}).style(String.format("stroke: {0}", options.serieColours[i % options.serieColours.length]))
+						.event("onmouseover", function() { setLineWidth(this, options.stroke.width * 1.5); })
+						.event("onmouseout", function() { setLineWidth(this, options.stroke.width); });
 					
-					pathD += String.format(" L{0} {1}", xPos, yPos);
-				}
-				else {
-					pathD = String.format("M{0} {1} L{2} {3}", xPos, posZero, xPos, yPos);
+						pathD += String.format(" L{0} {1}", xPos, yPos);
+					}
+					else {
+						pathD = String.format("M{0} {1} L{2} {3}", xPos, posZero, xPos, yPos);
+					}
 				}
 			}
 			
