@@ -37,6 +37,7 @@ var jSVG = new (function() {
 		var myAttributes = {};
 		var myEvents = {};
 		var myStyle = "";
+		var myClass = "";
 		var myValue = undefined;
 		var myChildNodes = [];
 	
@@ -121,6 +122,11 @@ var jSVG = new (function() {
 			return this;
 		}
 		
+		this.className = function(value) {
+			myClass = value;
+			return this;
+		}
+		
 		this.value = function(value) {
 			myValue = value;
 			return this;
@@ -191,6 +197,7 @@ var jSVG = new (function() {
 			}
 			
 			element.setAttributeNS(null, "style", myStyle);
+			element.setAttributeNS(null, "class", myClass);
 			
 			for (var event in myEvents) {
 				element[event] = myEvents[event];
@@ -220,8 +227,8 @@ var jSVG = new (function() {
 			for (var i = 0; i < myChildNodes.length; i++)
 				childNodes += myChildNodes[i].toString();
 		
-			return String.format('<{0} xmlns="{1}" {2} style="{3}">{4}{5}</{0}>', 
-					myTag, namespace, attributes, myStyle, childNodes, myValue ? myValue : "");
+			return String.format('<{0} xmlns="{1}" {2} class="{3}" style="{4}">{5}{6}</{0}>', 
+					myTag, namespace, attributes, myClass, myStyle, childNodes, myValue ? myValue : "");
 		}
 	}
 	

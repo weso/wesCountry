@@ -86,10 +86,20 @@ wesCountry.charts.barChart = function(options) {
 				var rectangleStyle = String.format("fill: {0}", options.serieColours[j]);
 			
 				// Events
-			
+				
+				var selectBar = function(element) {
+					var selectedBars = document.querySelectorAll(options.container + ' rect[selected]');
+					
+					for (var i = 0; i < selectedBars.length; i++)
+						unselectBar(selectedBars[i]);
+					
+					element.colour = element.style.fill;
+					element.style.fill = options.overColour;
+					element.setAttribute("selected", "selected");
+				};
+				
 				var onmouseover = function() {
-					this.colour = this.style.fill;
-					this.style.fill = options.overColour;
+					selectBar(this);
 					
 					options.events.onmouseover({
 						id: this.getAttribute("id"),
@@ -98,9 +108,13 @@ wesCountry.charts.barChart = function(options) {
 						value: this.getAttribute("value")
 					});
 				};
+					
+				var unselectBar = function(element) {
+					element.style.fill = element.colour;
+				};					
 											
 				var onmouseout = function() { 
-					this.style.fill = this.colour;
+					unselectBar(this);
 					options.events.onmouseout({
 						id: this.getAttribute("id"),
 						serie: this.getAttribute("serie"), 
@@ -119,15 +133,23 @@ wesCountry.charts.barChart = function(options) {
 					});
 				};
 				
+				var r = null;
+				
 				if (url && url != "") {
 					var a = g.a({}, url ? url : "")
-					var r = a.rectangle(rectangleOptions).style(rectangleStyle)
-					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+					r = a.rectangle(rectangleOptions);
 				}
 				else {
-					var r = g.rectangle(rectangleOptions).style(rectangleStyle)
-					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+					r = g.rectangle(rectangleOptions);
 				}			
+				
+				r.style(rectangleStyle).className(serie)
+					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
+					.event("selectBar", function() {
+						selectBar(this);
+					}).event("unselectBar", function() {
+						unselectBar(this);
+					});
 			
 				// Value on bar
 				if (options.valueOnItem.show == true) {

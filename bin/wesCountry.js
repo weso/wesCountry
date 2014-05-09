@@ -274,6 +274,7 @@ var wesCountry = new (function() {
 		var myAttributes = {};
 		var myEvents = {};
 		var myStyle = "";
+		var myClass = "";
 		var myValue = undefined;
 		var myChildNodes = [];
 	
@@ -358,6 +359,11 @@ var wesCountry = new (function() {
 			return this;
 		}
 		
+		this.className = function(value) {
+			myClass = value;
+			return this;
+		}
+		
 		this.value = function(value) {
 			myValue = value;
 			return this;
@@ -428,6 +434,7 @@ var wesCountry = new (function() {
 			}
 			
 			element.setAttributeNS(null, "style", myStyle);
+			element.setAttributeNS(null, "class", myClass);
 			
 			for (var event in myEvents) {
 				element[event] = myEvents[event];
@@ -457,8 +464,8 @@ var wesCountry = new (function() {
 			for (var i = 0; i < myChildNodes.length; i++)
 				childNodes += myChildNodes[i].toString();
 		
-			return String.format('<{0} xmlns="{1}" {2} style="{3}">{4}{5}</{0}>', 
-					myTag, namespace, attributes, myStyle, childNodes, myValue ? myValue : "");
+			return String.format('<{0} xmlns="{1}" {2} class="{3}" style="{4}">{5}{6}</{0}>', 
+					myTag, namespace, attributes, myClass, myStyle, childNodes, myValue ? myValue : "");
 		}
 	}
 	
@@ -1012,10 +1019,20 @@ wesCountry.charts.barChart = function(options) {
 				var rectangleStyle = String.format("fill: {0}", options.serieColours[j]);
 			
 				// Events
-			
+				
+				var selectBar = function(element) {
+					var selectedBars = document.querySelectorAll(options.container + ' rect[selected]');
+					
+					for (var i = 0; i < selectedBars.length; i++)
+						unselectBar(selectedBars[i]);
+					
+					element.colour = element.style.fill;
+					element.style.fill = options.overColour;
+					element.setAttribute("selected", "selected");
+				};
+				
 				var onmouseover = function() {
-					this.colour = this.style.fill;
-					this.style.fill = options.overColour;
+					selectBar(this);
 					
 					options.events.onmouseover({
 						id: this.getAttribute("id"),
@@ -1024,9 +1041,13 @@ wesCountry.charts.barChart = function(options) {
 						value: this.getAttribute("value")
 					});
 				};
+					
+				var unselectBar = function(element) {
+					element.style.fill = element.colour;
+				};					
 											
 				var onmouseout = function() { 
-					this.style.fill = this.colour;
+					unselectBar(this);
 					options.events.onmouseout({
 						id: this.getAttribute("id"),
 						serie: this.getAttribute("serie"), 
@@ -1045,15 +1066,23 @@ wesCountry.charts.barChart = function(options) {
 					});
 				};
 				
+				var r = null;
+				
 				if (url && url != "") {
 					var a = g.a({}, url ? url : "")
-					var r = a.rectangle(rectangleOptions).style(rectangleStyle)
-					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+					r = a.rectangle(rectangleOptions);
 				}
 				else {
-					var r = g.rectangle(rectangleOptions).style(rectangleStyle)
-					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
+					r = g.rectangle(rectangleOptions);
 				}			
+				
+				r.style(rectangleStyle).className(serie)
+					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
+					.event("selectBar", function() {
+						selectBar(this);
+					}).event("unselectBar", function() {
+						unselectBar(this);
+					});
 			
 				// Value on bar
 				if (options.valueOnItem.show == true) {
@@ -1195,11 +1224,6 @@ wesCountry.charts.generateLineChart = function(options, area) {
 		
 		// Iteration
 		for (var i = 0; i < length; i++) {
-			// Polygon path
-			var pathD = "";
-			if (area) {
-				var path = g.path();
-			}
 			// Position of zero y line
 			var minValue = Math.max(0, sizes.minValue);
 			var posZero = getYPos(minValue, sizes, zeroPos, maxHeight);
@@ -1211,6 +1235,17 @@ wesCountry.charts.generateLineChart = function(options, area) {
 			// Previous non-null value position
 			var valuePrevPos = 0;
 			
+			var serieGroup = g.g();
+			serieGroup.className('serie_' + options.series[i].name);
+			
+			// Polygon path
+			var pathD = "";
+			if (area) {
+				var path = serieGroup.path();
+			}			
+			
+			var firstValue = -1;
+			
 			for (var j = 0; j < valueLength; j++) {
 				var value = options.series[i].values[j];
 				var valuePrev = j > 0 ? options.series[i].values[j - 1] : 0;
@@ -1220,11 +1255,14 @@ wesCountry.charts.generateLineChart = function(options, area) {
 				var id = options.series[i].id;
 				var serie = options.series[i].name;
 				var pos = options.xAxis.values[j];
-				
+			
 				if (!value)
 					continue;
 					
+				firstValue++;
+					
 				// If previous value is null we rescue the last non-null value	
+				
 				if (!valuePrev)
 					valuePrev = valuePrevAux;
 				
@@ -1300,19 +1338,19 @@ wesCountry.charts.generateLineChart = function(options, area) {
 				
 				if (options.vertex.show) {
 					if (url && url != "") {
-						var a = g.a({}, url ? url : "")
+						var a = serieGroup.a({}, url ? url : "")
 						a.circle(pointOptions)
 						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 					}
 					else {
-						g.circle(pointOptions)
+						serieGroup.circle(pointOptions)
 						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 					}
 				}
 							
 				// Value on bar		
 				if (options.valueOnItem.show == true) {
-					g.text({
+					serieGroup.text({
 						x: xPos,
 						y: yPos - (options.height / 100) * options.valueOnItem.margin,
 						value: value == 0 ? "0" : value.toFixed(2)
@@ -1321,11 +1359,11 @@ wesCountry.charts.generateLineChart = function(options, area) {
 						options.valueOnItem["font-family"],
 						options.valueOnItem["font-size"])
 					);
-				}
-				
-				if (valuePrev) {
-					if (j > 0) {
-						g.line({
+				}	
+		
+				if (firstValue > 0) {
+					if (valuePrev) {
+						serieGroup.line({
 							x1: xPosPrev,
 							x2: xPos,
 							y1: yPosPrev,
@@ -1335,13 +1373,14 @@ wesCountry.charts.generateLineChart = function(options, area) {
 						}).style(String.format("stroke: {0}", options.serieColours[i % options.serieColours.length]))
 						.event("onmouseover", function() { setLineWidth(this, options.stroke.width * 1.5); })
 						.event("onmouseout", function() { setLineWidth(this, options.stroke.width); });
-					
+				
 						pathD += String.format(" L{0} {1}", xPos, yPos);
 					}
-					else {
-						pathD = String.format("M{0} {1} L{2} {3}", xPos, posZero, xPos, yPos);
-					}
 				}
+				else {
+					pathD = String.format("M{0} {1} L{2} {3}", xPos, posZero, xPos, yPos);
+				}
+				
 			}
 			
 			pathD += String.format(" L{0} {1} Z", xPos, posZero);
@@ -5421,8 +5460,8 @@ wesCountry.maps = new (function() {
 						
 			var colours = wesCountry.colourRange(options.colourRange, valueList.length);
 			
-			valueList.sort();
-			
+			valueList.sort(function(a, b){ return a - b });
+	
 			var valueColours = {};
 			
 			for (var i = 0; i < valueList.length; i++)

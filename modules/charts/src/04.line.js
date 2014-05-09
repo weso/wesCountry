@@ -51,11 +51,6 @@ wesCountry.charts.generateLineChart = function(options, area) {
 		
 		// Iteration
 		for (var i = 0; i < length; i++) {
-			// Polygon path
-			var pathD = "";
-			if (area) {
-				var path = g.path();
-			}
 			// Position of zero y line
 			var minValue = Math.max(0, sizes.minValue);
 			var posZero = getYPos(minValue, sizes, zeroPos, maxHeight);
@@ -67,6 +62,17 @@ wesCountry.charts.generateLineChart = function(options, area) {
 			// Previous non-null value position
 			var valuePrevPos = 0;
 			
+			var serieGroup = g.g();
+			serieGroup.className('serie_' + options.series[i].name);
+			
+			// Polygon path
+			var pathD = "";
+			if (area) {
+				var path = serieGroup.path();
+			}			
+			
+			var firstValue = -1;
+			
 			for (var j = 0; j < valueLength; j++) {
 				var value = options.series[i].values[j];
 				var valuePrev = j > 0 ? options.series[i].values[j - 1] : 0;
@@ -76,11 +82,14 @@ wesCountry.charts.generateLineChart = function(options, area) {
 				var id = options.series[i].id;
 				var serie = options.series[i].name;
 				var pos = options.xAxis.values[j];
-				
+			
 				if (!value)
 					continue;
 					
+				firstValue++;
+					
 				// If previous value is null we rescue the last non-null value	
+				
 				if (!valuePrev)
 					valuePrev = valuePrevAux;
 				
@@ -156,19 +165,19 @@ wesCountry.charts.generateLineChart = function(options, area) {
 				
 				if (options.vertex.show) {
 					if (url && url != "") {
-						var a = g.a({}, url ? url : "")
+						var a = serieGroup.a({}, url ? url : "")
 						a.circle(pointOptions)
 						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 					}
 					else {
-						g.circle(pointOptions)
+						serieGroup.circle(pointOptions)
 						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 					}
 				}
 							
 				// Value on bar		
 				if (options.valueOnItem.show == true) {
-					g.text({
+					serieGroup.text({
 						x: xPos,
 						y: yPos - (options.height / 100) * options.valueOnItem.margin,
 						value: value == 0 ? "0" : value.toFixed(2)
@@ -177,11 +186,11 @@ wesCountry.charts.generateLineChart = function(options, area) {
 						options.valueOnItem["font-family"],
 						options.valueOnItem["font-size"])
 					);
-				}
-				
-				if (valuePrev) {
-					if (j > 0) {
-						g.line({
+				}	
+		
+				if (firstValue > 0) {
+					if (valuePrev) {
+						serieGroup.line({
 							x1: xPosPrev,
 							x2: xPos,
 							y1: yPosPrev,
@@ -191,13 +200,14 @@ wesCountry.charts.generateLineChart = function(options, area) {
 						}).style(String.format("stroke: {0}", options.serieColours[i % options.serieColours.length]))
 						.event("onmouseover", function() { setLineWidth(this, options.stroke.width * 1.5); })
 						.event("onmouseout", function() { setLineWidth(this, options.stroke.width); });
-					
+				
 						pathD += String.format(" L{0} {1}", xPos, yPos);
 					}
-					else {
-						pathD = String.format("M{0} {1} L{2} {3}", xPos, posZero, xPos, yPos);
-					}
 				}
+				else {
+					pathD = String.format("M{0} {1} L{2} {3}", xPos, posZero, xPos, yPos);
+				}
+				
 			}
 			
 			pathD += String.format(" L{0} {1} Z", xPos, posZero);

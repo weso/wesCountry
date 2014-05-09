@@ -465,8 +465,8 @@ wesCountry.maps = new (function() {
 						
 			var colours = wesCountry.colourRange(options.colourRange, valueList.length);
 			
-			valueList.sort();
-			
+			valueList.sort(function(a, b){ return a - b });
+	
 			var valueColours = {};
 			
 			for (var i = 0; i < valueList.length; i++)
