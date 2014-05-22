@@ -15,6 +15,11 @@ String.format = function(pattern)
 var wesCountry = new (function() {
 	this.version = "1.0.0.0";
 	
+	this.signature = {
+		value: "© wesCountry",
+		url: "https://github.com/weso/wesCountry"
+	}
+	
 	function s4() {
   		return Math.floor((1 + Math.random()) * 0x10000)
     		.toString(16)
@@ -24,6 +29,16 @@ var wesCountry = new (function() {
 	this.guid = function() {
   		return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
          	s4() + '-' + s4() + s4() + s4();
+	}
+	
+	this.setSignature = function(options, svg) {
+		var a = svg.a({}, wesCountry.signature.url).className('signature');
+		
+		a.text({
+			x: options.width,
+			y: options.height - 4,
+			value: wesCountry.signature.value
+		}).style('fill: #888;font-family:Helvetica;font-size:12px;text-anchor: end;dominant-baseline: edge');
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////

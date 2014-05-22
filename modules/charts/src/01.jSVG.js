@@ -37,7 +37,7 @@ var jSVG = new (function() {
 		var myAttributes = {};
 		var myEvents = {};
 		var myStyle = "";
-		var myClass = "";
+		var myClass = "wesCountry";
 		var myValue = undefined;
 		var myChildNodes = [];
 	

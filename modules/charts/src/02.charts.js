@@ -157,6 +157,8 @@ wesCountry.charts = new (function() {
 		
 		var svg = jSVG.svg(svgOptions);
 		
+		wesCountry.setSignature(options, svg);
+		
 		return svg;
 	}
 	

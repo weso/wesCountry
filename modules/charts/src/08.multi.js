@@ -4,9 +4,103 @@ NodeList.prototype.indexOf = function (element) {
 			return i;
 	} return -1;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+//                                  TABLE
+////////////////////////////////////////////////////////////////////////////////
+
+wesCountry.charts.table = function(options) {
+	options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+	
+	var table = document.createElement('table');
+	table.className = 'wesCountry';
+	
+	var thead = document.createElement('thead');
+	table.appendChild(thead);
+	
+	var tbody = document.createElement('tbody');
+	table.appendChild(tbody);
+	
+	var tr = document.createElement('tr');
+	thead.appendChild(tr);
+	
+	var th = document.createElement('th');
+	th.innerHTML = 'Country';
+	tr.appendChild(th);
+	
+	var th = document.createElement('th');
+	th.innerHTML = 'Time';
+	tr.appendChild(th);
+	
+	var th = document.createElement('th');
+	th.innerHTML = 'Value';
+	tr.appendChild(th);
+	
+	for (var i = 0; i < options.series.length; i++) {
+		var country = options.series[i].name;
+		
+		for (var j = 0; j < options.xAxis.values.length; j++) {
+			var value = options.series[i].values[j];
+			var time = options.xAxis.values[j];
+			
+			var tr = document.createElement('tr');
+			tbody.appendChild(tr);
+			
+			var td = document.createElement('td');
+			td.innerHTML = country;
+			tr.appendChild(td);
+			
+			var td = document.createElement('td');
+			td.innerHTML = time;
+			tr.appendChild(td);
+			
+			var td = document.createElement('td');
+			td.innerHTML = value;
+			tr.appendChild(td);
+		}
+	}
+	
+	return {
+		render: function() {
+			return table;
+		}
+	};
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                  CHART
 ////////////////////////////////////////////////////////////////////////////////	
+
+function getCountriesForMap(options) {
+	var countryData = [];
+	var countries = [];
+
+	for (var i = options.series.length - 1; i >= 0; i--) {
+		var countryName = options.series[i].name;
+		var countryId = options.series[i].id ? options.series[i].id : countryName;
+		
+		if (countries.indexOf(countryId) != -1)
+			continue;
+			
+		countries.push(countryId);	
+		
+		for (var j = 0; j < options.xAxis.values.length; j++) {
+			var value = options.series[i].values[j];
+			
+			if (value) {
+				countryData.push({
+					code: countryId,
+					value: value
+				});
+				
+				break;
+			}
+		}
+	}
+	
+	return countryData;
+}
+
 wesCountry.charts.chart = function (options) {
 	var container;
 	container = typeof options.container !== "string" ? options.container : undefined;
@@ -35,12 +129,26 @@ wesCountry.charts.chart = function (options) {
 		case "polar":
 			chart = this.polarChart(options);
 			break;
+		case 'table':
+			chart = this.table(options);
+			break;
+		case 'map':
+			chart = wesCountry.maps.createMap({
+				container: options.container,
+				countries: getCountriesForMap(options)
+			});
+			break;
 	}
+	
 	if(container === undefined)
 		container = document.querySelector(options.container);
-	container.appendChild(chart.render());
+	
+	if (chart.render)	
+		container.appendChild(chart.render());
+	
 	return container.parentNode;
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                MULTI CHART
 ////////////////////////////////////////////////////////////////////////////////

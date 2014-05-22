@@ -100,6 +100,11 @@ function HashTable(obj)
 var wesCountry = new (function() {
 	this.version = "1.0.0.0";
 	
+	this.signature = {
+		value: "© wesCountry",
+		url: "https://github.com/weso/wesCountry"
+	}
+	
 	function s4() {
   		return Math.floor((1 + Math.random()) * 0x10000)
     		.toString(16)
@@ -109,6 +114,16 @@ var wesCountry = new (function() {
 	this.guid = function() {
   		return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
          	s4() + '-' + s4() + s4() + s4();
+	}
+	
+	this.setSignature = function(options, svg) {
+		var a = svg.a({}, wesCountry.signature.url).className('signature');
+		
+		a.text({
+			x: options.width,
+			y: options.height - 4,
+			value: wesCountry.signature.value
+		}).style('fill: #888;font-family:Helvetica;font-size:12px;text-anchor: end;dominant-baseline: edge');
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////
@@ -274,7 +289,7 @@ var wesCountry = new (function() {
 		var myAttributes = {};
 		var myEvents = {};
 		var myStyle = "";
-		var myClass = "";
+		var myClass = "wesCountry";
 		var myValue = undefined;
 		var myChildNodes = [];
 	
@@ -629,6 +644,8 @@ wesCountry.charts = new (function() {
 		};
 		
 		var svg = jSVG.svg(svgOptions);
+		
+		wesCountry.setSignature(options, svg);
 		
 		return svg;
 	}
@@ -2468,9 +2485,103 @@ wesCountry.charts.scatterPlot = function(options) {
 			return i;
 	} return -1;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+//                                  TABLE
+////////////////////////////////////////////////////////////////////////////////
+
+wesCountry.charts.table = function(options) {
+	options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+	
+	var table = document.createElement('table');
+	table.className = 'wesCountry';
+	
+	var thead = document.createElement('thead');
+	table.appendChild(thead);
+	
+	var tbody = document.createElement('tbody');
+	table.appendChild(tbody);
+	
+	var tr = document.createElement('tr');
+	thead.appendChild(tr);
+	
+	var th = document.createElement('th');
+	th.innerHTML = 'Country';
+	tr.appendChild(th);
+	
+	var th = document.createElement('th');
+	th.innerHTML = 'Time';
+	tr.appendChild(th);
+	
+	var th = document.createElement('th');
+	th.innerHTML = 'Value';
+	tr.appendChild(th);
+	
+	for (var i = 0; i < options.series.length; i++) {
+		var country = options.series[i].name;
+		
+		for (var j = 0; j < options.xAxis.values.length; j++) {
+			var value = options.series[i].values[j];
+			var time = options.xAxis.values[j];
+			
+			var tr = document.createElement('tr');
+			tbody.appendChild(tr);
+			
+			var td = document.createElement('td');
+			td.innerHTML = country;
+			tr.appendChild(td);
+			
+			var td = document.createElement('td');
+			td.innerHTML = time;
+			tr.appendChild(td);
+			
+			var td = document.createElement('td');
+			td.innerHTML = value;
+			tr.appendChild(td);
+		}
+	}
+	
+	return {
+		render: function() {
+			return table;
+		}
+	};
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                  CHART
 ////////////////////////////////////////////////////////////////////////////////	
+
+function getCountriesForMap(options) {
+	var countryData = [];
+	var countries = [];
+
+	for (var i = options.series.length - 1; i >= 0; i--) {
+		var countryName = options.series[i].name;
+		var countryId = options.series[i].id ? options.series[i].id : countryName;
+		
+		if (countries.indexOf(countryId) != -1)
+			continue;
+			
+		countries.push(countryId);	
+		
+		for (var j = 0; j < options.xAxis.values.length; j++) {
+			var value = options.series[i].values[j];
+			
+			if (value) {
+				countryData.push({
+					code: countryId,
+					value: value
+				});
+				
+				break;
+			}
+		}
+	}
+	
+	return countryData;
+}
+
 wesCountry.charts.chart = function (options) {
 	var container;
 	container = typeof options.container !== "string" ? options.container : undefined;
@@ -2499,12 +2610,26 @@ wesCountry.charts.chart = function (options) {
 		case "polar":
 			chart = this.polarChart(options);
 			break;
+		case 'table':
+			chart = this.table(options);
+			break;
+		case 'map':
+			chart = wesCountry.maps.createMap({
+				container: options.container,
+				countries: getCountriesForMap(options)
+			});
+			break;
 	}
+	
 	if(container === undefined)
 		container = document.querySelector(options.container);
-	container.appendChild(chart.render());
+	
+	if (chart.render)	
+		container.appendChild(chart.render());
+	
 	return container.parentNode;
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                MULTI CHART
 ////////////////////////////////////////////////////////////////////////////////
@@ -5080,6 +5205,7 @@ wesCountry.maps = new (function() {
 			getProjection();
 		
 			svg = document.createElementNS(namespace, "svg"); 
+			svg.setAttributeNS(null, 'class', 'wesCountry');
 			svg.setAttributeNS(null, 'width', container.offsetWidth);
 			svg.setAttributeNS(null, 'height', container.offsetHeight);
 
@@ -5248,6 +5374,20 @@ wesCountry.maps = new (function() {
 			svg.onmouseup = function() {
 				point = null;	
 			};
+			
+			// Signature
+			
+			var a = document.createElementNS(namespace, 'a');
+			a.setAttributeNS(null, 'class', 'signature');
+			a.setAttributeNS(null, 'href', wesCountry.signature.url);
+			svg.appendChild(a);
+			
+			var text = document.createElementNS(namespace, 'text');
+			text.setAttribute('x', container.offsetWidth);
+			text.setAttribute('y', container.offsetHeight - 4);
+			text.setAttribute('style', 'fill:#888;font-family:Helvetica;font-size:12px;text-anchor: end;dominant-baseline: edge');
+			text.textContent = wesCountry.signature.value;
+			a.appendChild(text);
 			
 			return map;
 		};

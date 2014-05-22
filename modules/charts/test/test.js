@@ -294,6 +294,23 @@ function generateCharts(options) {
 	renderAreaChart(options);
 	renderPieChart(options);
 	renderPolarChart(options);
+	
+	options.series = [
+		{
+            name: "2012",
+            values: []
+        },
+        {  
+        	name: "2013",
+         	values: []
+        }       
+    ];
+    
+	renderBarChart(options);	
+	renderLineChart(options);
+	renderAreaChart(options);
+	renderPieChart(options);
+	renderPolarChart(options);
 }
 
 function renderBarChart(options) {

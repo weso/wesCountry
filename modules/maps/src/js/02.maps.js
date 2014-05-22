@@ -85,6 +85,7 @@ wesCountry.maps = new (function() {
 			getProjection();
 		
 			svg = document.createElementNS(namespace, "svg"); 
+			svg.setAttributeNS(null, 'class', 'wesCountry');
 			svg.setAttributeNS(null, 'width', container.offsetWidth);
 			svg.setAttributeNS(null, 'height', container.offsetHeight);
 
@@ -253,6 +254,20 @@ wesCountry.maps = new (function() {
 			svg.onmouseup = function() {
 				point = null;	
 			};
+			
+			// Signature
+			
+			var a = document.createElementNS(namespace, 'a');
+			a.setAttributeNS(null, 'class', 'signature');
+			a.setAttributeNS(null, 'href', wesCountry.signature.url);
+			svg.appendChild(a);
+			
+			var text = document.createElementNS(namespace, 'text');
+			text.setAttribute('x', container.offsetWidth);
+			text.setAttribute('y', container.offsetHeight - 4);
+			text.setAttribute('style', 'fill:#888;font-family:Helvetica;font-size:12px;text-anchor: end;dominant-baseline: edge');
+			text.textContent = wesCountry.signature.value;
+			a.appendChild(text);
 			
 			return map;
 		};
