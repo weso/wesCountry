@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns='http://www.w3.org/1999/xhtml' lang="es">
+	<head>
+		<meta name="viewport" content="width=device-width"/>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<link rel="stylesheet" href="../src/css/Selector.css" type="text/css" media="screen"></link>
+		<title></title>
+		<style>
+			body {
+				font-family: 'trebuchet MS', verdana, arial;
+				font-weight: 100;
+			}
+			
+			div.third {
+				width: 32%;
+				float: left;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Selector test</h1>
+		<div id="first" class="third">
+			<div id="first_result"></div>
+			<button onclick="clearYearSelector()">CLEAR</button>
+			<button onclick="selectAllYearSelector()">SELECT ALL</button>
+		</div>
+		<div id="second" class="third">
+			<div id="second_result"></div>
+			<button onclick="clearCountrySelector()">CLEAR</button>
+			<button onclick="selectAllCountrySelector()">SELECT ALL</button>
+		</div>
+		<div id="third" class="third"></div>
+	</body>
+	<script src="../../../src/wesCountry.js"></script>
+	<script src="../src/js/01.SortedArray.js"></script>
+	<script src="../src/js/02.Selector.js"></script>
+	<script src="test.js"></script>
+</html>

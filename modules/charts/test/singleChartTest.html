@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Single Chart</title>
+	<script src="../../../bin/wesCountry.js"></script>
+	<link href='../../../bin/wesCountry.css' rel='stylesheet' type='text/css'>
+	<script src="../src/01.jSVG.js"></script>
+	<script src="../src/02.charts.js"></script>
+	<script src="../src/03.bar.js"></script>
+	<script src="../src/04.line.js"></script>
+	<script src="../src/05.pie.js"></script>
+	<script src="../src/06.polar.js"></script>
+	<script src="../src/07.scatter.js"></script>
+	<script src="../src/08.multi.js"></script>
+</head>
+<body>
+	<div id="chartDiv"></div>
+	
+	<script type="text/javascript">
+		var options = {
+			container: "#chartDiv",
+			chartType: "bar"
+		};
+		wesCountry.charts.chart(options);
+		
+		options.chartType="table";
+		wesCountry.charts.chart(options);
+	</script>
+</body>
+</html>

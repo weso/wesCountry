@@ -1,0 +1,144 @@
+ul.default-selector li {
+	list-style: none;
+	margin-bottom: 1em;
+	cursor: default;
+	color: #888;
+	overflow: auto;
+}
+
+ul.default-selector li div {
+	overflow: auto;
+}
+
+/* Plus and minus sign to show / hide children */
+
+ul.default-selector li div.plusOrMinus {
+	float: left;
+	width: 0.5em;
+	text-align: center;
+	margin-right: 0.5em;
+	font-size: 1.3em;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	overflow: hidden;
+}
+
+ul.default-selector li div.hidden-plusOrMinus {
+	visibility: hidden;
+	float: left;
+	width: 0.5em;
+	text-align: center;
+	margin-right: 0.5em;
+	font-size: 1.3em;
+}
+
+/* Selecting circle */
+
+ul.default-selector li div.circle {
+	border: 0.1em solid #aaa;
+	width: 1.5em;
+	height: 1.35em;
+	padding-top: 0.15em;
+	border-radius: 0.85em;
+	float: left;
+	margin-right: 0.5em;
+	text-align: center;
+}
+
+ul.default-selector li ul {
+	margin-top: 1em;
+}
+
+ul.default-selector li div.title {
+	margin-top: 0.2em;
+	word-break: break-all;
+}
+
+/* Counter */
+
+ul.default-selector li span.empty-counter {
+	display: none;
+}
+
+ul.default-selector li a {
+	text-decoration: none;
+	color: #888;
+}
+
+/* Selected element */
+
+ul.default-selector li.selected a {
+	color: #333;
+}
+
+ul.default-selector li.selected > a > div.circle {
+	border-color: #CC2222;
+	background-color: #CC2222;
+	color: #fff;
+}
+
+/* Timeline */
+
+div.timeline {
+
+}
+
+div.timeline div.line {
+	position: relative;
+	margin-top: 0;
+	overflow: hidden;
+}
+
+div.timeline div.line:before {
+    border-top: 0.1em solid #999;
+    content: "";
+    margin: 0 auto;
+    position: absolute;
+    top: 40%;
+    left: 0;
+    width: 100%;
+    z-index: -1;
+}
+
+div.timeline div.line div.element {
+	display: inline-block;
+	text-align: center;
+	float: left;
+}
+
+div.timeline div.line a.circle {
+	background-color: #fff;
+	border: 0.1em solid #555;
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	border-radius: 50%;
+}
+
+div.timeline div.line a.circle:hover {
+	background-color: #59b3a1;
+}
+
+div.timeline div.line .selected a.circle {
+	background-color: #555;
+}
+
+div.elements {
+	overflow: hidden;
+}
+
+div.elements div.element {
+	float: left;
+	text-align: center;
+}
+
+div.elements div.element a {
+	color: #555;
+	font-family: 'trebuchet MS', verdana, arial;
+	font-weight: 100;
+	cursor: default;
+}

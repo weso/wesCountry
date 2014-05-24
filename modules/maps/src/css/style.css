@@ -1,0 +1,118 @@
+div.visor {
+	width: 100%;
+	height: 5%;
+	padding: 5% 0;
+	position: absolute;
+	bottom: 5%;
+	text-align: center;
+	background-color: rgba(0, 0, 0, 0.7);
+	color: #fff;
+	font-size: 1.5em;
+}
+
+div.visor span.name {
+	margin-right: 0.5em;
+}
+
+div.visor span.value {
+	margin-left: 0.5em;
+}
+
+div.buttons {
+	position: absolute;
+	z-index: 100;
+	text-align: center;
+}
+
+div.zoom-buttons {
+	text-align: center;
+	margin-top: 1em;
+	margin-left: 0.5em;
+	margin: 0 auto;
+}
+
+div.zoom-buttons button {
+	font-size: 1.2em;
+	width: 2em;
+	height: 2em;
+	background-color: #fff;
+	color: #666;
+	border: 0.1em solid #ddd;
+	border-radius: 50%;
+	margin-bottom: 0.6em;
+	box-shadow: 0.1em 0.1em 0.2em #ddd;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+div.zoom-buttons button:hover {
+	background-color: #eee;
+	color: #888;
+}
+
+div.direction-buttons {
+	width: 4em;
+	height: 3.9em;
+	padding-top: 0.1em;
+	border-radius: 50%;
+	background-color: #fcfcfc;
+	border: 0.1em dotted #aaa;
+	box-shadow: 0.1em 0.1em 0.2em #aaa;
+	margin-top: 2em;
+}
+
+div.direction-buttons button {
+	margin: 0;
+	background-color: transparent;
+	border-color: transparent;
+}
+
+div.direction-buttons button:hover {
+	opacity: 0.8;
+}
+
+div.direction-buttons .button-up {
+	width: 100%;
+	padding-bottom: 0.1em;
+	padding-top: 0;
+}
+
+div.direction-buttons .button-left {
+	width: 50%;
+	height: 2em;
+	padding-top: 0;
+	padding-bottom: 0;
+	padding-left: 0.4em;
+	float: left;
+}
+
+div.direction-buttons .button-right {
+	width: 50%;
+	height: 2em;
+	padding-top: 0;
+	padding-bottom: 0;
+	padding-right: 0.4em;
+	float: right;
+}
+
+div.direction-buttons .button-down {
+	width: 100%;
+	padding-top: 0.2em;
+}
+		
+div.direction-buttons .button-up img {
+	margin: 0 auto;
+}
+
+div.direction-buttons .button-down img {
+	margin: 0 auto;
+}
+
+div.direction-buttons .button-left img {
+	float: left;
+}
+
+div.direction-buttons .button-right img {
+	float: right;
+}
