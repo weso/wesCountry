@@ -99,12 +99,12 @@ function HashTable(obj)
  */
 var wesCountry = new (function() {
 	this.version = "1.0.0.0";
-	
+
 	this.signature = {
 		value: "© wesCountry",
 		url: "https://github.com/weso/wesCountry"
 	}
-	
+
 	function s4() {
   		return Math.floor((1 + Math.random()) * 0x10000)
     		.toString(16)
@@ -115,39 +115,39 @@ var wesCountry = new (function() {
   		return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
          	s4() + '-' + s4() + s4() + s4();
 	}
-	
+
 	this.setSignature = function(options, svg) {
 		var a = svg.a({}, wesCountry.signature.url).className('signature');
-		
+
 		a.text({
-			x: options.width,
+			x: options.width - 4,
 			y: options.height - 4,
 			value: wesCountry.signature.value
-		}).style('fill: #888;font-family:Helvetica;font-size:12px;text-anchor: end;dominant-baseline: edge');
+		}).style('fill: #aaa;font-family:Helvetica;font-size:10px;text-anchor: end;dominant-baseline: edge');
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                              MERGING OPTIONS
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	this.mergeOptionsAndDefaultOptions = function(options, defaultOptions) {
 		if (options) {
 			if (typeof options === "string")
 				options = { container: options };
-		
+
 			var auxOptions = this.clone(defaultOptions);
-			
+
 			for (var option in options)
 				auxOptions[option] = mergeOptions(auxOptions[option], options[option]);
-			
+
 			options = auxOptions;
 		}
 		else
 			options = this.clone(defaultOptions);
-			
+
 		return options;
 	};
-	
+
 	function mergeOptions(to, from) {
 		if (from instanceof Array) {
 			return from;
@@ -162,33 +162,33 @@ var wesCountry = new (function() {
 		else
 			return from;
 	};
-	
+
 	this.clone = function(obj) {
 		// Not valid for copying objects that contain methods
 	    //return JSON.parse(JSON.stringify(obj));
 	    if (null == obj || "object" != typeof obj) return obj;
-	    
+
 	    var copy = obj.constructor();
-	    
+
 	    for (var attr in obj) {
 	        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
 	    }
-	    
+
 	    return copy;
 	};
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                              COLOUR RANGE
-	////////////////////////////////////////////////////////////////////////////////	
-	
+	////////////////////////////////////////////////////////////////////////////////
+
 	this.colourRange = function(range, numberOfElements) {
 		if (numberOfElements <= range.length)
 			return range.slice(0, numberOfElements);
-			
+
 		var elementsPerRange = numberOfElements / (range.length - 1);
-		
+
 		var colours = [];
-	
+
 		for (var i = 0; i < range.length - 1; i++) {
 			var colour1 = hexToRGB(range[i]);
 			var colour2 = hexToRGB(range[i + 1]);
@@ -198,28 +198,28 @@ var wesCountry = new (function() {
 				colours.push(makeColourGradient(colour1, colour2, percent).cssColour);
 			}
 		}
-		
+
 		return colours;
 	};
-	
+
 	function hexToRGB(hex) {
     	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    
+
     	if (!result) {
     		var result = /^#?([a-f\d]{1})([a-f\d]{1})([a-f\d]{1})$/i.exec(hex);
-    		
-    		result[1] = result[1] + "" + result[1];	
-    		result[2] = result[2] + "" + result[2];	
-    		result[3] = result[3] + "" + result[3];	
+
+    		result[1] = result[1] + "" + result[1];
+    		result[2] = result[2] + "" + result[2];
+    		result[3] = result[3] + "" + result[3];
     	}
-    	
+
     	return result ? {
         	r: parseInt(result[1], 16),
         	g: parseInt(result[2], 16),
         	b: parseInt(result[3], 16)
     	} : null;
 	}
-	
+
 	function makeColourGradient(colour1, colour2, percent) {
 		var newColour = {};
 
@@ -230,26 +230,93 @@ var wesCountry = new (function() {
 		function makeColourPiece(num) {
 			num = Math.min(num, 255);   // not more than 255
 			num = Math.max(num, 0);     // not less than 0
-		
+
 			var str = num.toString(16);
-		
+
 			if (str.length < 2) {
 				str = "0" + str;
 			}
-		
+
 			return(str);
 		}
 
 		newColour.r = makeChannel(colour1.r, colour2.r);
 		newColour.g = makeChannel(colour1.g, colour2.g);
 		newColour.b = makeChannel(colour1.b, colour2.b);
-		newColour.cssColour = "#" + 
-							makeColourPiece(newColour.r) + 
-							makeColourPiece(newColour.g) + 
+		newColour.cssColour = "#" +
+							makeColourPiece(newColour.r) +
+							makeColourPiece(newColour.g) +
 							makeColourPiece(newColour.b);
-						
+
 		return(newColour);
 	};
+})();
+if (typeof (wesCountry) === "undefined")
+    var wesCountry = new Object();
+
+wesCountry.ajax = new (function() {
+	var defaultOptions = {
+		method: 'GET',
+		parameters: '',
+		callback: function(data) { console.log(data); },
+		content_type: false,
+		cache_enabled: false
+	};
+
+	// Cache
+
+	var cache = {};
+	
+	this.load = function(options)
+	{
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);	
+		
+		var http = false;
+
+		if (window.XMLHttpRequest)
+			http = new XMLHttpRequest();
+		else if (window.ActiveXObject)
+			http = new ActiveXObject('Microsoft.XMLHTTP');
+
+		var url = options.url;
+
+		if (!url)
+			return;
+
+		var method = options.method;
+		var parameters = options.parameters;
+		var callback = options.callback;
+		var content_type = options.content_type;
+		var cache_enabled = options.cache_enabled
+		
+		if (method == 'GET')
+			url += '?' + parameters;
+
+		if (cache_enabled === true && cache[url]) {
+			callback.call(null, cache[url]);
+		}
+		else if(http)
+		{
+			http.open(method, url, true);
+
+			if (method != 'GET' && content_type != false)
+			{
+				// Header is sent with the request
+				http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			}
+
+			http.send(method == 'GET' ? null : parameters);
+
+			http.onreadystatechange = function()
+			{
+				if(http.readyState == 4 && callback != null && callback != undefined) {
+					cache[url] = http.responseText;
+
+					callback.call(null, http.responseText);
+				}
+			};
+		}
+	}
 })();var jSVG = new (function() {
 	function jSVGElement(elementName) {
 		var namespace = "http://www.w3.org/2000/svg";
@@ -1499,39 +1566,52 @@ wesCountry.charts.generateLineChart = function(options, area) {
 		};
 	}
 };////////////////////////////////////////////////////////////////////////////////
-//                                  PIE CHART
+//                                   PIE CHART
 ////////////////////////////////////////////////////////////////////////////////
-	
+
 wesCountry.charts.pieChart = function(options) {
+	return this.generatePieChart(options, false);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                 DONUT CHART
+////////////////////////////////////////////////////////////////////////////////
+
+wesCountry.charts.donutChart = function(options) {
+	return this.generatePieChart(options, true);
+}
+
+// Auxiliary line fuction
+wesCountry.charts.generatePieChart = function(options, donut) {
 	return renderChart();
 
 	function renderChart() {
 		// Options and default options
-		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
-		
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+
 		if (options.sortSeries)
-			options.series = wesCountry.charts.sortSeries(options.series);			
-		
+			options.series = wesCountry.charts.sortSeries(options.series);
+
 		// SVG creation
 		var svg = wesCountry.charts.getSVG(options);
-		
+
 		// Size and margins (%)
 		var sizes = getSizes(svg, options);
-		
+
 		var g = svg.g();
 
 		// Background
-	
+
 		wesCountry.charts.setBackground(g, sizes, options);
-		
+
 		// Values
-		
-		var numberOfPies = sizes.maxValueLength; 
-		
+
+		var numberOfPies = sizes.maxValueLength;
+
 		if (numberOfPies == 1) {
 			var radius = Math.min(sizes.innerWidth - 2 * sizes.yAxisMargin, sizes.innerHeight - 2 * sizes.xAxisMargin) / 2;
-			var startX = sizes.innerWidth / 2;
-			var startY = sizes.innerHeight / 2;
+			var startX = sizes.marginLeft + sizes.innerWidth / 2;
+			var startY = sizes.marginTop + sizes.innerHeight / 2;
 			var xInc = 0;
 			var yInc = 0;
 			var half = 1;
@@ -1547,110 +1627,114 @@ wesCountry.charts.pieChart = function(options) {
 		else {
 			if (numberOfPies > 8)
 				numberOfPies = 8;
-		
+
 			var radius = Math.min(sizes.innerWidth, sizes.innerHeight - 2 * sizes.xAxisMargin) / 4;
 			var half = Math.ceil(numberOfPies / 2);
-			
+
 			var startX = sizes.marginLeft + radius;
 			var startY = sizes.marginTop + radius
 			var xInc = (sizes.innerWidth - half * radius * 2) / (half - 1) + 2 * radius;
 			var yInc = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin - radius;
 		}
-		
+
+		var donutRadius = 60 / 100 * radius;
+
 		// It's presented in two rows
-		
-		for (var i = 0; i < numberOfPies; i++) {		
+
+		for (var i = 0; i < numberOfPies; i++) {
 			if (i < half) {
 				var cx = startX + xInc * i;
 				var cy = startY;
 			}
 			else {
 				var rest = numberOfPies - half;
-				
+
 				var divisor = rest < half ? rest + 1 : rest - 1;
 				var margin = (sizes.innerWidth - rest * radius * 2) / (divisor);
 				xInc = margin + 2 * radius;
 				var pieMarginLeft = rest < half ? margin : 0;
-			
+
 				var cx = sizes.marginLeft + pieMarginLeft + radius + xInc * (i % half);
 				var cy = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin - radius;
 			}
-			
+
 			// Label
 			var labelY = cy + radius + sizes.xAxisMargin / 2;
 			var text = options.xAxis.values[i] ? options.xAxis.values[i] : "";
-			
+
 			g.text({
 				x: cx,
 				y: labelY,
 				value: text
-			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle", 
+			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 				options.xAxis["font-colour"],
 				options.xAxis["font-family"],
 				options.xAxis["font-size"]));
-			
+
 			// Events
-	
+
 			var onmouseover = function() {
 				this.colour = this.style.fill;
 				this.style.fill = options.overColour;
-				
+
 				options.events.onmouseover({
 					id: this.getAttribute("id"),
-					serie: this.getAttribute("serie"), 
-					pos: this.getAttribute("pos"), 
+					serie: this.getAttribute("serie"),
+					pos: this.getAttribute("pos"),
 					value: this.getAttribute("value")
 				});
 			};
-										
-			var onmouseout = function() { 
+
+			var onmouseout = function() {
 				this.style.fill = this.colour;
 				options.events.onmouseout({
 					id: this.getAttribute("id"),
-					serie: this.getAttribute("serie"), 
-					pos: this.getAttribute("pos"), 
+					serie: this.getAttribute("serie"),
+					pos: this.getAttribute("pos"),
 					value: this.getAttribute("value")
 				});
 			};
-			
-			var onclick = function() { 
+
+			var onclick = function() {
 				this.style.fill = this.colour;
 				options.events.onclick({
 					id: this.getAttribute("id"),
-					serie: this.getAttribute("serie"), 
-					pos: this.getAttribute("pos"), 
+					serie: this.getAttribute("serie"),
+					pos: this.getAttribute("pos"),
 					value: this.getAttribute("value")
 				});
-			};		
-	
+			};
+
 			// Pie
-			
+
 			var total = 0;
 			var numberOfGreaterThanZero = 0;
-			
+
 			var length = options.series.length;
-			
+
+			var holeColour = options.backgroundColour != "none" ? options.backgroundColour : '#fff';
+
 			for (var j = 0; j < length; j++) {
 				var value = Math.abs(options.series[j].values[i]);
-				
+
 				if (!value)
 					value = 0;
-				
+
 				if (value != 0)
 					numberOfGreaterThanZero++;
-				
+
 				total += value;
 			}
-				
+
 			var angles = []
-		    
-		    for(var j = 0; j < length; j++) {
+
+		  for(var j = 0; j < length; j++) {
 				var value = Math.abs(options.series[j].values[i] / total * Math.PI * 2);
-				
+
 				if (!value)
 					value = 0;
-				
-				angles[j] = value; 
+
+				angles[j] = value;
 		    }
 
 		    if (numberOfGreaterThanZero == 1) {
@@ -1658,7 +1742,7 @@ wesCountry.charts.pieChart = function(options) {
 		    	var serie = "";
 		    	var value = "";
 		    	var pos = "";
-		    	
+
 		    	for(var j = 0; j < length; j++)
 		    		if (angles[j] != 0) {
 		    			colour = options.serieColours[j];
@@ -1667,32 +1751,42 @@ wesCountry.charts.pieChart = function(options) {
 		    			value = Math.abs(options.series[0].values[j]).toFixed(2);
 		    			pos = options.xAxis.values[i];
 			    		break;
-		    		}	
-		    		
+		    		}
+
 		    	g.circle({
 			    	cx: cx,
 			    	cy: cy,
 			    	r: radius,
 			    	id: id,
 			    	serie: serie,
-					value: value,
-					pos: pos
+						value: value,
+						pos: pos
 		    	}).event("onmouseover", onmouseover)
-				.event("onmouseout", onmouseout)
-				.event("onclick", onclick)	
+					.event("onmouseout", onmouseout)
+					.event("onclick", onclick)
 		    	.style(String.format("fill: {0}", colour));
+
+					if (donut) {
+						g.circle({
+							cx: cx,
+							cy: cy,
+							r: donutRadius,
+						})
+						.className('hole')
+						.style(String.format("fill: {0}", holeColour));
+					}
 		    }
 		    else {
 			    var startangle = 0;
-				
+
 				for (var j = 0; j < length; j++) {
 					var endangle = startangle + angles[j];
 					var value = Math.abs(options.series[j].values[i]).toFixed(2);
-					
+
 					var serie = options.series[j].name;
 					var url = options.series[j].urls ? options.series[j].urls[i] : "";
 					var pos = options.xAxis.values[i];
-					
+
 			        // Compute the two points where our wedge intersects the circle
 			        // These formulas are chosen so that an angle of 0 is at 12 o'clock
 			        // and positive angles increase clockwise.
@@ -1700,21 +1794,21 @@ wesCountry.charts.pieChart = function(options) {
 			        var y1 = cy - radius * Math.cos(startangle);
 			        var x2 = cx + radius * Math.sin(endangle);
 			        var y2 = cy - radius * Math.cos(endangle);
-			        
+
 			        var halfWay = startangle + (endangle - startangle) / 2;
 			        var incRadius = radius + (radius / 100) * options.valueOnItem.margin;
 			        var xMiddle = cx + incRadius * Math.sin(halfWay);
 			        var yMiddle = cy - incRadius * Math.cos(halfWay);
-		        
+
 			        // This is a flag for angles larger than than a half circle
 			        var big = 0;
-			        
-			        if (endangle - startangle > Math.PI) 
+
+			        if (endangle - startangle > Math.PI)
 			        	big = 1;
-			        
+
 			        // We describe a wedge with an <svg:path> element
 			        // Notice that we create this with createElementNS()
-					
+
 			        // This string holds the path details
 			        var d = "M " + cx + "," + cy +  // Start at circle center
 			            " L " + x1 + "," + y1 +     // Draw line to (x1,y1)
@@ -1722,49 +1816,59 @@ wesCountry.charts.pieChart = function(options) {
 			            " 0 " + big + " 1 " +       // Arc details...
 			            x2 + "," + y2 +             // Arc goes to to (x2,y2)
 			            " Z";                       // Close path back to (cx,cy)
-			            
+
 					var pathOptions = {
 						d: d,
 						serie: serie,
 						value: value,
 						pos: pos
-					};	
-					
+					};
+
 					var path = g.path(pathOptions)
 					.event("onmouseover", onmouseover)
 					.event("onmouseout", onmouseout)
-					.event("onclick", onclick)			            
-			        .style(String.format("fill: {0}", options.serieColours[j]));
-			        
-			        // Value on bar
+					.event("onclick", onclick)
+			    .style(String.format("fill: {0}", options.serieColours[j]));
+
+					if (donut) {
+						g.circle({
+							cx: cx,
+							cy: cy,
+							r: donutRadius,
+						})
+						.className('hole')
+						.style(String.format("fill: {0}", holeColour));
+					}
+
+			    // Value on bar
 					if (options.valueOnItem.show == true) {
 						g.text({
 							x: xMiddle,
 							y: yMiddle,
 							value: value
-						}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle", 
+						}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 							options.valueOnItem["font-colour"],
 							options.valueOnItem["font-family"],
 							options.valueOnItem["font-size"]));
 					}
-			        
-			        startangle = endangle;
+
+			    startangle = endangle;
 				}
 			}
 		}
-		
+
 		// Legend
 		if (options.legend.show)
 			wesCountry.charts.showLegend(g, sizes, options);
-			
+
 		// Tooltip
-		wesCountry.charts.createTooltip(options);				
-			
+		wesCountry.charts.createTooltip(options);
+
 		return svg;
 	}
-	
+
 	function getSizes(svg, options) {
-		var width = svg.width(); 
+		var width = svg.width();
 		var height = svg.height();
 		var marginTop = height * options.margins[0] / 100;
 		var marginRight = width * options.margins[1] / 100;
@@ -1774,24 +1878,24 @@ wesCountry.charts.pieChart = function(options) {
 		var xAxisMargin = options.xAxis.margin * height / 100;
 		var innerWidth = width - marginLeft - marginRight;
 		var innerHeight = height - marginTop - marginBottom;
-		
+
 		// Max value & min value
 		var maxAndMinValues = wesCountry.charts.getMaxAndMinValuesAxisY(options);
 		var maxValue = maxAndMinValues.max;
 		var minValue = maxAndMinValues.min;
-		var maxValueLength = maxAndMinValues.valueLength; 	
-		
+		var maxValueLength = maxAndMinValues.valueLength;
+
 		var ticksY = (maxValue - minValue) / maxAndMinValues.inc;
 		var yTickHeight = ticksY != 0 ? (innerHeight - xAxisMargin) / ticksY : 0;
-		var xTickWidth = (innerWidth - yAxisMargin) / maxAndMinValues.valueLength;		
-		
-		var groupMargin = options.groupMargin * xTickWidth / 100;	
+		var xTickWidth = (innerWidth - yAxisMargin) / maxAndMinValues.valueLength;
+
+		var groupMargin = options.groupMargin * xTickWidth / 100;
 		xTickWidth -= 2 * groupMargin;
-			
-		var barWidth = xTickWidth / options.series.length;	
-		var barMargin = options.barMargin * barWidth / 100;	
-		barWidth -= 2 * barMargin;			
-				
+
+		var barWidth = xTickWidth / options.series.length;
+		var barMargin = options.barMargin * barWidth / 100;
+		barWidth -= 2 * barMargin;
+
 		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
 
 		var legendItemSize = options.legend.itemSize * width / 100;
@@ -1803,30 +1907,31 @@ wesCountry.charts.pieChart = function(options) {
 			marginRight : marginRight,
 			marginBottom : marginBottom,
 			marginLeft : marginLeft,
-			
+
 			innerWidth : innerWidth,
 			innerHeight : innerHeight,
-			
+
 			yAxisMargin: yAxisMargin,
 			xAxisMargin: xAxisMargin,
-			
+
 			maxValue: maxValue,
 			minValue: minValue,
 			maxValueLength: maxValueLength,
-			
+
 			ticksY: ticksY,
 			yTickHeight: yTickHeight,
 			xTickWidth: xTickWidth,
 			valueInc: valueInc,
-			
+
 			barMargin: barMargin,
 			groupMargin: groupMargin,
 			barWidth: barWidth,
-			
+
 			legendItemSize: legendItemSize
 		};
-	}		
-};////////////////////////////////////////////////////////////////////////////////
+	}
+};
+////////////////////////////////////////////////////////////////////////////////
 //                                  POLAR CHART
 ////////////////////////////////////////////////////////////////////////////////
 	
@@ -2492,55 +2597,55 @@ wesCountry.charts.scatterPlot = function(options) {
 
 wesCountry.charts.table = function(options) {
 	options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
-	
+
 	var table = document.createElement('table');
 	table.className = 'wesCountry';
-	
+
 	var thead = document.createElement('thead');
 	table.appendChild(thead);
-	
+
 	var tbody = document.createElement('tbody');
 	table.appendChild(tbody);
-	
+
 	var tr = document.createElement('tr');
 	thead.appendChild(tr);
-	
+
 	var th = document.createElement('th');
 	th.innerHTML = 'Country';
 	tr.appendChild(th);
-	
+
 	var th = document.createElement('th');
 	th.innerHTML = 'Time';
 	tr.appendChild(th);
-	
+
 	var th = document.createElement('th');
 	th.innerHTML = 'Value';
 	tr.appendChild(th);
-	
+
 	for (var i = 0; i < options.series.length; i++) {
 		var country = options.series[i].name;
-		
+
 		for (var j = 0; j < options.xAxis.values.length; j++) {
 			var value = options.series[i].values[j];
 			var time = options.xAxis.values[j];
-			
+
 			var tr = document.createElement('tr');
 			tbody.appendChild(tr);
-			
+
 			var td = document.createElement('td');
 			td.innerHTML = country;
 			tr.appendChild(td);
-			
+
 			var td = document.createElement('td');
 			td.innerHTML = time;
 			tr.appendChild(td);
-			
+
 			var td = document.createElement('td');
 			td.innerHTML = value;
 			tr.appendChild(td);
 		}
 	}
-	
+
 	return {
 		render: function() {
 			return table;
@@ -2550,7 +2655,7 @@ wesCountry.charts.table = function(options) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                  CHART
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 
 function getCountriesForMap(options) {
 	var countryData = [];
@@ -2559,38 +2664,44 @@ function getCountriesForMap(options) {
 	for (var i = options.series.length - 1; i >= 0; i--) {
 		var countryName = options.series[i].name;
 		var countryId = options.series[i].id ? options.series[i].id : countryName;
-		
+
 		if (countries.indexOf(countryId) != -1)
 			continue;
-			
-		countries.push(countryId);	
-		
+
+		countries.push(countryId);
+
 		for (var j = 0; j < options.xAxis.values.length; j++) {
 			var value = options.series[i].values[j];
-			
+
 			if (value) {
 				countryData.push({
 					code: countryId,
 					value: value
 				});
-				
+
 				break;
 			}
 		}
 	}
-	
+
 	return countryData;
 }
 
 wesCountry.charts.chart = function (options) {
 	var container;
 	container = typeof options.container !== "string" ? options.container : undefined;
-	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container; 
+	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container;
 	options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	var chart;
-	
+
 	var chartType = options.chartType ? options.chartType.toLowerCase() : "bar";
-	
+
+	if(container === undefined)
+		container = document.querySelector(options.container);
+
+	options.width = container.offsetWidth;
+	options.height = container.offsetHeight;
+
 	switch(chartType) {
 		case "bar":
 			chart = this.barChart(options);
@@ -2600,6 +2711,9 @@ wesCountry.charts.chart = function (options) {
 			break;
 		case "pie":
 			chart = this.pieChart(options);
+			break;
+		case "donut":
+			chart = this.donutChart(options);
 			break;
 		case "area":
 			chart = this.areaChart(options);
@@ -2620,13 +2734,10 @@ wesCountry.charts.chart = function (options) {
 			});
 			break;
 	}
-	
-	if(container === undefined)
-		container = document.querySelector(options.container);
-	
-	if (chart.render)	
+
+	if (chart.render)
 		container.appendChild(chart.render());
-	
+
 	return container.parentNode;
 }
 
@@ -2668,18 +2779,18 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	var container = document.createElement("div");
 	if(typeof options.container === "string")
 		document.querySelector(options.container).appendChild(container);
-	else 
+	else
 		options.container.appendChild(container);
 	createChartSelector();
 	createSeriesSelector();
 	return createChart();
 
-	function createChartSelector() {	
+	function createChartSelector() {
 		var div = document.createElement('div');
 		div.className = "chartSelector";
 		var ul = document.createElement('ul');
 		for(var i=0; i<charts.length;i++) {
-			var li = document.createElement('li');	
+			var li = document.createElement('li');
 			var a = document.createElement('a');
 			//a.href="#";
 			a.className ="inactive";
@@ -2691,7 +2802,7 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 		div.appendChild(ul);
 		div.querySelector("li a").className= "active";
 		container.appendChild(div);
-		
+
 		if (charts.length <= 1)
 			div.style.display = "none";
 	}
@@ -2723,12 +2834,12 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 
 	function showChart(div) {
 		var typeOfGraph = "bar";
-		
+
 		var active = container.querySelector(".active");
-		
+
 		if (active && active.innerHTML)
 			typeOfGraph = active.innerHTML.toLowerCase();
-			
+
 		options.chartType = typeOfGraph;
 		if(div === undefined)
 			options.container = ".chartDiv";
@@ -2739,7 +2850,7 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 
 	function loadGraph(div) {
 		//remove previous chart
-		div.querySelector(".chartDiv").innerHTML="";	
+		div.querySelector(".chartDiv").innerHTML="";
 		showChart(div.querySelector(".chartDiv"));
 	}
 
@@ -2747,10 +2858,10 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 		var active = ul.querySelector(".active");
 		var inactives = ul.querySelectorAll(".inactive");
 		var length = inactives.length;
-		for(var i=0;i<length;i++) 
-			if(name===inactives[i].innerHTML) 
+		for(var i=0;i<length;i++)
+			if(name===inactives[i].innerHTML)
 				inactives[i].className="active";
-			else 
+			else
 				inactives[i].className="inactive";
 
 		if(name!==active.innerHTML)
@@ -2770,7 +2881,7 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 		var seriesAndXAxisValues = recoverSeriesAndXValuesItem(this);
 		var checkBoxes = this.parentNode.querySelectorAll("input");
 		var length = seriesAndXAxisValues.series.length;
-		for(var i=0;i<length;i++) 
+		for(var i=0;i<length;i++)
 			if(!checkBoxes[i].checked)
 				delete seriesAndXAxisValues.series[i];
 		optionSeriesWithoutUndefined();
@@ -2779,11 +2890,11 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 
 		function putXAxisValuesOnOptions() {
 			options.xAxis.values = seriesAndXAxisValues.xAxisValues;
-		} 
+		}
 
 		function optionSeriesWithoutUndefined() {
 			var seriesReturned = [];
-			for(var i=0;i<length;i++) 
+			for(var i=0;i<length;i++)
 				if(seriesAndXAxisValues.series[i] !== undefined)
 					seriesReturned.push(seriesAndXAxisValues.series[i]);
 			options.series = seriesReturned;
@@ -5383,9 +5494,9 @@ wesCountry.maps = new (function() {
 			svg.appendChild(a);
 			
 			var text = document.createElementNS(namespace, 'text');
-			text.setAttribute('x', container.offsetWidth);
+			text.setAttribute('x', container.offsetWidth - 4);
 			text.setAttribute('y', container.offsetHeight - 4);
-			text.setAttribute('style', 'fill:#888;font-family:Helvetica;font-size:12px;text-anchor: end;dominant-baseline: edge');
+			text.setAttribute('style', 'fill:#aaa;font-family:Helvetica;font-size:10px;text-anchor: end;dominant-baseline: edge');
 			text.textContent = wesCountry.signature.value;
 			a.appendChild(text);
 			
@@ -5707,4 +5818,121 @@ wesCountry.maps = new (function() {
 	
 		return init(this);
 	}
+})();if (typeof (wesCountry) === "undefined")
+    var wesCountry = new Object();
+
+wesCountry.loader = new (function() {
+	var defaultOptions = {
+		container: "body",
+		width: 500,
+		height: 300,
+    loading: {
+      colour: "#2EFE64"
+    },
+    callback: function() {
+      console.log('ready');
+    }
+	};
+
+  this.renderChart = function(options) {
+    var panel = document.createElement('div');
+    panel.id = 'c' + wesCountry.guid();
+
+    options.callback = function() {
+      options.container = '#' + panel.id;
+      wesCountry.charts.chart(options);
+    }
+
+    return this.render(options, panel);
+  }
+
+	this.render = function(options, panel)
+	{
+		this.options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
+
+		var container = document.querySelector(this.options.container);
+
+		this.panel = panel ? panel : document.createElement('div');
+
+		this.panel.className = 'wesCountry-panel';
+		this.panel.setAttribute("style", String.format("width: {0}px; height: {1}px;",
+                                    this.options.width, this.options.height));
+
+    container.appendChild(this.panel);
+
+    this.load = load;
+
+    this.load(this.options);
+
+    return this;
+	}
+
+  function load(options) {
+    options = wesCountry.mergeOptionsAndDefaultOptions(options, this.options);
+    var interval = showLoading(this.panel, options);
+
+    var panel = this.panel;
+
+    wesCountry.ajax.load({
+      url: options.url,
+      callback: function(data) {
+        clearInterval(interval);
+
+        panel.innerHTML = '';
+
+        if (options.callback)
+          options.callback.call(null, data);
+      }
+    });
+  }
+
+  function showLoading(container, options) {
+    var animation = document.createElement('div');
+    container.appendChild(animation);
+
+    var chartOptions = {
+      width: options.width,
+      height: options.height,
+      legend: {
+        show: false
+      },
+      xAxis: {
+        values: []
+      },
+      margins: [30, 0, 30, 0],
+      series: [
+        {
+          values: [0]
+        },
+        {
+          values: [100]
+        }
+      ],
+      valueOnItem: {
+        show: false
+      },
+      serieColours: [options.loading.colour, "#fff"]
+    };
+
+    var cont1 = -1;
+    var cont2 = 101;
+
+    var interval = setInterval(function() {
+      chartOptions.series[0].values[0] = ++cont1;
+      chartOptions.series[1].values[0] = --cont2;
+
+      if (cont2 == 0) {
+        cont1 = -1;
+        cont2 = 101;
+        chartOptions.serieColours = chartOptions.serieColours.reverse();
+      }
+
+      animation.innerHTML = '';
+
+      var chart = wesCountry.charts.donutChart(chartOptions);
+      animation.appendChild(chart.render());
+    }, 5);
+
+    return interval;
+  }
 })();

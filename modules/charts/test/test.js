@@ -4,16 +4,17 @@ window.onload = function() {
 		"area",
 		"bar",
 		"pie",
+		"donut",
 		"polar",
 		"scatter"
 	]);
-	
+
 	var options = {
 		style: "border: 1px solid red",
 		width: 500,
 		height: 500
 	}
-	
+
 	generateCharts(options);
 }
 
@@ -30,7 +31,7 @@ function generateLinks(links) {
 			document.getElementById(this.identifier + "A").className = "active";
 		}
 	}
-	
+
 	function hideDivs() {
 		for (var i = 0; i < length; i++) {
 			var id = links[i];
@@ -56,7 +57,7 @@ function generateCharts(options) {
 			"font-size": "14px"
 		}
 	};
-	
+
 	var optionScatterPlot = {
 		xAxis: {
 			"font-family": "'Kite One', sans-serif",
@@ -69,7 +70,7 @@ function generateCharts(options) {
 		legend: {
 			"font-family": "'Kite One', sans-serif",
 			"font-size": "14px"
-		},	
+		},
 		series: [{
             name: "Primero",
             values: [[161.2, 51.6], [167.5, 59.0], [159.5, 49.2], [157.0, 63.0], [155.8, 53.6],
@@ -178,138 +179,145 @@ function generateCharts(options) {
                     [180.3, 83.2], [180.3, 83.2]]
         }],
 	};
-	
+
 	renderScatterPlot(optionScatterPlot);
-	
+
 	options.series = [
 		{
             name: "Primero",
             values: [99.80]
         },
-        {  
+        {
         	name: "Segundo",
          	values: [99]
         }
     ];
-	
+
 	renderBarChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
+	renderDonutChart(options);
 	renderPolarChart(options);
-	
+
 	options.series = [
 		{
             name: "2012",
             values: [100, 200, 300]
         },
-        {  
+        {
         	name: "2013",
          	values: [-100, 0, 50]
         }
     ];
-	
+
 	renderBarChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
+	renderDonutChart(options);
 	renderPolarChart(options);
-	
+
 	options.series = [
 		{
             name: "2012",
             values: [-5.5, 2, 3.7, 5, 6]
         },
-        {  
+        {
         	name: "2013",
          	values: [-50, 2.4, 5, 7, 8]
         }
     ];
-	
+
 	renderBarChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
+	renderDonutChart(options);
 	renderPolarChart(options);
-	
+
 	options.series = [
 		{
             name: "2012",
             values: [5.5, 2, 3.7]
         },
-        {  
+        {
         	name: "2013",
          	values: [50, 7.4, 15]
         },
-        {  
+        {
         	name: "2009",
          	values: [10, 2.4, 5]
-        }        
+        }
     ];
-	
-	renderBarChart(options);	
+
+	renderBarChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
+	renderDonutChart(options);
 	renderPolarChart(options);
-	
+
 	options.series = [
 		{
             name: "2012",
             values: [1, 1, 1]
-        }       
+        }
     ];
-    
+
     options.vertex = {
     	show: false
     };
-	
-	renderBarChart(options);	
+
+	renderBarChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
+	renderDonutChart(options);
 	renderPolarChart(options);
-	
+
 	options.series = [
 		{
             name: "2012",
             values: [5.5, 2, null, null, 3.7]
         },
-        {  
+        {
         	name: "2013",
          	values: [null, 50, 7.4, 15, null]
         },
-        {  
+        {
         	name: "2009",
          	values: [10, 2.4, 5, 3, 5]
-        }        
+        }
     ];
-    
+
     options.vertex = {
     	show: true
     };
-	
-	renderBarChart(options);	
+
+	renderBarChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
+	renderDonutChart(options);
 	renderPolarChart(options);
-	
+
 	options.series = [
 		{
             name: "2012",
             values: []
         },
-        {  
+        {
         	name: "2013",
          	values: []
-        }       
+        }
     ];
-    
-	renderBarChart(options);	
+
+	renderBarChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
+	renderDonutChart(options);
 	renderPolarChart(options);
 }
 
@@ -326,6 +334,11 @@ function renderLineChart(options) {
 function renderPieChart(options) {
 	var chart = wesCountry.charts.pieChart(options);
 	document.getElementById("pieDiv").appendChild(chart.render());
+}
+
+function renderDonutChart(options) {
+	var chart = wesCountry.charts.donutChart(options);
+	document.getElementById("donutDiv").appendChild(chart.render());
 }
 
 function renderPolarChart(options) {

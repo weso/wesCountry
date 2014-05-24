@@ -263,9 +263,9 @@ wesCountry.maps = new (function() {
 			svg.appendChild(a);
 			
 			var text = document.createElementNS(namespace, 'text');
-			text.setAttribute('x', container.offsetWidth);
+			text.setAttribute('x', container.offsetWidth - 4);
 			text.setAttribute('y', container.offsetHeight - 4);
-			text.setAttribute('style', 'fill:#888;font-family:Helvetica;font-size:12px;text-anchor: end;dominant-baseline: edge');
+			text.setAttribute('style', 'fill:#aaa;font-family:Helvetica;font-size:10px;text-anchor: end;dominant-baseline: edge');
 			text.textContent = wesCountry.signature.value;
 			a.appendChild(text);
 			

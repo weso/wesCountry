@@ -11,55 +11,55 @@ NodeList.prototype.indexOf = function (element) {
 
 wesCountry.charts.table = function(options) {
 	options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
-	
+
 	var table = document.createElement('table');
 	table.className = 'wesCountry';
-	
+
 	var thead = document.createElement('thead');
 	table.appendChild(thead);
-	
+
 	var tbody = document.createElement('tbody');
 	table.appendChild(tbody);
-	
+
 	var tr = document.createElement('tr');
 	thead.appendChild(tr);
-	
+
 	var th = document.createElement('th');
 	th.innerHTML = 'Country';
 	tr.appendChild(th);
-	
+
 	var th = document.createElement('th');
 	th.innerHTML = 'Time';
 	tr.appendChild(th);
-	
+
 	var th = document.createElement('th');
 	th.innerHTML = 'Value';
 	tr.appendChild(th);
-	
+
 	for (var i = 0; i < options.series.length; i++) {
 		var country = options.series[i].name;
-		
+
 		for (var j = 0; j < options.xAxis.values.length; j++) {
 			var value = options.series[i].values[j];
 			var time = options.xAxis.values[j];
-			
+
 			var tr = document.createElement('tr');
 			tbody.appendChild(tr);
-			
+
 			var td = document.createElement('td');
 			td.innerHTML = country;
 			tr.appendChild(td);
-			
+
 			var td = document.createElement('td');
 			td.innerHTML = time;
 			tr.appendChild(td);
-			
+
 			var td = document.createElement('td');
 			td.innerHTML = value;
 			tr.appendChild(td);
 		}
 	}
-	
+
 	return {
 		render: function() {
 			return table;
@@ -69,7 +69,7 @@ wesCountry.charts.table = function(options) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                  CHART
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////
 
 function getCountriesForMap(options) {
 	var countryData = [];
@@ -78,38 +78,44 @@ function getCountriesForMap(options) {
 	for (var i = options.series.length - 1; i >= 0; i--) {
 		var countryName = options.series[i].name;
 		var countryId = options.series[i].id ? options.series[i].id : countryName;
-		
+
 		if (countries.indexOf(countryId) != -1)
 			continue;
-			
-		countries.push(countryId);	
-		
+
+		countries.push(countryId);
+
 		for (var j = 0; j < options.xAxis.values.length; j++) {
 			var value = options.series[i].values[j];
-			
+
 			if (value) {
 				countryData.push({
 					code: countryId,
 					value: value
 				});
-				
+
 				break;
 			}
 		}
 	}
-	
+
 	return countryData;
 }
 
 wesCountry.charts.chart = function (options) {
 	var container;
 	container = typeof options.container !== "string" ? options.container : undefined;
-	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container; 
+	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container;
 	options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 	var chart;
-	
+
 	var chartType = options.chartType ? options.chartType.toLowerCase() : "bar";
-	
+
+	if(container === undefined)
+		container = document.querySelector(options.container);
+
+	options.width = container.offsetWidth;
+	options.height = container.offsetHeight;
+
 	switch(chartType) {
 		case "bar":
 			chart = this.barChart(options);
@@ -119,6 +125,9 @@ wesCountry.charts.chart = function (options) {
 			break;
 		case "pie":
 			chart = this.pieChart(options);
+			break;
+		case "donut":
+			chart = this.donutChart(options);
 			break;
 		case "area":
 			chart = this.areaChart(options);
@@ -139,13 +148,10 @@ wesCountry.charts.chart = function (options) {
 			});
 			break;
 	}
-	
-	if(container === undefined)
-		container = document.querySelector(options.container);
-	
-	if (chart.render)	
+
+	if (chart.render)
 		container.appendChild(chart.render());
-	
+
 	return container.parentNode;
 }
 
@@ -187,18 +193,18 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 	var container = document.createElement("div");
 	if(typeof options.container === "string")
 		document.querySelector(options.container).appendChild(container);
-	else 
+	else
 		options.container.appendChild(container);
 	createChartSelector();
 	createSeriesSelector();
 	return createChart();
 
-	function createChartSelector() {	
+	function createChartSelector() {
 		var div = document.createElement('div');
 		div.className = "chartSelector";
 		var ul = document.createElement('ul');
 		for(var i=0; i<charts.length;i++) {
-			var li = document.createElement('li');	
+			var li = document.createElement('li');
 			var a = document.createElement('a');
 			//a.href="#";
 			a.className ="inactive";
@@ -210,7 +216,7 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 		div.appendChild(ul);
 		div.querySelector("li a").className= "active";
 		container.appendChild(div);
-		
+
 		if (charts.length <= 1)
 			div.style.display = "none";
 	}
@@ -242,12 +248,12 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 
 	function showChart(div) {
 		var typeOfGraph = "bar";
-		
+
 		var active = container.querySelector(".active");
-		
+
 		if (active && active.innerHTML)
 			typeOfGraph = active.innerHTML.toLowerCase();
-			
+
 		options.chartType = typeOfGraph;
 		if(div === undefined)
 			options.container = ".chartDiv";
@@ -258,7 +264,7 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 
 	function loadGraph(div) {
 		//remove previous chart
-		div.querySelector(".chartDiv").innerHTML="";	
+		div.querySelector(".chartDiv").innerHTML="";
 		showChart(div.querySelector(".chartDiv"));
 	}
 
@@ -266,10 +272,10 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 		var active = ul.querySelector(".active");
 		var inactives = ul.querySelectorAll(".inactive");
 		var length = inactives.length;
-		for(var i=0;i<length;i++) 
-			if(name===inactives[i].innerHTML) 
+		for(var i=0;i<length;i++)
+			if(name===inactives[i].innerHTML)
 				inactives[i].className="active";
-			else 
+			else
 				inactives[i].className="inactive";
 
 		if(name!==active.innerHTML)
@@ -289,7 +295,7 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 		var seriesAndXAxisValues = recoverSeriesAndXValuesItem(this);
 		var checkBoxes = this.parentNode.querySelectorAll("input");
 		var length = seriesAndXAxisValues.series.length;
-		for(var i=0;i<length;i++) 
+		for(var i=0;i<length;i++)
 			if(!checkBoxes[i].checked)
 				delete seriesAndXAxisValues.series[i];
 		optionSeriesWithoutUndefined();
@@ -298,11 +304,11 @@ wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
 
 		function putXAxisValuesOnOptions() {
 			options.xAxis.values = seriesAndXAxisValues.xAxisValues;
-		} 
+		}
 
 		function optionSeriesWithoutUndefined() {
 			var seriesReturned = [];
-			for(var i=0;i<length;i++) 
+			for(var i=0;i<length;i++)
 				if(seriesAndXAxisValues.series[i] !== undefined)
 					seriesReturned.push(seriesAndXAxisValues.series[i]);
 			options.series = seriesReturned;
