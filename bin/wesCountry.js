@@ -5848,23 +5848,23 @@ wesCountry.loader = new (function() {
 
 	this.render = function(options, panel)
 	{
-		this.options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
+    return new (function () {
+  		this.options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
 
-		var container = document.querySelector(this.options.container);
+  		var container = document.querySelector(this.options.container);
 
-		this.panel = panel ? panel : document.createElement('div');
+  		this.panel = panel ? panel : document.createElement('div');
 
-		this.panel.className = 'wesCountry-panel';
-		this.panel.setAttribute("style", String.format("width: {0}px; height: {1}px;",
-                                    this.options.width, this.options.height));
+  		this.panel.className = 'wesCountry-panel';
+  		this.panel.setAttribute("style", String.format("width: {0}px; height: {1}px;",
+                                      this.options.width, this.options.height));
 
-    container.appendChild(this.panel);
+      container.appendChild(this.panel);
 
-    this.load = load;
+      this.load = load;
 
-    this.load(this.options);
-
-    return this;
+      this.load(this.options);
+    })();
 	}
 
   function load(options) {
