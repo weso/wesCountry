@@ -3,4 +3,4 @@ wesCountry
 ==========
 Visualise data as easy as never before
 
-by [WESO](www.weso.es)
+by [WESO](http://www.weso.es)
