@@ -16,8 +16,8 @@ var wesCountry = new (function() {
 	this.version = "1.0.0.0";
 
 	this.signature = {
-		value: "© wesCountry",
-		url: "https://github.com/weso/wesCountry"
+		value: "by wesCountry",
+		url: "http://wescountry.weso.es"
 	}
 
 	function s4() {
@@ -41,9 +41,48 @@ var wesCountry = new (function() {
 		}).style('fill: #aaa;font-family:Helvetica;font-size:10px;text-anchor: end;dominant-baseline: edge');
 	}
 
+	this.getCssProperty = function(element, property) {
+  	return window.getComputedStyle(element, null).getPropertyValue(property);
+	}
+
+	this.getFullHeight = function(element) {
+    var elmHeight, elmMargin, elm = element;
+
+    if (document.all) { // IE
+      elmHeight = elm.currentStyle.height;
+      elmMargin = parseInt(elm.currentStyle.marginTop, 10) + parseInt(elm.currentStyle.marginBottom, 10);
+    } else if (document.defaultView && document.defaultView.getComputedStyle) { // Mozilla
+      elmHeight = document.defaultView.getComputedStyle(elm, '').getPropertyValue('height');
+      elmMargin = parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('margin-top')) + parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('margin-bottom'));
+    }
+		else {
+			elmHeight = wesCountry.getCssProperty(elm, 'height');
+			elmMargin = parseInt(wesCountry.getCssProperty(elm, 'margin-top')) + parseInt(wesCountry.getCssProperty(elm, 'margin-bottom'));
+		}
+
+		elmHeight = elmHeight ? Number(elmHeight.match(/(\d*(\.\d*)?)px/)[1]) : 0;
+
+    return (elmHeight + elmMargin);
+	}
+
+	this.registerEvent = function(element, event, handler) {
+		if (element.attachEvent)
+			element.attachEvent(event, handler);
+		else
+			element.addEventListener(event, handler, false);
+	}
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                              MERGING OPTIONS
 	////////////////////////////////////////////////////////////////////////////////
+
+	this.addOptions = function(opt1, opt2) {
+		for (var o in opt2)
+			if (!opt1[o])
+				opt1[o] = opt2[o];
+
+		return opt1;
+	}
 
 	this.mergeOptionsAndDefaultOptions = function(options, defaultOptions) {
 		if (options) {

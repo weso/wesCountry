@@ -5,9 +5,9 @@ wesCountry.loader = new (function() {
 	var defaultOptions = {
 		container: "body",
 		width: 500,
-		height: 300,
+		height: 400,
     loading: {
-      colour: "#2EFE64"
+      colour: "#888"
     },
     callback: function() {
       console.log('ready');
@@ -68,50 +68,54 @@ wesCountry.loader = new (function() {
 
   function showLoading(container, options) {
     var animation = document.createElement('div');
+    animation.className = 'loading';
     container.appendChild(animation);
 
-    var chartOptions = {
-      width: options.width,
-      height: options.height,
-      legend: {
-        show: false
-      },
-      xAxis: {
-        values: []
-      },
-      margins: [30, 0, 30, 0],
-      series: [
-        {
-          values: [0]
-        },
-        {
-          values: [100]
-        }
-      ],
-      valueOnItem: {
-        show: false
-      },
-      serieColours: [options.loading.colour, "#fff"]
-    };
+    var circles = [];
 
-    var cont1 = -1;
-    var cont2 = 101;
+    for (var i = 0; i < 3; i++) {
+      var circle = document.createElement('div');
+      circle.className = 'loading-circle';
+      animation.appendChild(circle);
+
+      circles.push(circle);
+
+      var width = wesCountry.getCssProperty(circle, 'width');
+      circle.style.height = width;
+
+      var circleHeight = circle.offsetHeight;
+      var innerCircleHeigth = circleHeight / 1.5;
+      var innerCircleMargin = (circleHeight - innerCircleHeigth) / 2;
+
+      var innerCircle = document.createElement('div');
+      innerCircle.className = 'loading-inner-circle';
+      innerCircle.style.width = innerCircle.style.height = innerCircleHeigth + 'px';
+      innerCircle.style.marginTop = innerCircleMargin + 'px';
+      innerCircle.style.backgroundColor = options.loading.colour;
+      circle.appendChild(innerCircle);
+    }
+
+    var containerHeight = wesCountry.getFullHeight(container);
+    var loadingHeight = wesCountry.getFullHeight(animation);
+
+    animation.style.top = (containerHeight / 2 - loadingHeight / 2) + 'px';
+
+    var index = 0;
+    var lastIndex = 0;
 
     var interval = setInterval(function() {
-      chartOptions.series[0].values[0] = ++cont1;
-      chartOptions.series[1].values[0] = --cont2;
+      index++;
 
-      if (cont2 == 0) {
-        cont1 = -1;
-        cont2 = 101;
-        chartOptions.serieColours = chartOptions.serieColours.reverse();
-      }
+      if (index > 2)
+        index = 0;
 
-      animation.innerHTML = '';
+      circles[lastIndex].className = 'loading-circle';
+      circles[lastIndex].style.backgroundColor = 'transparent';
+      circles[index].className = 'loading-circle loading-circle-active';
+      circles[index].style.backgroundColor = options.loading.colour;
 
-      var chart = wesCountry.charts.donutChart(chartOptions);
-      animation.appendChild(chart.render());
-    }, 5);
+      lastIndex = index;
+    }, 400);
 
     return interval;
   }

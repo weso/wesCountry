@@ -10,5 +10,7 @@ var loader = wesCountry.loader.render({
 });
 
 var loader2 = wesCountry.loader.renderChart({
-	url: "test.php"
+	url: "test.php",
+	chartType: "map",
+	title: "Render chart"
 });

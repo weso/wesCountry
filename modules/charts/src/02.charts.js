@@ -16,12 +16,14 @@ String.prototype.toFirstUpperCase = function() {
 
 if (typeof(exports) === "undefined")
 	exports = new Object();
-	
+
 if (typeof(wesCountry) === "undefined")
 	var wesCountry = {};
 
 wesCountry.charts = new (function() {
 	this.defaultOptions = {
+		title: "",
+		foot: "",
 		width: 600,
 		height: 400,
         chartType: "bar",
@@ -105,7 +107,7 @@ wesCountry.charts = new (function() {
 	        	wesCountry.charts.hideTooltip();
 	        },
 	        "onclick": function() {
-	        
+
 	        }
         },
         vertex: {
@@ -115,86 +117,86 @@ wesCountry.charts = new (function() {
         	width: 1
         }
 	};
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                                 SORT SERIES
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	// We evaluate the number of values of this series than are greater than the other series
-	
+
 	this.sortSeries = function(series) {
 		series.sort(function(a, b) {
 			var values1 = a.values;
 			var values2 = b.values;
 			var length = Math.max(values1.length, values2.length);
-			
+
 			var greatCounter = 0;
-			
+
 			for (var i = 0; i < length; i++) {
 				var value1 = values1[i] ? values1[i] : 0;
 				var value2 = values2[i] ? values2[i] : 0;
-				
+
 				if (value1 > value2)
 					greatCounter++;
 			}
-			
+
 			// We suppose that it's greater when han at least the half of the elements greater
 			return greatCounter >= length / 2 ? -1 : 1;
 		});
-		
+
 		return series;
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                                     SVG
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	this.getSVG = function(options) {
 		var svgOptions = {
 			width: options.width,
-			height: options.height	
+			height: options.height
 		};
-		
+
 		var svg = jSVG.svg(svgOptions);
-		
+
 		wesCountry.setSignature(options, svg);
-		
+
 		return svg;
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                                 LEGEND
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	this.showLegend = function(container, sizes, options) {
 		var length = options.series.length;
-	
+
 		var xPos = sizes.width - sizes.marginRight * 0.2;
-	
+
 		for (var i = 0; i < length; i++) {
 			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
-		
+
 			container.circle({
 				cx: xPos,
 				cy: yPos,
 				r: sizes.legendItemSize
 			}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]));
-			
+
 			container.text({
 				x: xPos - 2 * sizes.legendItemSize,
 				y: yPos,
 				value: options.series[i].name
-			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle", 
+			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle",
 				options.legend["font-colour"],
 				options.legend["font-family"],
 				options.legend["font-size"]));
 		}
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                                   AXIS
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	this.setAxisY = function(container, sizes, options) {
 		// Y Axis
 
@@ -204,11 +206,11 @@ wesCountry.charts = new (function() {
 			y1: sizes.marginTop,
 			y2: sizes.innerHeight + sizes.marginTop - sizes.xAxisMargin
 		}).style(String.format("stroke: {0}", options.yAxis.colour));
-	
+
 		// Y Axis Ticks
-		
+
 		var length = sizes.ticksY + 1;
-		
+
 		// Line
 		for (var i = 0; i < length; i++) {
 			container.line({
@@ -218,141 +220,141 @@ wesCountry.charts = new (function() {
 				y2: sizes.marginTop + i * sizes.yTickHeight
 			}).style(String.format("stroke: {0}", options.yAxis.tickColour));
 		}
-			
+
 		// Y Axis Labels
-		for (var i = 0; i < length; i++) {	
+		for (var i = 0; i < length; i++) {
 			container.text({
 				x: sizes.marginLeft + sizes.yAxisMargin / 1.8,
 				y: sizes.marginTop + i * sizes.yTickHeight,
 				value: (sizes.maxValue - i * sizes.valueInc).toFixed(0)
-			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle", 
+			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle",
 				options.yAxis["font-colour"],
 				options.yAxis["font-family"],
 				options.yAxis["font-size"]));
 		}
-		
+
 		// Y Axis Title
 		var x = sizes.marginLeft;
 		var y = sizes.marginTop + (sizes.innerHeight - sizes.xAxisMargin) / 2;
-		
+
 		container.text({
 			x: x,
 			y: y,
 			value: options.yAxis.title,
 			transform: String.format("rotate(-90 {0}, {1})", x, y)
-		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle", 
+		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle",
 				options.yAxis["font-colour"],
 				options.yAxis["font-family"],
 				options.yAxis["font-size"]));
 	}
 
-	this.setAxisX = function(container, sizes, options) {		
+	this.setAxisX = function(container, sizes, options) {
 		// X Axis
-		
+
 		var maxHeight = sizes.innerHeight - sizes.xAxisMargin;
-		var minValuePos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin	
+		var minValuePos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
 					+ sizes.minValue / (sizes.maxValue - sizes.minValue) * maxHeight;
-	
+
 		container.line({
 			x1: sizes.marginLeft + sizes.yAxisMargin,
 			x2: sizes.marginLeft + sizes.innerWidth,
 			y1: minValuePos,
 			y2: minValuePos
 		}).style(String.format("stroke: {0}", options.xAxis.colour));
-		
+
 		// X Axis Ticks
-		
+
 		var length = sizes.maxValueLength;
-		
+
 		for (var i = 0; i < length; i++) {
 			// Line
-			
-			var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin 
+
+			var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin
 				+ sizes.xTickWidth / 2 + (sizes.xTickWidth + 2 * sizes.groupMargin) * i;
-		
+
 			container.line({
 				x1: xPos,
 				x2: xPos,
 				y1: sizes.marginTop,
 				y2: sizes.innerHeight + sizes.marginTop - sizes.xAxisMargin
 			}).style(String.format("stroke: {0}", options.xAxis.tickColour));
-			
+
 			// Label
-			
+
 			var value = options.xAxis.values[i] ? options.xAxis.values[i] : "";
-			
+
 			container.text({
 				x: xPos,
 				y: sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin / 2,
 				value: value
-			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle", 
+			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle",
 				options.xAxis["font-colour"],
 				options.xAxis["font-family"],
 				options.xAxis["font-size"]));
 		}
-		
+
 		// X Axis Title
-		
+
 		container.text({
 			x: sizes.marginLeft + sizes.yAxisMargin + (sizes.innerWidth - sizes.yAxisMargin) / 2,
 			y: sizes.marginTop + sizes.innerHeight + sizes.xAxisMargin / 2,
 			value: options.xAxis.title
-		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle", 
+		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle",
 				options.xAxis["font-colour"],
 				options.xAxis["font-family"],
 				options.xAxis["font-size"]));
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                               MAX AXIS VALUES
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	this.getMaxAndMinValuesAxisY = function(options) {
 		var maxValue = 0, minValue = Number.MAX_VALUE;
-		
+
 		var length = options.series.length;
 		var valueLength = null;
 		var value = null;
 		var maxValueLength = 0;
-	
+
 		for (var i = 0; i < length; i++) {
 			valueLength = options.series[i].values.length;
-			
+
 			if (valueLength > maxValueLength)
 				maxValueLength = valueLength;
-			
+
 			for (var j = 0; j < valueLength; j++) {
 				value = options.series[i].values[j];
-				
+
 				if (value instanceof Array)
 					value = value[1] ? value[1] : 0;
-				
+
 				if (value > maxValue)
 					maxValue = value;
-					
+
 				if (value < minValue)
 					minValue = value;
 			}
 		}
-		
+
 		if (options.yAxis["from-zero"] == true && minValue > 0)
 			minValue = 0;
-		
-		
+
+
 		var maxAndMinValues = this.getNearestNumber(minValue, maxValue);
-	
-		return { 
-			max: maxAndMinValues.max, 
-			min: maxAndMinValues.min, 
+
+		return {
+			max: maxAndMinValues.max,
+			min: maxAndMinValues.min,
 			valueLength: maxValueLength,
 			inc: maxAndMinValues.inc
 		};
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                              AUX FUNCTIONS
-	////////////////////////////////////////////////////////////////////////////////	
-	
+	////////////////////////////////////////////////////////////////////////////////
+
 	this.setBackground = function(container, sizes, options) {
 		container.rectangle({
 			x: 0,
@@ -360,21 +362,21 @@ wesCountry.charts = new (function() {
 			width: sizes.width,
 			height: sizes.height
 		}).style(String.format("fill: {0}", options.backgroundColour));
-	}	
-	
+	}
+
 	this.getNearestNumber = function(minValue, maxValue) {
 		var pow = getNearestPow(maxValue - minValue);
-		
+
 		return  {
 			max: Math.ceil(maxValue / pow) * pow,
 			min: Math.floor(minValue / pow) * pow,
 			inc: pow
 		}
 	}
-	
+
 	function getNearestPow(number) {
 		var pow = 0;
-	
+
 		if (number < 15) {
 			pow = 1;
 		}
@@ -385,10 +387,10 @@ wesCountry.charts = new (function() {
 			var numberOfDigits = 1 + Math.floor(Math.log(number) / Math.log(10));
 			pow = Math.pow(10, numberOfDigits - 1);
 		}
-		
+
 		return pow;
 	}
-	
+
 	function s4() {
   		return Math.floor((1 + Math.random()) * 0x10000)
     		.toString(16)
@@ -399,51 +401,51 @@ wesCountry.charts = new (function() {
   		return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
          	s4() + '-' + s4() + s4() + s4();
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                                   TOOLTIP
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	var tooltip = null;
-	
+
 	this.createTooltip = function(options) {
 		if (options.tooltip.show == true) {
 			tooltip = document.getElementById("wesCountryTooltip");
-			
+
 			if (!tooltip) {
 				tooltip = document.createElement("span");
 				tooltip.id = "wesCountryTooltip";
 				document.body.appendChild(tooltip);
-				
+
 				var style = "";
-				
+
 				for (var attr in options.tooltip.style) {
 					var element = options.tooltip.style[attr];
-						
+
 					style += String.format("{0}:{1};", attr, element);
 				}
-				
+
 				tooltip.setAttribute("style", style);
 			}
 		}
 		else
 			tooltip = null;
 	}
-	
+
 	this.showTooltip = function(text) {
 		if (!tooltip)
 			return;
-		
+
     	updateTooltipPos();
     	tooltip.innerHTML = text;
     	tooltip.style.display = "block";
     	window.onscroll = updateTooltipPos;
     }
-    
+
     function updateTooltipPos() {
 		if (!tooltip)
-			return;    
-    
+			return;
+
     	var ev = arguments[0]?arguments[0]:event;
     	var x = ev.clientX;
     	var y = ev.clientY;
@@ -455,8 +457,8 @@ wesCountry.charts = new (function() {
 
     this.hideTooltip = function() {
 		if (!tooltip)
-			return;    
-    
+			return;
+
     	tooltip.style.display = "none";
     }
 

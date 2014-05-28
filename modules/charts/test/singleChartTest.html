@@ -13,19 +13,51 @@
 	<script src="../src/06.polar.js"></script>
 	<script src="../src/07.scatter.js"></script>
 	<script src="../src/08.multi.js"></script>
+	<style>
+		#chartDiv, #mapDiv {
+			width: 400px;
+			height: 300px;
+		}
+	</style>
 </head>
 <body>
 	<div id="chartDiv"></div>
-	
+	<div id="mapDiv"></div>
+
 	<script type="text/javascript">
-		var options = {
+	
+	var options = {
+	"chartType": "line", "serieColours": ["#168cff", "#009e00", "#b41739"], "series": [{"id": "GRC", "name": "Greece", "values": []}, {"id": "IRL", "name": "Ireland", "values": []}, {"id": "ESP", "name": "Spain", "values": [988060.0]}], "valueOnItem": {"show": false}, "xAxis": {"title": null, "values": ["2007"]}, "yAxis": {"title": null}};
+	
+	wesCountry.charts.chart(options);
+	
+/*		var options = {
+			title: "Chart test",
+			foot: "Source: My mind",
 			container: "#chartDiv",
-			chartType: "bar"
+			chartType: "bar",
+			download: true
 		};
 		wesCountry.charts.chart(options);
-		
-		options.chartType="table";
-		wesCountry.charts.chart(options);
+
+	var options = {
+		title: "Map test",
+		foot: "Source: My mind",
+		container: "#mapDiv",
+		chartType: "map",
+		download: true,
+		countries: [
+			{
+				code: 'ESP',
+				value: 5
+			},
+			{
+				code: 'FRA',
+				value: 1
+			}
+		]
+	};
+	wesCountry.charts.chart(options); */
 	</script>
 </body>
 </html>

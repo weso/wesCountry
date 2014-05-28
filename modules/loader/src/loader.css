@@ -1,0 +1,31 @@
+.wesCountry-panel {
+  position: relative;
+  overflow: auto;
+}
+
+.loading {
+  position: absolute;
+  left: 50%;
+  margin-left: -10%;
+  width: 20%;
+  overflow: auto;
+
+  text-align: center;
+}
+
+div.loading-circle {
+  width: 27%;
+  margin: 0 3%;
+  float: left;
+  border-radius: 50%;
+}
+
+div.loading-circle-active {
+  background-color: #333;
+}
+
+div.loading-inner-circle {
+  margin: 0 auto;
+  background-color: #333;
+  border-radius: 50%;
+}

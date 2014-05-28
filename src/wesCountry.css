@@ -2,3 +2,38 @@
 
 }
 
+p.wesCountry-title {
+  margin-top: 0;
+  font-family: 'trebuchet MS', verdana, arial, sans-serif;
+  font-size: 1.2em;
+}
+
+.wesCountry-footer {
+  overflow: auto;
+}
+
+p.wesCountry-foot {
+  margin-top: 0;
+  margin-bottom: 0;
+  float: right;
+  text-align: right;
+  color: #0489B1;
+}
+
+.wesCountry-download {
+  float: left;
+  min-width: 2.5em;
+  text-align: center;
+  font-size: 0.8em;
+  margin-right: 0.5em;
+  display: inline-block;
+  padding: 0.1em 0.3em;
+  border: 0.1em solid #ccc;
+  border-radius: 0.3em;
+  text-decoration: none;
+  color: #777;
+}
+
+.wesCountry-download:hover {
+  background-color: #ccc;
+}

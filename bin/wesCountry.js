@@ -101,8 +101,8 @@ var wesCountry = new (function() {
 	this.version = "1.0.0.0";
 
 	this.signature = {
-		value: "© wesCountry",
-		url: "https://github.com/weso/wesCountry"
+		value: "by wesCountry",
+		url: "http://wescountry.weso.es"
 	}
 
 	function s4() {
@@ -126,9 +126,48 @@ var wesCountry = new (function() {
 		}).style('fill: #aaa;font-family:Helvetica;font-size:10px;text-anchor: end;dominant-baseline: edge');
 	}
 
+	this.getCssProperty = function(element, property) {
+  	return window.getComputedStyle(element, null).getPropertyValue(property);
+	}
+
+	this.getFullHeight = function(element) {
+    var elmHeight, elmMargin, elm = element;
+
+    if (document.all) { // IE
+      elmHeight = elm.currentStyle.height;
+      elmMargin = parseInt(elm.currentStyle.marginTop, 10) + parseInt(elm.currentStyle.marginBottom, 10);
+    } else if (document.defaultView && document.defaultView.getComputedStyle) { // Mozilla
+      elmHeight = document.defaultView.getComputedStyle(elm, '').getPropertyValue('height');
+      elmMargin = parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('margin-top')) + parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('margin-bottom'));
+    }
+		else {
+			elmHeight = wesCountry.getCssProperty(elm, 'height');
+			elmMargin = parseInt(wesCountry.getCssProperty(elm, 'margin-top')) + parseInt(wesCountry.getCssProperty(elm, 'margin-bottom'));
+		}
+
+		elmHeight = elmHeight ? Number(elmHeight.match(/(\d*(\.\d*)?)px/)[1]) : 0;
+
+    return (elmHeight + elmMargin);
+	}
+
+	this.registerEvent = function(element, event, handler) {
+		if (element.attachEvent)
+			element.attachEvent(event, handler);
+		else
+			element.addEventListener(event, handler, false);
+	}
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                              MERGING OPTIONS
 	////////////////////////////////////////////////////////////////////////////////
+
+	this.addOptions = function(opt1, opt2) {
+		for (var o in opt2)
+			if (!opt1[o])
+				opt1[o] = opt2[o];
+
+		return opt1;
+	}
 
 	this.mergeOptionsAndDefaultOptions = function(options, defaultOptions) {
 		if (options) {
@@ -571,12 +610,14 @@ String.prototype.toFirstUpperCase = function() {
 
 if (typeof(exports) === "undefined")
 	exports = new Object();
-	
+
 if (typeof(wesCountry) === "undefined")
 	var wesCountry = {};
 
 wesCountry.charts = new (function() {
 	this.defaultOptions = {
+		title: "",
+		foot: "",
 		width: 600,
 		height: 400,
         chartType: "bar",
@@ -660,7 +701,7 @@ wesCountry.charts = new (function() {
 	        	wesCountry.charts.hideTooltip();
 	        },
 	        "onclick": function() {
-	        
+
 	        }
         },
         vertex: {
@@ -670,86 +711,86 @@ wesCountry.charts = new (function() {
         	width: 1
         }
 	};
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                                 SORT SERIES
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	// We evaluate the number of values of this series than are greater than the other series
-	
+
 	this.sortSeries = function(series) {
 		series.sort(function(a, b) {
 			var values1 = a.values;
 			var values2 = b.values;
 			var length = Math.max(values1.length, values2.length);
-			
+
 			var greatCounter = 0;
-			
+
 			for (var i = 0; i < length; i++) {
 				var value1 = values1[i] ? values1[i] : 0;
 				var value2 = values2[i] ? values2[i] : 0;
-				
+
 				if (value1 > value2)
 					greatCounter++;
 			}
-			
+
 			// We suppose that it's greater when han at least the half of the elements greater
 			return greatCounter >= length / 2 ? -1 : 1;
 		});
-		
+
 		return series;
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                                     SVG
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	this.getSVG = function(options) {
 		var svgOptions = {
 			width: options.width,
-			height: options.height	
+			height: options.height
 		};
-		
+
 		var svg = jSVG.svg(svgOptions);
-		
+
 		wesCountry.setSignature(options, svg);
-		
+
 		return svg;
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                                 LEGEND
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	this.showLegend = function(container, sizes, options) {
 		var length = options.series.length;
-	
+
 		var xPos = sizes.width - sizes.marginRight * 0.2;
-	
+
 		for (var i = 0; i < length; i++) {
 			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
-		
+
 			container.circle({
 				cx: xPos,
 				cy: yPos,
 				r: sizes.legendItemSize
 			}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]));
-			
+
 			container.text({
 				x: xPos - 2 * sizes.legendItemSize,
 				y: yPos,
 				value: options.series[i].name
-			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle", 
+			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle",
 				options.legend["font-colour"],
 				options.legend["font-family"],
 				options.legend["font-size"]));
 		}
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                                   AXIS
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	this.setAxisY = function(container, sizes, options) {
 		// Y Axis
 
@@ -759,11 +800,11 @@ wesCountry.charts = new (function() {
 			y1: sizes.marginTop,
 			y2: sizes.innerHeight + sizes.marginTop - sizes.xAxisMargin
 		}).style(String.format("stroke: {0}", options.yAxis.colour));
-	
+
 		// Y Axis Ticks
-		
+
 		var length = sizes.ticksY + 1;
-		
+
 		// Line
 		for (var i = 0; i < length; i++) {
 			container.line({
@@ -773,141 +814,141 @@ wesCountry.charts = new (function() {
 				y2: sizes.marginTop + i * sizes.yTickHeight
 			}).style(String.format("stroke: {0}", options.yAxis.tickColour));
 		}
-			
+
 		// Y Axis Labels
-		for (var i = 0; i < length; i++) {	
+		for (var i = 0; i < length; i++) {
 			container.text({
 				x: sizes.marginLeft + sizes.yAxisMargin / 1.8,
 				y: sizes.marginTop + i * sizes.yTickHeight,
 				value: (sizes.maxValue - i * sizes.valueInc).toFixed(0)
-			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle", 
+			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle",
 				options.yAxis["font-colour"],
 				options.yAxis["font-family"],
 				options.yAxis["font-size"]));
 		}
-		
+
 		// Y Axis Title
 		var x = sizes.marginLeft;
 		var y = sizes.marginTop + (sizes.innerHeight - sizes.xAxisMargin) / 2;
-		
+
 		container.text({
 			x: x,
 			y: y,
 			value: options.yAxis.title,
 			transform: String.format("rotate(-90 {0}, {1})", x, y)
-		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle", 
+		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle",
 				options.yAxis["font-colour"],
 				options.yAxis["font-family"],
 				options.yAxis["font-size"]));
 	}
 
-	this.setAxisX = function(container, sizes, options) {		
+	this.setAxisX = function(container, sizes, options) {
 		// X Axis
-		
+
 		var maxHeight = sizes.innerHeight - sizes.xAxisMargin;
-		var minValuePos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin	
+		var minValuePos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
 					+ sizes.minValue / (sizes.maxValue - sizes.minValue) * maxHeight;
-	
+
 		container.line({
 			x1: sizes.marginLeft + sizes.yAxisMargin,
 			x2: sizes.marginLeft + sizes.innerWidth,
 			y1: minValuePos,
 			y2: minValuePos
 		}).style(String.format("stroke: {0}", options.xAxis.colour));
-		
+
 		// X Axis Ticks
-		
+
 		var length = sizes.maxValueLength;
-		
+
 		for (var i = 0; i < length; i++) {
 			// Line
-			
-			var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin 
+
+			var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin
 				+ sizes.xTickWidth / 2 + (sizes.xTickWidth + 2 * sizes.groupMargin) * i;
-		
+
 			container.line({
 				x1: xPos,
 				x2: xPos,
 				y1: sizes.marginTop,
 				y2: sizes.innerHeight + sizes.marginTop - sizes.xAxisMargin
 			}).style(String.format("stroke: {0}", options.xAxis.tickColour));
-			
+
 			// Label
-			
+
 			var value = options.xAxis.values[i] ? options.xAxis.values[i] : "";
-			
+
 			container.text({
 				x: xPos,
 				y: sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin / 2,
 				value: value
-			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle", 
+			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle",
 				options.xAxis["font-colour"],
 				options.xAxis["font-family"],
 				options.xAxis["font-size"]));
 		}
-		
+
 		// X Axis Title
-		
+
 		container.text({
 			x: sizes.marginLeft + sizes.yAxisMargin + (sizes.innerWidth - sizes.yAxisMargin) / 2,
 			y: sizes.marginTop + sizes.innerHeight + sizes.xAxisMargin / 2,
 			value: options.xAxis.title
-		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle", 
+		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle",
 				options.xAxis["font-colour"],
 				options.xAxis["font-family"],
 				options.xAxis["font-size"]));
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                               MAX AXIS VALUES
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	this.getMaxAndMinValuesAxisY = function(options) {
 		var maxValue = 0, minValue = Number.MAX_VALUE;
-		
+
 		var length = options.series.length;
 		var valueLength = null;
 		var value = null;
 		var maxValueLength = 0;
-	
+
 		for (var i = 0; i < length; i++) {
 			valueLength = options.series[i].values.length;
-			
+
 			if (valueLength > maxValueLength)
 				maxValueLength = valueLength;
-			
+
 			for (var j = 0; j < valueLength; j++) {
 				value = options.series[i].values[j];
-				
+
 				if (value instanceof Array)
 					value = value[1] ? value[1] : 0;
-				
+
 				if (value > maxValue)
 					maxValue = value;
-					
+
 				if (value < minValue)
 					minValue = value;
 			}
 		}
-		
+
 		if (options.yAxis["from-zero"] == true && minValue > 0)
 			minValue = 0;
-		
-		
+
+
 		var maxAndMinValues = this.getNearestNumber(minValue, maxValue);
-	
-		return { 
-			max: maxAndMinValues.max, 
-			min: maxAndMinValues.min, 
+
+		return {
+			max: maxAndMinValues.max,
+			min: maxAndMinValues.min,
 			valueLength: maxValueLength,
 			inc: maxAndMinValues.inc
 		};
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                              AUX FUNCTIONS
-	////////////////////////////////////////////////////////////////////////////////	
-	
+	////////////////////////////////////////////////////////////////////////////////
+
 	this.setBackground = function(container, sizes, options) {
 		container.rectangle({
 			x: 0,
@@ -915,21 +956,21 @@ wesCountry.charts = new (function() {
 			width: sizes.width,
 			height: sizes.height
 		}).style(String.format("fill: {0}", options.backgroundColour));
-	}	
-	
+	}
+
 	this.getNearestNumber = function(minValue, maxValue) {
 		var pow = getNearestPow(maxValue - minValue);
-		
+
 		return  {
 			max: Math.ceil(maxValue / pow) * pow,
 			min: Math.floor(minValue / pow) * pow,
 			inc: pow
 		}
 	}
-	
+
 	function getNearestPow(number) {
 		var pow = 0;
-	
+
 		if (number < 15) {
 			pow = 1;
 		}
@@ -940,10 +981,10 @@ wesCountry.charts = new (function() {
 			var numberOfDigits = 1 + Math.floor(Math.log(number) / Math.log(10));
 			pow = Math.pow(10, numberOfDigits - 1);
 		}
-		
+
 		return pow;
 	}
-	
+
 	function s4() {
   		return Math.floor((1 + Math.random()) * 0x10000)
     		.toString(16)
@@ -954,51 +995,51 @@ wesCountry.charts = new (function() {
   		return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
          	s4() + '-' + s4() + s4() + s4();
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                                   TOOLTIP
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	var tooltip = null;
-	
+
 	this.createTooltip = function(options) {
 		if (options.tooltip.show == true) {
 			tooltip = document.getElementById("wesCountryTooltip");
-			
+
 			if (!tooltip) {
 				tooltip = document.createElement("span");
 				tooltip.id = "wesCountryTooltip";
 				document.body.appendChild(tooltip);
-				
+
 				var style = "";
-				
+
 				for (var attr in options.tooltip.style) {
 					var element = options.tooltip.style[attr];
-						
+
 					style += String.format("{0}:{1};", attr, element);
 				}
-				
+
 				tooltip.setAttribute("style", style);
 			}
 		}
 		else
 			tooltip = null;
 	}
-	
+
 	this.showTooltip = function(text) {
 		if (!tooltip)
 			return;
-		
+
     	updateTooltipPos();
     	tooltip.innerHTML = text;
     	tooltip.style.display = "block";
     	window.onscroll = updateTooltipPos;
     }
-    
+
     function updateTooltipPos() {
 		if (!tooltip)
-			return;    
-    
+			return;
+
     	var ev = arguments[0]?arguments[0]:event;
     	var x = ev.clientX;
     	var y = ev.clientY;
@@ -1010,12 +1051,13 @@ wesCountry.charts = new (function() {
 
     this.hideTooltip = function() {
 		if (!tooltip)
-			return;    
-    
+			return;
+
     	tooltip.style.display = "none";
     }
 
-})();////////////////////////////////////////////////////////////////////////////////
+})();
+////////////////////////////////////////////////////////////////////////////////
 //                                  BAR CHART
 ////////////////////////////////////////////////////////////////////////////////
 	
@@ -2688,57 +2730,299 @@ function getCountriesForMap(options) {
 }
 
 wesCountry.charts.chart = function (options) {
+	var downloadFormats = ['JSON', 'XML', 'CSV'];
+	var defaultOptions = {
+		"download": false,
+		"downloadFormats": downloadFormats
+	}
+
 	var container;
 	container = typeof options.container !== "string" ? options.container : undefined;
 	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container;
-	options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
-	var chart;
-
-	var chartType = options.chartType ? options.chartType.toLowerCase() : "bar";
 
 	if(container === undefined)
 		container = document.querySelector(options.container);
 
-	options.width = container.offsetWidth;
-	options.height = container.offsetHeight;
+	if (!container)
+		container = document.body;
+
+	if (!options.width && container.offsetWidth > 0 )
+		options.width = container.offsetWidth;
+
+	if (!options.height && container.offsetHeight > 0 )
+		options.height = container.offsetHeight;
+
+	var dOptions = wesCountry.addOptions(wesCountry.charts.defaultOptions, defaultOptions);
+	options = wesCountry.mergeOptionsAndDefaultOptions(options, dOptions);
+
+	// Height
+
+	var height = options.height;
+
+	// Title
+
+	if (options.title != '') {
+		var title = document.createElement('p');
+		title.className = 'wesCountry-title';
+		title.innerHTML = options.title;
+		container.appendChild(title);
+
+		height -= wesCountry.getFullHeight(title);
+	}
+
+	// Body (graph)
+
+	var body = document.createElement('div');
+	body.className = 'wesCountry-body';
+	container.appendChild(body);
+
+	var footer = document.createElement('div');
+	footer.className = 'wesCountry-footer';
+
+	var isFooted = false;
+
+	// Foot
+
+	if (options.foot != '') {
+		container.appendChild(footer);
+
+		var foot = document.createElement('p');
+		foot.className = 'wesCountry-foot';
+		foot.innerHTML = options.foot;
+		footer.appendChild(foot);
+
+		isFooted = true;
+	}
+
+	// Download
+
+	var downloadButtons = null;
+
+	if (options.download) {
+		if (!options.foot)
+			container.appendChild(footer);
+
+		downloadButtons = createDownload(footer, options, downloadFormats);
+
+		isFooted = true;
+	}
+
+	if  (isFooted)
+		height -= wesCountry.getFullHeight(footer);
+
+	// Chart
+
+	options.height = height;
+	var chart = getChart(options);
+
+	if (downloadButtons)
+		linkDownloadButtons(downloadButtons, chart, options)
+
+	// Append chart
+
+	if (chart && chart.render)
+		body.appendChild(chart.render());
+
+	return container.parentNode;
+}
+
+function linkDownloadButtons(downloadButtons, chart, options) {
+	var data = getDataToDownload(chart, options);
+
+	for (var i = 0; i < downloadButtons.length; i++) {
+		var button = downloadButtons[i];
+		var format = button.format;
+		var datum = data[format];
+
+		button.button.href = String.format("data:text/{0};charset=utf-8,{1}", format, encodeURIComponent(datum));
+	}
+}
+
+function createDownload(container, options, downloadFormats) {
+		var buttons = [];
+
+		for (var i = 0; i < downloadFormats.length; i++) {
+			var format = downloadFormats[i];
+
+			if (options.downloadFormats.indexOf(format) == -1)
+			 	continue;
+
+			var a = document.createElement('a');
+			a.className = String.format('wesCountry-download format-{0}', format);
+			a.innerHTML = format;
+			a.download = String.format("data.{0}", format);
+			a.target = "_blank";
+
+			container.appendChild(a);
+
+			buttons.push({
+				format: format,
+				button: a
+			});
+		}
+
+		return buttons;
+}
+
+function getDataToDownload(chart, options) {
+	var jsonData = getJSON(chart, options);
+	var xmlData = getXML(jsonData);
+	var csvData = getCSV(jsonData);
+
+	return {
+		JSON: JSON.stringify(jsonData),
+		XML: xmlData,
+		CSV: csvData
+	}
+}
+
+function getJSON(chart, options) {
+	var chartType = options.chartType ? options.chartType.toLowerCase() : "bar";
+
+	var elements = [];
+
+	if (chartType == "map") {
+		var countries = options.countries ? options.countries : [];
+
+		for (var i = 0; i < countries.length; i++) {
+			var country = countries[i];
+			var value = countries[i].value;
+			var countryInfo = chart.getCountryInfo(country.code);
+
+			if (!countryInfo)
+				continue;
+
+			countryInfo.value = value;
+
+			elements.push(countryInfo);
+		}
+	}
+	else if (chartType == "scatter") {
+		var moment1 = options.xAxis.values[0] ? options.xAxis.values[0] : "Moment 1";
+		var moment2 = options.xAxis.values[1] ? options.xAxis.values[1] : "Moment 2";
+
+		for (var i = 0; i < options.series.length; i++) {
+			var serie = options.series[i].name;
+			var values = options.series[i].values;
+			for (var j = 0; j < values.length; j++) {
+				var value1 = values[0];
+				var value2 = values[1];
+
+				var data = {
+					"serie": serie
+				};
+
+				data[moment1] = value1;
+				data[moment2] = value2;
+
+				elements.push(data);
+			}
+		}
+	}
+	else {
+		for (var i = 0; i < options.series.length; i++) {
+			var serie = options.series[i].name;
+			var values = options.series[i].values;
+			for (var j = 0; j < options.xAxis.values.length; j++) {
+				var value = values[j] ? values[j] : "";
+				var moment = options.xAxis.values[j];
+
+				elements.push({
+					"serie": serie,
+					"moment": moment,
+					"value": value
+				});
+			}
+		}
+	}
+
+	return elements;
+}
+
+function getXML(json) {
+  var data = '';
+
+	for (var i = 0; i < json.length; i++) {
+		var element = json[i];
+		var elementData = '';
+
+		for (var key in element) {
+			var value = element[key];
+			elementData += String.format('<{0}>{1}</{0}>', key, value);
+		}
+
+		data += String.format('<element>{0}</element>', elementData);
+	}
+
+	return String.format('<?xml version="1.0" encoding="UTF-8" ?><elements>{0}</elements>', data);
+}
+
+function getCSV(json) {
+	var array = typeof json != 'object' ? JSON.parse(json) : json;
+  var str = '';
+
+  for (var i = 0; i < array.length; i++) {
+    var line = '';
+
+		for (var index in array[i]) {
+      if (line != '')
+				line += ','
+
+      line += array[i][index];
+    }
+
+    str += line + '\r\n';
+  }
+
+  return str;
+}
+
+function getChart(options) {
+	var chartType = options.chartType ? options.chartType.toLowerCase() : "bar";
+
+	var chart = null;
 
 	switch(chartType) {
 		case "bar":
-			chart = this.barChart(options);
+			chart = wesCountry.charts.barChart(options);
 			break;
 		case "line":
-			chart = this.lineChart(options);
+			chart = wesCountry.charts.lineChart(options);
 			break;
 		case "pie":
-			chart = this.pieChart(options);
+			chart = wesCountry.charts.pieChart(options);
 			break;
 		case "donut":
-			chart = this.donutChart(options);
+			chart = wesCountry.charts.donutChart(options);
 			break;
 		case "area":
-			chart = this.areaChart(options);
+			chart = wesCountry.charts.areaChart(options);
 			break;
 		case "scatter":
-			chart = this.scatterPlot(options);
+			chart = wesCountry.charts.scatterPlot(options);
 			break;
 		case "polar":
-			chart = this.polarChart(options);
+			chart = wesCountry.charts.polarChart(options);
 			break;
 		case 'table':
-			chart = this.table(options);
+			chart = wesCountry.charts.table(options);
 			break;
 		case 'map':
+			var innerContainer = document.createElement('div');
+			innerContainer.id = String.format("map-wrapper-{0}", wesCountry.guid());
+			innerContainer.style.height = options.height + 'px';
+
+			container = document.querySelector(options.container);
+			container.appendChild(innerContainer);
+
 			chart = wesCountry.maps.createMap({
-				container: options.container,
+				container: String.format("#{0}", innerContainer.id),
 				countries: getCountriesForMap(options)
 			});
 			break;
 	}
 
-	if (chart.render)
-		container.appendChild(chart.render());
-
-	return container.parentNode;
+	return chart;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -4482,7 +4766,7 @@ wesCountry.selector.basic = function(data, options) {
 	function init() {
 		// Merge default options and user options
 		options = mergeOptionsAndDefaultOptions(options, defaultOptions);
-	
+
 		var list = generateList(data, null, 1, null, null);
 		root = list.ul;
 
@@ -4493,24 +4777,24 @@ wesCountry.selector.basic = function(data, options) {
 		for (var i = 0; i < length; i++)
 			selectedItems[i].onclick();
 	}
-	
+
 	init();
-	
+
 	this.render = function() {
 		return root;
 	}
-	
+
 	this.clear = function() {
 		var length = root.children.length;
 		for (var i = 0; i < length; i++)
 			updateElementStatus(root.children[i], null, false);
 	}
-	
+
 	// List generation
 	function generateList(element, parent, level, previousLink, parentLink) {
 		var ul = document.createElement("ul");
 		ul.className = options["ul-class"];
-	
+
 		// Sort children
 		element.sort(function(a, b) {
 			if (a.label < b.label)
@@ -4519,29 +4803,29 @@ wesCountry.selector.basic = function(data, options) {
 				return 1;
 			return 0;
 		});
-		
+
 		var length = element.length;
-		
+
 		var firstChildLink = null;
-		
+
 		var selected = false;
 		var selectedItems = [];
-		
+
 		for (var i = 0; i < length; i++) {
 			var child = element[i];
 			var childrenLength = child.children && child.children.length ? child.children.length : 0;
-			
+
 			var li = document.createElement("li");
 			ul.appendChild(li);
-			
+
 			// Set parent information
 			li.code = child.code;
 			li.liParent = parent;
 			li.data = child;
-			
+
 			// Selection
 			li.isSelected = false;
-			
+
 			var currentLink = document.createElement("a");
 			currentLink.href = "javascript: void(0)"
 			currentLink.value = child.label;
@@ -4559,54 +4843,54 @@ wesCountry.selector.basic = function(data, options) {
 			currentLink.previousSiblingLink = previousLink;
 			currentLink.nextSiblingLink = null;
 			currentLink.parentLink = parentLink;
-			
+
 			if (previousLink)
 				previousLink.nextSiblingLink = currentLink;
-	
+
 			if (i == 0)
 				firstChildLink = currentLink;
-			
+
 			currentLink.className = "circleAndText"
 			li.appendChild(currentLink);
-			
+
 			// Click event on currentLink div
 			// We set the parent of currentLink div (the LI element)
 			currentLink.liParent = li;
-			
-			currentLink.onclick = function(event) { 
-				elementClick(this.liParent, options.callback); 
-				
+
+			currentLink.onclick = function(event) {
+				elementClick(this.liParent, options.callback);
+
 				if (event)
-					event.stopPropagation();	
+					event.stopPropagation();
 			};
-						
+
 			// Plus or minus sign to show / hide children
 			var plusOrMinus = document.createElement("div");
 			plusOrMinus.className = childrenLength > 0 ? "plusOrMinus" : "hidden-plusOrMinus";
 			plusOrMinus.innerHTML = "+";
 			currentLink.appendChild(plusOrMinus);
-				
+
 			if (childrenLength > 0) {
-				plusOrMinus.onclick = function(event) { 
+				plusOrMinus.onclick = function(event) {
 					plusMinusClick(this);
 					event.stopPropagation();
 				}
 			}
-			
+
 			// Keyboard event for link
 			currentLink.plusOrMinus = plusOrMinus;
-			
+
 			currentLink.onkeydown = function(event) {
 				if (event.keyCode == 13) {
-					elementClick(this.liParent, options.callback); 	
-					
+					elementClick(this.liParent, options.callback);
+
 					event.stopPropagation();
 					return false;
 				}
 				else if (event.keyCode == 38) { // Up arrow key
 					if (this.previousSiblingLink)
 						this.previousSiblingLink.focus();
-				
+
 					event.stopPropagation();
 					return false;
 				}
@@ -4619,78 +4903,78 @@ wesCountry.selector.basic = function(data, options) {
 					// After last child we move onto next sibling
 					else if (this.parentLink.nextSiblingLink)
 						this.parentLink.nextSiblingLink.focus();
-				
+
 					event.stopPropagation();
 					return false;
 				}
 				else if (event.keyCode == 37 || event.keyCode == 39) { // Left and right keys
 					event.stopPropagation();
-				
+
 					plusMinusClick(this.plusOrMinus);
-				
-					event.keyCode = 9; 
+
+					event.keyCode = 9;
 					return event.keyCode
 				}
 			};
-			
+
 			var circle = document.createElement("div");
 			circle.className = "circle";
 			currentLink.appendChild(circle);
-			
+
 			var title = document.createElement("div");
 			title.className = "title";
 			currentLink.appendChild(title)
-			
+
 			var text = document.createTextNode(child.label);
 			title.appendChild(text);
-			
+
 			// Update previous link
 			previousLink = currentLink;
-			
-			if (childrenLength > 0) {			
+
+			if (childrenLength > 0) {
 				// Counter circle
 				var counter = document.createElement("span");
 				counter.className = "empty-counter";
 				circle.appendChild(counter);
-			
+
 				text = document.createTextNode("0");
 				counter.appendChild(text);
-				
+
 				// Set li properties
 				li.counter = {
 					div: counter,
-					value: 0	
+					value: 0
 				};
-				
+
 				// Children
 				var childrenUl = generateList(child.children, li, level + 1, previousLink, currentLink);
 				li.appendChild(childrenUl.ul);
-				
+
 				// Update first child link
 				currentLink.firstChildLink = childrenUl.firstChildLink;
-				
+
 				// Set plusOrMinus properties
 				plusOrMinus.childrenUl = childrenUl.ul;
-				
+
 				// Check if any child is selected
 				if (childrenUl.selected == true) {
 					selected = true;
 					// Update + / - symbol
 					plusOrMinus.innerHTML = "-";
 				}
-					
-				selectedItems = selectedItems.concat(childrenUl.selectedItems);	
+
+				selectedItems = selectedItems.concat(childrenUl.selectedItems);
 			}
-			
+
 			// Set child number
 			li.childNumber = child.children ? child.children.length : 0;
 		}
-		
+
 		// Non top-level elements are initially hidden
 		// Unless some child is in options.selectedItems
 		if (level > 1 && selected == false)
 			ul.style.display = "none";
-	
+
 		return {
 					ul: ul,
 					firstChildLink: firstChildLink,
@@ -4698,157 +4982,157 @@ wesCountry.selector.basic = function(data, options) {
 					selectedItems: selectedItems
 				};
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                            PLUS / MINUS CLICK
-	////////////////////////////////////////////////////////////////////////////////	
-	
+	////////////////////////////////////////////////////////////////////////////////
+
 	function plusMinusClick (element) {
 		if (element.innerHTML == "+") {
 			element.innerHTML = "&#8212;";
-			
+
 			if (element.childrenUl)
 				element.childrenUl.style.display = "block";
-				
+
 			element.opened = true;
 		}
 		else {
 			element.innerHTML = "+";
-			
+
 			if (element.childrenUl)
 				element.childrenUl.style.display = "none";
-				
+
 			element.opened = false;
 		}
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                              ELEMENT CLICK
-	////////////////////////////////////////////////////////////////////////////////	
-	
+	////////////////////////////////////////////////////////////////////////////////
+
 	this.selectAll = function() {
 		var length = firstLevelItems.length;
 		for (var i = 0; i < length; i++)
 			elementClick(firstLevelItems[i].liParent, null);
 	}
-	
-	function elementClick(element, callback) {		
+
+	function elementClick(element, callback) {
 		var selected = !element.isSelected;
-		
+
 		if (selected && options.maxSelectedItems > 0 && selectedItems.length >= options.maxSelectedItems)
 			return;
-		
+
 		updateElementStatus(element, callback, selected);
 	}
-	
+
 	function updateElementStatus(element, callback, selected) {
 		setElementStatus(element, selected);
-		
+
 		// Add element in its parent's counter
 		if (element.liParent) {
 			var oldParentCounter = element.liParent.counter.value;
 			var parentCounter = selected ? oldParentCounter + 1 : oldParentCounter - 1;
-		
+
 			updateElementCounter(element.liParent, parentCounter);
-			
+
 			// An element is selected when all its children are selected
 			// If an element is unselected then its parent must be unselected
 			if (!selected) {
 				element.liParent.className = "not-selected";
 				element.liParent.isSelected = false;
-				
+
 				updateSelectedItems(element.liParent.code, false);
-			} 
+			}
 			else {
 				// If you select all an element's children then the element must be selected
 				if (parentCounter == element.liParent.childNumber) {
 					element.liParent.className = "selected";
 					element.liParent.isSelected = true;
-					
+
 					updateSelectedItems(element.liParent.code, true);
 				}
 			}
 		}
-			
+
 		// Update current node's counter when has children
 		// If the element is selected, the counter equals its child number
 		// Else it equals 0
 		if (element.childNumber > 0)
 			updateElementCounter(element, selected ? element.childNumber : 0);
-			
+
 		// Callback invocation
 		if (callback)
 			callback.call(element, element.data, selectedItems);
 	}
-	
+
 	function setElementStatus(element, status) {
 		if (element.tagName.toLowerCase() == "li") {
 			element.isSelected = status;
 			element.className = status ? "selected" : "not-selected";
-			
+
 			// SelectedItems update
 			updateSelectedItems(element.code, status);
-			
+
 			// Update anchor title
 			var value = element.firstChild.value;
 			element.firstChild.title = value + (status ? " is selected" : "");
 		}
-		
+
 		var length = element && element.children && element.children.length ? element.children.length : 0;
-		
+
 		for (var i = 0; i < length; i++)
 			setElementStatus(element.children[i], status);
 	}
-	
-	function updateElementCounter(element, value) {	
+
+	function updateElementCounter(element, value) {
 		var counter = element.counter;
-		
+
 		counter.value = value;
-		counter.div.innerHTML = counter.value; 
-		
+		counter.div.innerHTML = counter.value;
+
 		counter.div.className = counter.value > 0 ? "counter" : "empty-counter";
-		
+
 		// Update anchor title
 		var value = element.firstChild.value;
-		element.firstChild.title = value + ": " + counter.value + 
+		element.firstChild.title = value + ": " + counter.value +
 			(counter.value != 1 ? " selected countries" : " selected country");
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
 	//                           UPDATE SELECTED ITEMS
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	function updateSelectedItems(code, action) {
 		if (code) {
 			if (action)
-				selectedItems.uniqueInsert(code);	
+				selectedItems.uniqueInsert(code);
 			else
 				selectedItems.remove(code);
 		}
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                              MERGING OPTIONS
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	function mergeOptionsAndDefaultOptions(options, defaultOptions) {
 		if (options) {
 			if (typeof options === "string")
 				options = { container: options };
-		
+
 			var auxOptions = clone(defaultOptions);
-			
+
 			for (var option in options)
 				auxOptions[option] = mergeOptions(auxOptions[option], options[option]);
-			
+
 			options = auxOptions;
 		}
 		else
 			options = clone(defaultOptions);
-			
+
 		return options;
 	};
-	
+
 	function mergeOptions(to, from) {
 		if (from instanceof Array) {
 			return from;
@@ -4863,7 +5147,7 @@ wesCountry.selector.basic = function(data, options) {
 		else
 			return from;
 	};
-	
+
 	function clone(obj) {
 		// Not valid for copying objects that contain methods
 	    return JSON.parse(JSON.stringify(obj));
@@ -4873,45 +5157,97 @@ wesCountry.selector.basic = function(data, options) {
 ////////////////////////////////////////////////////////////////////////////////
 //                                    TIMELINE
 ////////////////////////////////////////////////////////////////////////////////
-	
+
 wesCountry.selector.timeline = function(options) {
 	var defaultOptions = {
 		"container": "body",
+    "maxShownElements": 10,
 		"elements": [
 			2010,
 			2011,
 			2012
 		],
 		"selected": 2012,
-		"onChange": function(element) {
-			console.log(element);
+		"onChange": function(element, index) {
+			console.log(String.format("{0} {1}", index, element));
 		}
 	};
-	
+
 	var selectedElement = options.selected ? options.selected : null;
-	
+
 	return new (function() {
 		options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
-	
+
 		var container = document.querySelector(options.container);
-	
+
 		var timeline = document.createElement('div');
 		timeline.className = 'timeline';
 		container.appendChild(timeline);
-	
+
 		var line = document.createElement('div');
 		line.className = 'line';
 		timeline.appendChild(line);
-	
+
 		var years = document.createElement('div');
 		years.className = 'elements';
 		timeline.appendChild(years);
-	
-		var elementWidth = 100 / (options.elements.length > 0 ? options.elements.length : 1);
+
+		//var elementWidth = 100 / (options.elements.length > 0 ? options.elements.length : 1);
+    var numberOfElements = options.elements.length > options.maxShownElements ?
+                              options.maxShownElements + 2 : options.elements.length;
+    var elementWidth = 100 / (numberOfElements > 0 ? numberOfElements : 1);
+
 		elementWidth += '%';
-	
+
 		var elements = [];
-	
+    var texts = [];
+
+    // Left arrow
+    if (options.elements.length > options.maxShownElements) {
+      var element = document.createElement('div');
+      element.className = 'element';
+      //element.title = options.elements[i];
+      element.style.width = elementWidth;
+      line.appendChild(element);
+
+      element.onclick = function() {
+        if (start > 0) {
+          start--;
+
+          var end = start + options.maxShownElements;
+
+          for (var i = 0; i < elements.length; i++) {
+            if (i >= start && i < end)
+              elements[i].style.display = texts[i].style.display = 'block';
+            else
+              elements[i].style.display = texts[i].style.display = 'none';
+          }
+
+          if (start == 0)
+            leftArrow.className = 'arrow arrow-left arrow-disabled';
+
+          rightArrow.className = 'arrow arrow-right arrow-active';
+        }
+      }
+
+      var leftArrow = document.createElement('a');
+      leftArrow.className = "arrow arrow-left arrow-active";
+      leftArrow.innerHTML = '<';
+      element.appendChild(leftArrow);
+      element.arrow = leftArrow;
+
+      var space = document.createElement('div');
+      space.style.width = elementWidth;
+      space.style.height = '0.1em';
+      space.className = 'element'
+      years.appendChild(space);
+    }
+
+    // Elements
+
+    var start = options.elements.length <= options.maxShownElements ? 0 :
+                  options.elements.length - options.maxShownElements;
+
 		for (var i = 0; i < options.elements.length; i++) {
 			// Circle
 			var element = document.createElement('div');
@@ -4919,61 +5255,113 @@ wesCountry.selector.timeline = function(options) {
 			element.title = options.elements[i];
 			element.style.width = elementWidth;
 			line.appendChild(element);
-		
+
+      if (i < start)
+        element.style.display = 'none';
+
 			elements.push(element);
-		
+
 			var a = document.createElement('a');
 			a.className = 'circle';
 			a.title = options.elements[i];
+      a.index = i;
 			element.appendChild(a);
-		
+
 			a.onclick = function() {
 				for (var j = 0; j < elements.length; j++)
 					elements[j].className = "element";
-			
+
 				this.parentNode.className = "element selected";
-		
+
 				selectedElement = this.title;
-		
+
 				if (options.onChange)
-					options.onChange(selectedElement);
-		
-				return false;	
+					options.onChange(selectedElement, this.index);
+
+				return false;
 			}
-		
+
 			// Text
 			var element = document.createElement('div');
 			element.className = 'element';
 			element.style.width = elementWidth;
 			years.appendChild(element);
-		
+
+      if (i < start)
+        element.style.display = 'none';
+
+      texts.push(element);
+
 			var a = document.createElement('a');
 			a.title = options.elements[i];
 			a.index = i;
 			element.appendChild(a);
-			
+
 			a.onclick = function() {
 				for (var j = 0; j < elements.length; j++)
 					elements[j].className = "element";
-			
+
 				elements[this.index].className = "element selected";
-		
+
 				selectedElement = this.title;
-		
+
 				if (options.onChange)
 					options.onChange(selectedElement);
-		
-				return false;	
+
+				return false;
 			}
-		
+
 			a.appendChild(document.createTextNode(options.elements[i]));
 		}
-		
+
+    // Right arrow
+
+    if (options.elements.length > options.maxShownElements) {
+      var element = document.createElement('div');
+      element.className = 'element element-right';
+      //element.title = options.elements[i];
+      element.style.width = elementWidth;
+      line.appendChild(element);
+
+      element.onclick = function() {
+        if (start + options.maxShownElements < elements.length) {
+          start++;
+
+          var end = start + options.maxShownElements;
+
+          for (var i = 0; i < elements.length; i++) {
+            if (i >= start && i < end)
+              elements[i].style.display = texts[i].style.display = 'block';
+            else
+              elements[i].style.display = texts[i].style.display = 'none';
+          }
+
+          if (end == elements.length)
+            rightArrow.className = 'arrow arrow-right arrow-disabled';
+
+          leftArrow.className = 'arrow arrow-left arrow-active';
+        }
+      }
+
+      var rightArrow = document.createElement('a');
+      rightArrow.className = "arrow arrow-right arrow-disabled";
+      rightArrow.innerHTML = '>';
+      element.appendChild(rightArrow);
+      element.arrow = rightArrow;
+
+      var space = document.createElement('div');
+      space.style.width = elementWidth;
+      space.style.height = '0.1em';
+      space.className = 'element'
+      years.appendChild(space);
+    }
+
 		this.selected = function() {
 			return selectedElement;
 		}
 	})();
-};if (typeof (wesCountry) === "undefined")
+};
+if (typeof (wesCountry) === "undefined")
     var wesCountry = new Object();
     
 if (typeof (wesCountry.mapProjections) === "undefined")
@@ -5233,325 +5621,458 @@ wesCountry.mapProjections.miller = {
     var wesCountry = new Object();
 
 wesCountry.maps = new (function() {
-	this.createMap = function(options) {
+  var defaultOptions = {
+    "projection": "miller",
+    "countries": [],
+    "countryCode": "iso3",
+    "backgroundColour": "#fff",
+    "landColour": "#fff",
+    "borderColour": "#ccc",
+    "borderWidth": 1.5,
+    "hoverColour": "#ddd",
+    "colourRange": ['#A9F5BC', '#1184a7'],
+    "container": "body",
+    "zoom": true,
+    "zoomToCountryFactor": 0.8,
+    "selectedRegions": [],
+    "selectedRegionColour": '#333',
+    "selectedRegionBorderColour": "#ccc",
+    "onCountryClick": function(info) {
+      alert(info.iso3);
+    },
+    "onCountryOver": function(info, visor) {
+      if (visor) {
+        visor.innerHTML = '';
+
+        var name = document.createElement('span');
+        name.innerHTML = info.nombre;
+        name.className = 'name';
+        visor.appendChild(name);
+
+        var value = document.createElement('span');
+        value.innerHTML = info.value;
+        value.className = 'value';
+        visor.appendChild(value);
+      }
+    },
+    "onCountryOut": function(info, visor) {
+      if (visor)
+        visor.innerHTML = '';
+    }
+  };
+
+  this.createMap = function(options) {
+    options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
+
+    var container = document.querySelector(options.container);
+
+    var mapContainer = document.createElement('div');
+    mapContainer.className = 'map-container';
+    container.appendChild(mapContainer);
+
+    var mapContainerHeight = container.offsetHeight > 0 ? container.offsetHeight : 300;
+
+    // Group by time
+
+    var groupedCountries = groupCountriesByTime(options);
+    var times = groupedCountries.times;
+    times.sort();
+    var countryList = groupedCountries.countries;
+
+    var maps = [];
+
+    // Timeline
+
+    if (times.length > 1) {
+      var timelineContainer = document.createElement('div');
+      timelineContainer.className = 'timeline-container';
+      container.appendChild(timelineContainer);
+
+      var id = String.format("timeline-container-{0}", wesCountry.guid());
+      timelineContainer.id = id;
+
+      wesCountry.selector.timeline({
+        container: String.format('#{0}', id),
+        elements: times,
+        selected: times[times.length - 1],
+        onChange: function(element, index) {
+          for (var i = 0; i < maps.length; i++)
+            if (i == index)
+              maps[i].showMap();
+            else
+              maps[i].hideMap();
+
+          selectedMap = maps[index];
+        }
+      });
+
+      var timelineHeight = wesCountry.getFullHeight(timelineContainer);
+      mapContainerHeight -= timelineHeight;
+    }
+
+    mapContainer.style.height = mapContainerHeight + 'px';
+
+    var last = times.length - 1;
+
+    for (var i = 0; i < times.length; i++) {
+      var time = times[i];
+      var list = countryList[time];
+
+      var map = new createOneMap(mapContainer, options, list, i == last);
+      maps.push(map);
+    }
+
+    var selectedMap = maps[0];
+
+    //this.render = function() {
+    //  return selectedMap.render();
+    //}
+
+    this.getCountryInfo = function(countryCode) {
+      return selectedMap.getCountryInfo(countryCode);
+    }
+
+    this.zoomToCountry = function(countryCode) {
+      for (var i = 0; i < maps.length; i++)
+        maps[i].zoomToCountry(countryCode);
+    }
+
+    return this;
+  }
+
+  function groupCountriesByTime(options) {
+    var countries = options.countries;
+
+    var times = ["-"];
+    var groupedCountries = { "-": [] };
+
+    for (var i = 0; i < countries.length; i++) {
+      var country = countries[i];
+      var code = country.code;
+      var value = country.value;
+      var time = country.time ? country.time : "-";
+
+      if (times.indexOf(time) == -1) {
+        times.push(time);
+        groupedCountries[time] = [];
+      }
+
+      groupedCountries[time].push(country);
+    }
+
+    return {
+      times: times,
+      countries: groupedCountries
+    };
+  }
+
+  function createOneMap(containerParent, options, countries, show) {
 		var namespace = 'http://www.w3.org/2000/svg';
-		
-		var defaultOptions = {
-			"projection": "miller",
-			"countries": [],
-			"countryCode": "iso3",
-			"backgroundColour": "#fff",
-			"landColour": "#fff",
-			"borderColour": "#ccc",
-			"borderWidth": 1.5,
-			"hoverColour": "#ddd",
-			"colourRange": ['#A9F5BC', '#1184a7'],
-			"container": "body",
-			"zoom": true,
-			"zoomToCountryFactor": 0.8,
-			"selectedRegions": [],
-			"selectedRegionColour": '#333',
-			"selectedRegionBorderColour": "#ccc",
-			"onCountryClick": function(info) {
-				alert(info.iso3);
-			},
-			"onCountryOver": function(info) {
-				if (visor) {
-					visor.innerHTML = '';
-				
-					var name = document.createElement('span');
-					name.innerHTML = info.nombre;
-					name.className = 'name';
-					visor.appendChild(name);
-					
-					var value = document.createElement('span');
-					value.innerHTML = info.value;
-					value.className = 'value';
-					visor.appendChild(value);					
-				}
-			},
-			"onCountryOut": function(info) {
-				if (visor)
-					visor.innerHTML = '';
-			}
-		};
-		
+
 		// Country info visor
 		var visor = null;
 		this.visor = function() {
 			return visor;
 		}
-		
+
 		var svg = null;
-		
+
 		// g for every element
 		var panel = null;
-		
+
 		// Zoom factor
 		var factor = 1;
 		var initialFactor = 1;
-		
+
 		// Translate position
 		var translate = {
 			x: 0,
 			y: 0
 		};
-		
+
 		var initialTranslate = {
 			x: 0,
 			y: 0
 		};
-		
+
 		var fullCountryList = {};
-	
-		options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
-	
-		function init(map) {
-			var container = document.querySelector(options.container);
-		
-			// Zoom buttons
-			if (options.zoom)
-				createZoomButtons(container);
-			
-			getProjection();
-		
-			svg = document.createElementNS(namespace, "svg"); 
-			svg.setAttributeNS(null, 'class', 'wesCountry');
-			svg.setAttributeNS(null, 'width', container.offsetWidth);
-			svg.setAttributeNS(null, 'height', container.offsetHeight);
 
-			//svg.setAttributeNS(null, 'viewBox', '0 -500 2752.766 2537.631');
-			
-			container.appendChild(svg);
-			
-			// Water
-			
-			var ocean = document.createElementNS(namespace, "rect");
-			ocean.setAttributeNS(null, "class", "water"); 
-			svg.appendChild(ocean);			
-			
-			// Panel
-			
-			panel = document.createElementNS(namespace, "g");
-			svg.appendChild(panel);
-			
-			// Styles
-			
-			var style = document.createElementNS(namespace, "style");
-			style.setAttributeNS(null, 'type', 'text/css');
-			svg.appendChild(style);
-			
-			var styleContent = String.format("{0} .water { fill: {1}; width: 100%; height: 100%; }", options.container, options.backgroundColour);
-			styleContent += String.format("\n{0} .land { stroke: {1}; stroke-width: {2}; fill: {3}; }", options.container, options.borderColour, options.borderWidth, options.landColour);
-			
-			if (options.hoverColour) {
-				styleContent += String.format("\n{0} .land:hover { fill: {1}; }", options.container, options.hoverColour);
-				styleContent += String.format("\n{0} .land-group:hover, {0} .land-group:hover g, {0} .land-group:hover path { fill: {1}; }", options.container, options.hoverColour);
-			}
-			
-			for (var i = 0; i < options.selectedRegions.length; i++) {
-				var region = options.selectedRegions[i];
-				styleContent += String.format("\n{0} .region-{1} { fill: {2}; stroke: {3}; }", options.container, region, options.selectedRegionColour, options.selectedRegionBorderColour);
-				styleContent += String.format("\n{0} .region-{1}:hover { fill: {2}; stroke: {3}; }", options.container, region, options.hoverColour, options.selectedRegionBorderColour);
-			}
-			
-			style.appendChild(document.createTextNode(styleContent)); 
-			
-			// Countries to highlight
-			
-			var countryList = getCountriesToShow(style);
+    var container = null;
 
-			// Country creation
-			
-			var regions = getCountriesByRegion();
-			
-			for (var r in regions) {
-				if (regions[r].length == 0)
-					continue;
-					
-				var regionName = regions[r][0].region.toLowerCase();	
-				
-				var region = document.createElementNS(namespace, "g");
-				region.setAttributeNS(null, "id", "region-" + regionName);
-				region.setAttributeNS(null, "class", "region-" + regionName);
-				panel.appendChild(region); 
-				
-				for (var j = 0; j < regions[r].length; j++) {
-					var country = regions[r][j];
-				
-					var element = null;
-				
-					if (country.path)
-						element = createPath(country);
-					
-					if (country.elements)
-						element = createGroup(country);
-					
-					if (element && options.onCountryClick)
-						element.onclick = function() {
-							if (this.id)
-								options.onCountryClick.call(this, this.info);
-						}
-			
-					if (element && options.onCountryOver)
-						element.onmouseover = function() {
-							if (this.id)
-								options.onCountryOver.call(this, this.info);
-						}
-					
-					if (element && options.onCountryOut)
-						element.onmouseout = function() {
-							if (this.id)
-								options.onCountryOut.call(this, this.info);
-						}
-					
-					if (element) {
-						element.info = country;
-					
-						var value = countryList[element.id] ? countryList[element.id].value : null;
-					
-						element.info.value = value;	
-						
-						fullCountryList[element.id] = element.info;
-					}
-	
-					region.appendChild(element);
-				}
-			}
-			
-			var width = panel.getBoundingClientRect().width;
-			var height = panel.getBoundingClientRect().height;
-			
-			// Water dimensions
-			ocean.setAttributeNS(null, "width", width); 
-			ocean.setAttributeNS(null, "height", height); 
-			
-			// Initial factor
-			var svgWidth = container.offsetWidth;
+    this.showMap = function() {
+      container.style.display = 'block';
+    };
 
-			factor = initialFactor = svgWidth / width;
-		
-			var start = options.projection.start;
-			
-			translate = {
-				x: start.x,
-				y: start.y
-			};
-			
-			initialTranslate = {
-				x: start.x,
-				y: start.y
-			};
-			
-			updatePositionAndZoom();
-			
-			// Country visor
-			
-			visor = document.createElement('div');
-			visor.id = 'country-visor';
-			visor.className = 'visor';
-			container.appendChild(visor);
-			
-			// Panning
-			
-			var point = null;
-			
-			svg.onmousedown = function(event) {
-				if (factor > initialFactor) {
-					point = {
-						x: event.clientX,
-						y: event.clientY
-					};
-				}
-			};
-			
-			svg.onmousemove = function(event) {
-				if (!point)
-					return;
-			
-				var newPoint = {
-					x: event.clientX,
-					y: event.clientY
-				};
-				
-				translate.x += (newPoint.x - point.x);
-				translate.y += (newPoint.y - point.y);
-				
-				updatePositionAndZoom(translate);
-				
-				point = newPoint
-			};
-			
-			svg.onmouseup = function() {
-				point = null;	
-			};
-			
-			// Signature
-			
-			var a = document.createElementNS(namespace, 'a');
-			a.setAttributeNS(null, 'class', 'signature');
-			a.setAttributeNS(null, 'href', wesCountry.signature.url);
-			svg.appendChild(a);
-			
-			var text = document.createElementNS(namespace, 'text');
-			text.setAttribute('x', container.offsetWidth - 4);
-			text.setAttribute('y', container.offsetHeight - 4);
-			text.setAttribute('style', 'fill:#aaa;font-family:Helvetica;font-size:10px;text-anchor: end;dominant-baseline: edge');
-			text.textContent = wesCountry.signature.value;
-			a.appendChild(text);
-			
+    this.hideMap = function() {
+      container.style.display = 'none';
+    }
+
+		function init(containerParent, map, countries, show) {
+		  container = createMap(containerParent, countries);
+//
+      if (!show)
+        container.style.display = 'none';
+
 			return map;
 		};
+
+    function createMap(containerParent, countries) {
+      var container = document.createElement('div');
+      container.className = 'wesCountry-map';
+
+      containerParent.appendChild(container);
+
+      // Height
+      var height = containerParent.offsetHeight > 0 ? containerParent.offsetHeight : 300;
+
+      // Zoom buttons
+      if (options.zoom)
+        createZoomButtons(container);
+
+      getProjection();
+
+      svg = document.createElementNS(namespace, "svg");
+      var svgClassName = String.format('wesCountry-map-time-{0}', wesCountry.guid());
+      svg.setAttributeNS(null, 'class', String.format("wesCountry {0}", svgClassName));
+      svg.setAttributeNS(null, 'width', containerParent.offsetWidth);
+      svg.setAttributeNS(null, 'height', height);
+
+      //svg.setAttributeNS(null, 'viewBox', '0 -500 2752.766 2537.631');
+
+      container.appendChild(svg);
+
+      // Water
+
+      var ocean = document.createElementNS(namespace, "rect");
+      ocean.setAttributeNS(null, "class", "water");
+      svg.appendChild(ocean);
+
+      // Panel
+
+      panel = document.createElementNS(namespace, "g");
+      svg.appendChild(panel);
+
+      // Styles
+
+      var style = document.createElementNS(namespace, "style");
+      style.setAttributeNS(null, 'type', 'text/css');
+      svg.appendChild(style);
+
+      var styleContent = String.format(".{0} .water { fill: {1}; width: 100%; height: 100%; }", svgClassName, options.backgroundColour);
+      styleContent += String.format("\n.{0} .land { stroke: {1}; stroke-width: {2}; fill: {3}; }", svgClassName, options.borderColour, options.borderWidth, options.landColour);
+
+      if (options.hoverColour) {
+        styleContent += String.format("\n.{0} .land:hover { fill: {1}; }", svgClassName, options.hoverColour);
+        styleContent += String.format("\n.{0} .land-group:hover, .{0} .land-group:hover g, .{0} .land-group:hover path { fill: {1}; }", svgClassName, options.hoverColour);
+      }
+
+      for (var i = 0; i < options.selectedRegions.length; i++) {
+        var region = options.selectedRegions[i];
+        styleContent += String.format("\n.{0} .region-{1} { fill: {2}; stroke: {3}; }", svgClassName, region, options.selectedRegionColour, options.selectedRegionBorderColour);
+        styleContent += String.format("\n.{0} .region-{1}:hover { fill: {2}; stroke: {3}; }", svgClassName, region, options.hoverColour, options.selectedRegionBorderColour);
+      }
+
+      style.appendChild(document.createTextNode(styleContent));
+
+      // Countries to highlight
+
+      var countryList = getCountriesToShow(countries, style, svgClassName);
+
+      // Country creation
+
+      var regions = getCountriesByRegion();
+
+      for (var r in regions) {
+        if (regions[r].length == 0)
+          continue;
+
+        var regionName = regions[r][0].region.toLowerCase();
+
+        var region = document.createElementNS(namespace, "g");
+        region.setAttributeNS(null, "id", "region-" + regionName);
+        region.setAttributeNS(null, "class", "region-" + regionName);
+        panel.appendChild(region);
+
+        for (var j = 0; j < regions[r].length; j++) {
+          var country = regions[r][j];
+
+          var element = null;
+
+          if (country.path)
+            element = createPath(country);
+
+          if (country.elements)
+            element = createGroup(country);
+
+          if (element && options.onCountryClick)
+            element.onclick = function() {
+              if (this.id)
+                options.onCountryClick.call(this, this.info);
+            }
+
+          if (element && options.onCountryOver)
+            element.onmouseover = function() {
+              if (this.id)
+                options.onCountryOver.call(this, this.info, visor);
+            }
+
+          if (element && options.onCountryOut)
+            element.onmouseout = function() {
+              if (this.id)
+                options.onCountryOut.call(this, this.info, visor);
+            }
+
+          if (element) {
+            element.info = country;
+
+            var value = countryList[element.id] ? countryList[element.id].value : null;
+
+            element.info.value = value;
+
+            fullCountryList[element.id] = element.info;
+          }
+
+          region.appendChild(element);
+        }
+      }
+
+      var width = panel.getBoundingClientRect().width;
+      var height = panel.getBoundingClientRect().height;
+
+      // Water dimensions
+      ocean.setAttributeNS(null, "width", width);
+      ocean.setAttributeNS(null, "height", height);
+
+      // Initial factor
+      var svgWidth = containerParent.offsetWidth;
+
+      factor = initialFactor = svgWidth / width;
+
+      var start = options.projection.start;
+
+      translate = {
+        x: start.x,
+        y: start.y
+      };
+
+      initialTranslate = {
+        x: start.x,
+        y: start.y
+      };
+
+      updatePositionAndZoom();
+
+      // Country visor
+
+      visor = document.createElement('div');
+      visor.id = 'country-visor';
+      visor.className = 'visor';
+      container.appendChild(visor);
+
+      // Panning
+
+      var point = null;
+
+      svg.onmousedown = function(event) {
+        if (factor > initialFactor) {
+          point = {
+            x: event.clientX,
+            y: event.clientY
+          };
+        }
+      };
+
+      svg.onmousemove = function(event) {
+        if (!point)
+          return;
+
+        var newPoint = {
+          x: event.clientX,
+          y: event.clientY
+        };
+
+        translate.x += (newPoint.x - point.x);
+        translate.y += (newPoint.y - point.y);
+
+        updatePositionAndZoom(translate);
+
+        point = newPoint
+      };
+
+      svg.onmouseup = function() {
+        point = null;
+      };
+
+      // Signature
+
+      var a = document.createElementNS(namespace, 'a');
+      a.setAttributeNS(null, 'class', 'signature');
+      a.setAttributeNS(null, 'href', wesCountry.signature.url);
+      svg.appendChild(a);
+
+      var text = document.createElementNS(namespace, 'text');
+      text.setAttribute('x', containerParent.offsetWidth - 4);
+      text.setAttribute('y', containerParent.offsetHeight - 4);
+      text.setAttribute('style', 'fill:#aaa;font-family:Helvetica;font-size:10px;text-anchor: end;dominant-baseline: edge');
+      text.textContent = wesCountry.signature.value;
+      a.appendChild(text);
+
+      return container;
+    }
 
 		function getCountriesByRegion() {
 			// Cache
 			if (options.projection.countriesByRegion)
 				return options.projection.countriesByRegion;
-		
+
 			var countries = options.projection.countries;
-			
+
 			var regions = {};
 			var empty = [];
 			regions['empty'] = empty;
-			
+
 			for (var i = 0; i < countries.length; i++) {
-				var country = countries[i];	
+				var country = countries[i];
 				var region = country.region;
-				
+
 				if (!region)
 					region = empty;
 				else {
 					if (!regions[region])
 						regions[region] = [];
-						
+
 					region = regions[region];
 				}
-				
+
 				region.push(country);
 			}
-			
+
 			// Store in cache
 			options.projection.countriesByRegion = regions;
-			
+
 			return regions;
 		};
-		
+
+    //this.render = function() {
+    //  return container;
+    //}
+
 		this.getCountryInfo = function(countryCode) {
 			return fullCountryList[countryCode];
 		}
 
 		this.zoomToCountry = function(countryCode) {
 			var country = svg.querySelector('#' + countryCode);
-			
+
 			if (!country)
 				return;
-				
+
 			var countrySize = country.getBoundingClientRect();
 			var svgSize = svg.getBoundingClientRect();
-		
+
 			widthFactor = svgSize.width / countrySize.width;
 			heightFactor = svgSize.height / countrySize.height;
-			
+
 			if (widthFactor > heightFactor) {
 				if (countrySize.height * widthFactor > svgSize.height)
 					factor *= (svgSize.height / countrySize.height) * options.zoomToCountryFactor;
@@ -5571,263 +6092,262 @@ wesCountry.maps = new (function() {
 
 			translate.x -= countrySize.left / factor - svgSize.left / factor - ((svgSize.width - countrySize.width) / 2) / factor;
 			translate.y -= countrySize.top / factor - svgSize.top / factor - ((svgSize.height - countrySize.height) / 2) / factor;
-			
+
 			updatePositionAndZoom();
 		}
-		
+
 		function updatePositionAndZoom() {
 			panel.setAttributeNS(null, 'transform', String.format("scale({0}) translate({1}, {2})", factor, translate.x, translate.y));
 		}
-		
+
 		////////////////////////////////////////////////////////////////////////////////
 		//                              ZOOM BUTTONS
-		////////////////////////////////////////////////////////////////////////////////		
-		
+		////////////////////////////////////////////////////////////////////////////////
+
 		function createZoomButtons(container) {
 			var buttonContainer = document.createElement('div');
 			buttonContainer.className = 'buttons';
 			container.appendChild(buttonContainer);
-		
+
 			var buttons = document.createElement('div');
 			buttons.className = 'zoom-buttons';
 			buttonContainer.appendChild(buttons);
-		
+
 			// Plus
 			var plus = document.createElement('button');
 			plus.innerHTML = '+';
-			
+
 			buttons.appendChild(plus);
-			
+
 			plus.onclick = function() {
 				factor *= 2;
-								
+
 				var svgSize = svg.getBoundingClientRect();
 
 				translate.x -= (svgSize.width / 2) / factor;
 				translate.y -= (svgSize.height / 2) / factor;
-				
+
 				updatePositionAndZoom();
 			}
-			
+
 			// Minus
 			var minus = document.createElement('button');
 			minus.innerHTML = '-';
-			
+
 			buttons.appendChild(minus);
-			
-			minus.onclick = function() {			
+
+			minus.onclick = function() {
 				if (factor > initialFactor) {
 					var svgSize = svg.getBoundingClientRect();
-					
+
 					translate.x += (svgSize.width / 2) / factor;
-					translate.y += (svgSize.height / 2) / factor;					
-		
+					translate.y += (svgSize.height / 2) / factor;
+
 					factor /= 2;
-					
+
 					if (factor < initialFactor + 0.3)
 						factor = initialFactor;
-					
+
 					if (factor == initialFactor) {
 						translate.x = initialTranslate.x;
 						translate.y = initialTranslate.y;
-					}					
-					
+					}
+
 					updatePositionAndZoom();
 				}
 			}
-			
+
 			var buttons = document.createElement('div');
 			buttons.className = 'direction-buttons';
 			buttonContainer.appendChild(buttons);
-			
+
 			// Up
 			var up = document.createElement('button');
 			up.innerHTML = '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAICAYAAAD5nd/tAAAKQWlDQ1BJQ0MgUHJvZmlsZQAASA2dlndUU9kWh8+9N73QEiIgJfQaegkg0jtIFQRRiUmAUAKGhCZ2RAVGFBEpVmRUwAFHhyJjRRQLg4Ji1wnyEFDGwVFEReXdjGsJ7601896a/cdZ39nnt9fZZ+9917oAUPyCBMJ0WAGANKFYFO7rwVwSE8vE9wIYEAEOWAHA4WZmBEf4RALU/L09mZmoSMaz9u4ugGS72yy/UCZz1v9/kSI3QyQGAApF1TY8fiYX5QKUU7PFGTL/BMr0lSkyhjEyFqEJoqwi48SvbPan5iu7yZiXJuShGlnOGbw0noy7UN6aJeGjjAShXJgl4GejfAdlvVRJmgDl9yjT0/icTAAwFJlfzOcmoWyJMkUUGe6J8gIACJTEObxyDov5OWieAHimZ+SKBIlJYqYR15hp5ejIZvrxs1P5YjErlMNN4Yh4TM/0tAyOMBeAr2+WRQElWW2ZaJHtrRzt7VnW5mj5v9nfHn5T/T3IevtV8Sbsz55BjJ5Z32zsrC+9FgD2JFqbHbO+lVUAtG0GQOXhrE/vIADyBQC03pzzHoZsXpLE4gwnC4vs7GxzAZ9rLivoN/ufgm/Kv4Y595nL7vtWO6YXP4EjSRUzZUXlpqemS0TMzAwOl89k/fcQ/+PAOWnNycMsnJ/AF/GF6FVR6JQJhIlou4U8gViQLmQKhH/V4X8YNicHGX6daxRodV8AfYU5ULhJB8hvPQBDIwMkbj96An3rWxAxCsi+vGitka9zjzJ6/uf6Hwtcim7hTEEiU+b2DI9kciWiLBmj34RswQISkAd0oAo0gS4wAixgDRyAM3AD3iAAhIBIEAOWAy5IAmlABLJBPtgACkEx2AF2g2pwANSBetAEToI2cAZcBFfADXALDIBHQAqGwUswAd6BaQiC8BAVokGqkBakD5lC1hAbWgh5Q0FQOBQDxUOJkBCSQPnQJqgYKoOqoUNQPfQjdBq6CF2D+qAH0CA0Bv0BfYQRmALTYQ3YALaA2bA7HAhHwsvgRHgVnAcXwNvhSrgWPg63whfhG/AALIVfwpMIQMgIA9FGWAgb8URCkFgkAREha5EipAKpRZqQDqQbuY1IkXHkAwaHoWGYGBbGGeOHWYzhYlZh1mJKMNWYY5hWTBfmNmYQM4H5gqVi1bGmWCesP3YJNhGbjS3EVmCPYFuwl7ED2GHsOxwOx8AZ4hxwfrgYXDJuNa4Etw/XjLuA68MN4SbxeLwq3hTvgg/Bc/BifCG+Cn8cfx7fjx/GvyeQCVoEa4IPIZYgJGwkVBAaCOcI/YQRwjRRgahPdCKGEHnEXGIpsY7YQbxJHCZOkxRJhiQXUiQpmbSBVElqIl0mPSa9IZPJOmRHchhZQF5PriSfIF8lD5I/UJQoJhRPShxFQtlOOUq5QHlAeUOlUg2obtRYqpi6nVpPvUR9Sn0vR5Mzl/OX48mtk6uRa5Xrl3slT5TXl3eXXy6fJ18hf0r+pvy4AlHBQMFTgaOwVqFG4bTCPYVJRZqilWKIYppiiWKD4jXFUSW8koGStxJPqUDpsNIlpSEaQtOledK4tE20Otpl2jAdRzek+9OT6cX0H+i99AllJWVb5SjlHOUa5bPKUgbCMGD4M1IZpYyTjLuMj/M05rnP48/bNq9pXv+8KZX5Km4qfJUilWaVAZWPqkxVb9UU1Z2qbapP1DBqJmphatlq+9Uuq43Pp893ns+dXzT/5PyH6rC6iXq4+mr1w+o96pMamhq+GhkaVRqXNMY1GZpumsma5ZrnNMe0aFoLtQRa5VrntV4wlZnuzFRmJbOLOaGtru2nLdE+pN2rPa1jqLNYZ6NOs84TXZIuWzdBt1y3U3dCT0svWC9fr1HvoT5Rn62fpL9Hv1t/ysDQINpgi0GbwaihiqG/YZ5ho+FjI6qRq9Eqo1qjO8Y4Y7ZxivE+41smsImdSZJJjclNU9jU3lRgus+0zwxr5mgmNKs1u8eisNxZWaxG1qA5wzzIfKN5m/krCz2LWIudFt0WXyztLFMt6ywfWSlZBVhttOqw+sPaxJprXWN9x4Zq42Ozzqbd5rWtqS3fdr/tfTuaXbDdFrtOu8/2DvYi+yb7MQc9h3iHvQ732HR2KLuEfdUR6+jhuM7xjOMHJ3snsdNJp9+dWc4pzg3OowsMF/AX1C0YctFx4bgccpEuZC6MX3hwodRV25XjWuv6zE3Xjed2xG3E3dg92f24+ysPSw+RR4vHlKeT5xrPC16Il69XkVevt5L3Yu9q76c+Oj6JPo0+E752vqt9L/hh/QL9dvrd89fw5/rX+08EOASsCegKpARGBFYHPgsyCRIFdQTDwQHBu4IfL9JfJFzUFgJC/EN2hTwJNQxdFfpzGC4sNKwm7Hm4VXh+eHcELWJFREPEu0iPyNLIR4uNFksWd0bJR8VF1UdNRXtFl0VLl1gsWbPkRoxajCCmPRYfGxV7JHZyqffS3UuH4+ziCuPuLjNclrPs2nK15anLz66QX8FZcSoeGx8d3xD/iRPCqeVMrvRfuXflBNeTu4f7kufGK+eN8V34ZfyRBJeEsoTRRJfEXYljSa5JFUnjAk9BteB1sl/ygeSplJCUoykzqdGpzWmEtPi000IlYYqwK10zPSe9L8M0ozBDuspp1e5VE6JA0ZFMKHNZZruYjv5M9UiMJJslg1kLs2qy3mdHZZ/KUcwR5vTkmuRuyx3J88n7fjVmNXd1Z752/ob8wTXuaw6thdauXNu5Tnddwbrh9b7rj20gbUjZ8MtGy41lG99uit7UUaBRsL5gaLPv5sZCuUJR4b0tzlsObMVsFWzt3WazrWrblyJe0fViy+KK4k8l3JLr31l9V/ndzPaE7b2l9qX7d+B2CHfc3em681iZYlle2dCu4F2t5czyovK3u1fsvlZhW3FgD2mPZI+0MqiyvUqvakfVp+qk6oEaj5rmvep7t+2d2sfb17/fbX/TAY0DxQc+HhQcvH/I91BrrUFtxWHc4azDz+ui6rq/Z39ff0TtSPGRz0eFR6XHwo911TvU1zeoN5Q2wo2SxrHjccdv/eD1Q3sTq+lQM6O5+AQ4ITnx4sf4H++eDDzZeYp9qukn/Z/2ttBailqh1tzWibakNml7THvf6YDTnR3OHS0/m/989Iz2mZqzymdLz5HOFZybOZ93fvJCxoXxi4kXhzpXdD66tOTSna6wrt7LgZevXvG5cqnbvfv8VZerZ645XTt9nX297Yb9jdYeu56WX+x+aem172296XCz/ZbjrY6+BX3n+l37L972un3ljv+dGwOLBvruLr57/17cPel93v3RB6kPXj/Mejj9aP1j7OOiJwpPKp6qP6391fjXZqm99Oyg12DPs4hnj4a4Qy//lfmvT8MFz6nPK0a0RupHrUfPjPmM3Xqx9MXwy4yX0+OFvyn+tveV0auffnf7vWdiycTwa9HrmT9K3qi+OfrW9m3nZOjk03dp76anit6rvj/2gf2h+2P0x5Hp7E/4T5WfjT93fAn88ngmbWbm3/eE8/syOll+AAAACXBIWXMAAHUwAAB1MAHdM3LNAAABUElEQVQoFXVRQUrEMBRN0sy4EBQXHsFVV55BENwKhYE6Ld107dygG92q2yIdWgtFunApeAgv4BUEQRGkbRLfjxPpLPrh5yf/5b381zI2EWmazhy0jJfXURRdufMYcz1XuduMKgdB5nneh2G453neWghxTrjW+klKGRdF8UWiuDOgbUZctiWYZZkgEFVjomPO+SPyCEJEZBCWxpg3JdSiXtevQRB4vu8buk84xb8gmhJpiRC7gNA9ckcb3WOGP/uc9YKLGR74gXD6gCCRMdcK4qV527YdgXEc30DoEgSGpAck9UcxAJdIwm/LslwR5jRIkNIkSXKotKoxwSlZBEGBQGJb34juIwZg3uYTvHRdFzZN824xLAwWz3CpwQ/YV0pRi1i2Ti0QtBA4bBiGTxwWVVU9c1g8weEOBncxywf2883QljC5WF8W7eDxANxvOFv9Ao1lnA54EJJrAAAAAElFTkSuQmCC" />';
 			up.className = 'button-up';
-			
+
 			buttons.appendChild(up);
-			
+
 			up.onclick = function() {
 				if (factor > initialFactor) {
 					translate.y += 100;
 					updatePositionAndZoom();
 				}
 			}
-		
+
 			// Left
 			var left = document.createElement('button');
 			left.innerHTML = '<img src="data:image/png;base64,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" />';
 			left.className = 'button-left';
-			
+
 			buttons.appendChild(left);
-			
+
 			left.onclick = function() {
 				if (factor > initialFactor) {
 					translate.x += 100;
 					updatePositionAndZoom();
 				}
 			}
-			
+
 			// Right
 			var right = document.createElement('button');
 			right.innerHTML = '<img src="data:image/png;base64,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" />';
 			right.className = 'button-right';
-			
+
 			buttons.appendChild(right);
-			
+
 			right.onclick = function() {
 				if (factor > initialFactor) {
 					translate.x -= 100;
 					updatePositionAndZoom();
 				}
 			}
-			
+
 			// Down
 			var down = document.createElement('button');
 			down.innerHTML = '<img src="data:image/png;base64,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" />';
 			down.className = 'button-down';
-			
+
 			buttons.appendChild(down);
-			
+
 			down.onclick = function() {
 				if (factor > initialFactor) {
-					translate.y -= 100;			
+					translate.y -= 100;
 					updatePositionAndZoom();
 				}
 			}
 		}
-		
-		function getCountriesToShow(style) {
-			var countries = options.countries;
-			
+
+		function getCountriesToShow(countries, style, className) {
 			var valueList = [];
-			
+
 			for (var i = 0; i < countries.length; i++) {
 				var value = countries[i].value;
-				
+
 				if (valueList.indexOf(value) == -1)
 					valueList.push(value);
-			}		
-						
+			}
+
 			var colours = wesCountry.colourRange(options.colourRange, valueList.length);
-			
+
 			valueList.sort(function(a, b){ return a - b });
-	
+
 			var valueColours = {};
-			
+
 			for (var i = 0; i < valueList.length; i++)
 				valueColours[valueList[i]] = colours[i];
-			
+
 			var countryList = {};
-			
+
 			var styleContent = "";
-			
+
 			for (var i = 0; i < countries.length; i++) {
 				var country = countries[i];
 				var value = country.value;
-				
-				var colour = valueColours[value]; 
-				
+
+				var colour = valueColours[value];
+
 				countryList[country.code] = country;
 
-				// Create CSS class to asign country colour				
-				styleContent += String.format("\n{0} .{1}, {0} .{1} g, {0} .{1} path { fill: {2}; }", options.container, country.code, colour);
-				styleContent += String.format("\n{0} .{1}:hover, {0} .{1}:hover g, {0} .{1}:hover path { fill: {2}; opacity: 0.9; }", options.container, country.code, colour);
+				// Create CSS class to asign country colour
+				styleContent += String.format("\n.{0} .{1}, .{0} .{1} g, .{0} .{1} path { fill: {2}; }", className, country.code, colour);
+				styleContent += String.format("\n.{0} .{1}:hover, .{0} .{1}:hover g, .{0} .{1}:hover path { fill: {2}; opacity: 0.9; }", className, country.code, colour);
 			}
-	
+
 			style.appendChild(document.createTextNode(styleContent));
-		
+
 			return countryList;
 		}
-		
+
 		function getProjection() {
 			var projection = options.projection;
-		
+
 			if (wesCountry.mapProjections[projection]) {
 				options.projection = wesCountry.mapProjections[projection];
-				
-				return true;	
+
+				return true;
 			}
-			
+
 			return false;
 		}
-		
+
 		function createPath(element, className) {
-			var path = document.createElementNS(namespace, "path"); 
-			 
+			var path = document.createElementNS(namespace, "path");
+
 			if (element[options.countryCode])
-				path.setAttributeNS(null, "id", element[options.countryCode]);  
+				path.setAttributeNS(null, "id", element[options.countryCode]);
 
 			if (!className) {
 				className = 'land';
-				
+
 				if (element.region)
 					className += ' region-' + element.region;
 			}
-			
+
 			if (element[options.countryCode])
-				className += ' ' + element[options.countryCode];	
-			
+				className += ' ' + element[options.countryCode];
+
 			path.setAttributeNS(null, "class", className);
-				
-			path.setAttributeNS(null, "d", element.path); 
-			
+
+			path.setAttributeNS(null, "d", element.path);
+
 			if (element.transform)
 				path.setAttributeNS(null, 'transform', element.transform);
-				
-			return path;	
+
+			return path;
 		}
-		
+
 		function createGroup(element, className) {
-			var g = document.createElementNS(namespace, "g"); 
-			g.setAttributeNS(null, "id", element[options.countryCode]); 
-			
+			var g = document.createElementNS(namespace, "g");
+			g.setAttributeNS(null, "id", element[options.countryCode]);
+
 			if (element.transform)
 				g.setAttributeNS(null, 'transform', element.transform);
-				
+
 			if (!className && element[options.countryCode])
-				className = 'land';	
-	
+				className = 'land';
+
 			if (className) {
 				var c = className;
-				
+
 				c += ' land-group'
-			
+
 				if (element[options.countryCode])
 					c += ' ' + element[options.countryCode];
-					
+
 				if (element.region)
 					className += ' region-' + element.region;
-			
+
 				g.setAttributeNS(null, 'class', c);
-			}	
-				
+			}
+
 			if (element.elements)
 				for (var i = 0; i < element.elements.length; i++) {
 					var child = element.elements[i];
-				
+
 					if (child.path)
 						g.appendChild(createPath(child, className));
-					
+
 					if (child.elements)
 						g.appendChild(createGroup(child, className));
 				}
 
 			return g;
 		}
-	
-		return init(this);
+
+		return new init(containerParent, this, countries, show);
 	}
-})();if (typeof (wesCountry) === "undefined")
+})();
+if (typeof (wesCountry) === "undefined")
     var wesCountry = new Object();
 
 wesCountry.loader = new (function() {
 	var defaultOptions = {
 		container: "body",
 		width: 500,
-		height: 300,
+		height: 400,
     loading: {
-      colour: "#2EFE64"
+      colour: "#888"
     },
     callback: function() {
       console.log('ready');
@@ -5848,23 +6368,23 @@ wesCountry.loader = new (function() {
 
 	this.render = function(options, panel)
 	{
-		this.options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
+    return new (function () {
+  		this.options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
 
-		var container = document.querySelector(this.options.container);
+  		var container = document.querySelector(this.options.container);
 
-		this.panel = panel ? panel : document.createElement('div');
+  		this.panel = panel ? panel : document.createElement('div');
 
-		this.panel.className = 'wesCountry-panel';
-		this.panel.setAttribute("style", String.format("width: {0}px; height: {1}px;",
-                                    this.options.width, this.options.height));
+  		this.panel.className = 'wesCountry-panel';
+  		this.panel.setAttribute("style", String.format("width: {0}px; height: {1}px;",
+                                      this.options.width, this.options.height));
 
-    container.appendChild(this.panel);
+      container.appendChild(this.panel);
 
-    this.load = load;
+      this.load = load;
 
-    this.load(this.options);
-
-    return this;
+      this.load(this.options);
+    })();
 	}
 
   function load(options) {
@@ -5888,51 +6408,205 @@ wesCountry.loader = new (function() {
 
   function showLoading(container, options) {
     var animation = document.createElement('div');
+    animation.className = 'loading';
     container.appendChild(animation);
 
-    var chartOptions = {
-      width: options.width,
-      height: options.height,
-      legend: {
-        show: false
-      },
-      xAxis: {
-        values: []
-      },
-      margins: [30, 0, 30, 0],
-      series: [
-        {
-          values: [0]
-        },
-        {
-          values: [100]
-        }
-      ],
-      valueOnItem: {
-        show: false
-      },
-      serieColours: [options.loading.colour, "#fff"]
-    };
+    var circles = [];
 
-    var cont1 = -1;
-    var cont2 = 101;
+    for (var i = 0; i < 3; i++) {
+      var circle = document.createElement('div');
+      circle.className = 'loading-circle';
+      animation.appendChild(circle);
+
+      circles.push(circle);
+
+      var width = wesCountry.getCssProperty(circle, 'width');
+      circle.style.height = width;
+
+      var circleHeight = circle.offsetHeight;
+      var innerCircleHeigth = circleHeight / 1.5;
+      var innerCircleMargin = (circleHeight - innerCircleHeigth) / 2;
+
+      var innerCircle = document.createElement('div');
+      innerCircle.className = 'loading-inner-circle';
+      innerCircle.style.width = innerCircle.style.height = innerCircleHeigth + 'px';
+      innerCircle.style.marginTop = innerCircleMargin + 'px';
+      innerCircle.style.backgroundColor = options.loading.colour;
+      circle.appendChild(innerCircle);
+    }
+
+    var containerHeight = wesCountry.getFullHeight(container);
+    var loadingHeight = wesCountry.getFullHeight(animation);
+
+    animation.style.top = (containerHeight / 2 - loadingHeight / 2) + 'px';
+
+    var index = 0;
+    var lastIndex = 0;
 
     var interval = setInterval(function() {
-      chartOptions.series[0].values[0] = ++cont1;
-      chartOptions.series[1].values[0] = --cont2;
+      index++;
 
-      if (cont2 == 0) {
-        cont1 = -1;
-        cont2 = 101;
-        chartOptions.serieColours = chartOptions.serieColours.reverse();
-      }
+      if (index > 2)
+        index = 0;
 
-      animation.innerHTML = '';
+      circles[lastIndex].className = 'loading-circle';
+      circles[lastIndex].style.backgroundColor = 'transparent';
+      circles[index].className = 'loading-circle loading-circle-active';
+      circles[index].style.backgroundColor = options.loading.colour;
 
-      var chart = wesCountry.charts.donutChart(chartOptions);
-      animation.appendChild(chart.render());
-    }, 5);
+      lastIndex = index;
+    }, 400);
 
     return interval;
+  }
+})();
+if (typeof (wesCountry) === "undefined")
+    var wesCountry = new Object();
+
+wesCountry.stateful = new (function() {
+	var defaultOptions = {
+    elements: [
+/*      {
+        name: "name",
+        selector: "#selector",
+        onChange: function() {}
+      } */
+    ]
+	};
+
+  var parameters = [];
+  var host = "";
+
+  this.start = function(options) {
+    // Merge default options and user options
+    options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
+
+    var info = getUrlParameters();
+    parameters = info.parameters;
+    host = info.host;
+
+    var urlDifferentFromInitial = processElements(options, parameters);
+
+    if (urlDifferentFromInitial)
+      changeUrl();
+  }
+
+  function changeUrl() {
+    var queryString = getQueryString();
+
+    history.pushState({}, document.title, String.format("{0}?{1}", host, queryString));
+  }
+
+  function getQueryString() {
+    var queryString = "";
+
+    for (var name in parameters)
+      queryString += String.format("{0}{1}={2}", queryString == "" ? "" : "&", name, parameters[name]);
+
+    return queryString;
+  }
+
+  function processElements(options, parameters) {
+    var elements = options.elements;
+
+    var changed = false;
+
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+
+      if (!parameters[element.name]) {
+        parameters[element.name] = "";
+
+        changed = true;
+      }
+
+      if (parameters[element.name] == "") {
+        var value = element.value ? element.value : "";
+
+        if (parameters[element.name] != value)
+          changed = true;
+
+        parameters[element.name] = value;
+      }
+
+      if (element.selector)
+        processSelector(element.selector, element.name, parameters[element.name], element.onChange);
+    }
+
+    return changed;
+  }
+
+  function changeParameter(name, value) {
+    var changed = false;
+
+    if (!parameters[name]) {
+      parameters[name] = "";
+
+      changed = true;
+    }
+
+    if (value != "" && parameters[name] != value) {
+      parameters[name] = value;
+
+      changed = true;
+    }
+
+    if (changed)
+      changeUrl();
+  }
+
+  function processSelector(selector, elementName, initialValue, onChange) {
+    selector = document.querySelector(selector);
+
+    selector.element = elementName;
+    //selector.element = selector.name ? selector.name : selector.id;
+
+    wesCountry.registerEvent(selector, 'change', function() {
+      var value = this.options[this.selectedIndex].value;
+      changeParameter(this.element, value);
+
+      if (onChange)
+        onChange.call(this);
+    });
+
+    // Set initial value
+    var options = selector.options;
+
+    for (var i = 0; i < options.length; i++)
+      if (options[i].value == initialValue) {
+        selector.selectedIndex = i;
+
+        break;
+      }
+  }
+
+  function getUrlParameters() {
+    var parameters = {};
+
+    var url = document.URL;
+
+    var queryString = url.split('?');
+
+    var host = queryString[0];
+
+    if (queryString.length > 1) {
+      queryString = queryString[1];
+
+      queryString = queryString.split('&');
+
+      for (var i = 0; i < queryString.length; i++) {
+        var parameter = queryString[i].split("=");
+
+        var name = parameter[0];
+        var value = parameter[1] ? parameter[1] : "";
+
+        parameters[name] = value;
+      }
+    }
+
+    return {
+      host: host,
+      parameters: parameters
+    };
   }
 })();
