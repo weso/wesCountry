@@ -45,6 +45,26 @@ wesCountry.charts = new (function() {
 		sizeByValue: false,
 		sizeByValueMaxRadius: 5,
 		sizeByValueMinRadius: 1,
+		mean: {
+			show: false,
+			stroke: 2,
+			colour: "#333",
+			margin: 3,
+			text: "mean: ",
+			"font-family": "Helvetica",
+			"font-colour": "#333",
+			"font-size": "12px",
+		},
+		median: {
+			show: false,
+			stroke: 2,
+			colour: "#333",
+			margin: 3,
+			text: "median: ",
+			"font-family": "Helvetica",
+			"font-colour": "#333",
+			"font-size": "12px",
+		},
 		xAxis: {
 			title: "Months",
 			colour: "none",
@@ -67,58 +87,58 @@ wesCountry.charts = new (function() {
 		},
 		series: [{
 			id: "1",
-            name: "First",
-            values: [-1, 4, 5, 3, 6],
-            urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
-        }, {
-        	id: "2",
-            name: "Second",
-            values: [1, 7, 5, 6, 4],
-            urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
-        }, {
-        	id: "3",
-        	name: "Third",
-        	values: [0, 1, 2, 3, 4],
-        	urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
-        }],
-        legend: {
-	        show: true,
-	        itemSize: 1,
-	        "font-colour": "#666",
+      name: "First",
+      values: [-1, 4, 5, 3, 6],
+      urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
+    	}, {
+      id: "2",
+      name: "Second",
+      values: [1, 7, 5, 6, 4],
+      urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
+      }, {
+    	id: "3",
+      name: "Third",
+      values: [0, 1, 2, 3, 4],
+      urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
+    }],
+    legend: {
+	    show: true,
+	    itemSize: 1,
+	    "font-colour": "#666",
 			"font-family": "Helvetica",
 			"font-size": "16px"
-        },
-        tooltip: {
-	        show: true,
-	        style: {
-			    display: "none",
-			    padding: "0.8em 0.5em",
-			    "font-size": "12px",
-			    border: "0.1em solid #ccc",
-			    "background-color": "#fff",
-			    position: "absolute",
-			    color: "#000",
-	        }
-        },
-        events: {
-	        "onmouseover": function(info) {
-		    	var text = String.format("Series '{0}': ({1}, {2})", info.serie, info.pos, info.value);
-		    	console.log(text);
-		    	wesCountry.charts.showTooltip(text);
-	        },
-	        "onmouseout": function() {
-	        	wesCountry.charts.hideTooltip();
-	        },
-	        "onclick": function() {
+    },
+    tooltip: {
+	    show: true,
+	    style: {
+			  display: "none",
+			  padding: "0.8em 0.5em",
+			  "font-size": "12px",
+			  border: "0.1em solid #ccc",
+			  "background-color": "#fff",
+			  position: "absolute",
+			  color: "#000",
+	    }
+    },
+    events: {
+	    "onmouseover": function(info) {
+		    var text = String.format("Series '{0}': ({1}, {2})", info.serie, info.pos, info.value);
+		    console.log(text);
+		    wesCountry.charts.showTooltip(text);
+	    },
+	    "onmouseout": function() {
+	      wesCountry.charts.hideTooltip();
+	    },
+	    "onclick": function() {
 
-	        }
-        },
-        vertex: {
-        	show: true
-        },
-        stroke: {
-        	width: 1
-        }
+	    }
+    },
+    vertex: {
+      show: true
+    },
+    stroke: {
+      width: 1
+    }
 	};
 
 	////////////////////////////////////////////////////////////////////////////////

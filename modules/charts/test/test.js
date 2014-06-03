@@ -44,6 +44,14 @@ function generateLinks(links) {
 function generateCharts(options) {
 	var options = {
 		sortSeries: true,
+		mean: {
+			show: true,
+			stroke: 2
+		},
+		median: {
+			show: true,
+			stroke: 2
+		},
 		xAxis: {
 			"font-family": "'Kite One', sans-serif",
 			"font-size": "14px"
