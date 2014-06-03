@@ -229,16 +229,22 @@ wesCountry.charts.barChart = function(options) {
 	}
 
 	function getStatistics(values) {
+		if (values == 0)
+			return {
+				median: 0,
+				mean: 0
+			}
+
 		// Median
 		values.sort(function(a,b) { return a - b; });
 
-    var half = Math.floor(values.length/2);
+    var half = Math.floor(values.length / 2);
 		var median = 0;
 
     if(values.length % 2)
         median = values[half];
     else
-        median = (values[half-1] + values[half]) / 2.0;
+        median = (values[half - 1] + values[half]) / 2.0;
 
 		// Mean
 		var sum = 0;
@@ -249,7 +255,7 @@ wesCountry.charts.barChart = function(options) {
 		    sum += values[i];
 		}
 
-		var mean = length > 0 ? sum / length : 0;
+		var mean = sum / length;
 
 		return {
 			median: median,
@@ -275,9 +281,15 @@ wesCountry.charts.barChart = function(options) {
 		var minValue = maxAndMinValues.min > 0 ? 0 : maxAndMinValues.min;
 		var maxValueLength = maxAndMinValues.valueLength;
 
+		// If max and min Value are the same we set difference
+		if (minValue == maxValue) {
+			minValue = minValue >= 0 ? 0 : minValue - 2;
+			maxValue += 2;
+		}
+
 		var ticksY = (maxValue - minValue) / maxAndMinValues.inc;
 		var yTickHeight = ticksY != 0 ? (innerHeight - xAxisMargin) / ticksY : 0;
-		var xTickWidth = (innerWidth - yAxisMargin) / maxAndMinValues.valueLength;
+		var xTickWidth = maxAndMinValues.valueLength != 0 ? (innerWidth - yAxisMargin) / maxAndMinValues.valueLength : 0;
 
 		var groupMargin = options.groupMargin * xTickWidth / 100;
 		xTickWidth -= 2 * groupMargin;
