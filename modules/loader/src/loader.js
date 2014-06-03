@@ -4,23 +4,29 @@ if (typeof (wesCountry) === "undefined")
 wesCountry.loader = new (function() {
 	var defaultOptions = {
 		container: "body",
-		width: 500,
-		height: 400,
-    loading: {
-      colour: "#888"
-    },
-    callback: function() {
-      console.log('ready');
-    }
+		callback: function() {
+		  console.log('ready');
+		},
+    cache: false,
+		getChartData: function(options, data) {
+			console.log(data);
+		}
 	};
+
+  var lastData = null;
 
   this.renderChart = function(options) {
     var panel = document.createElement('div');
     panel.id = 'c' + wesCountry.guid();
 
-    options.callback = function() {
+    options.callback = function(data, options) {
+      lastData = data;
       options.container = '#' + panel.id;
-      wesCountry.charts.chart(options);
+      options = options.getChartData ? options.getChartData(options, data) : options;
+      var charts = wesCountry.charts.multiChart(options);
+  
+      if (options.afterRenderCharts)
+      	options.afterRenderCharts.call(null, charts);
     }
 
     return this.render(options, panel);
@@ -28,23 +34,41 @@ wesCountry.loader = new (function() {
 
 	this.render = function(options, panel)
 	{
-    return new (function () {
-  		this.options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
+		return new (function () {
+			this.options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
 
-  		var container = document.querySelector(this.options.container);
+			var container = document.querySelector(this.options.container);
 
-  		this.panel = panel ? panel : document.createElement('div');
+			this.options.width = this.options.width ? this.options.width : container.offsetWidth;
+			this.options.height = this.options.height ? this.options.height : container.offsetHeight;
 
-  		this.panel.className = 'wesCountry-panel';
-  		this.panel.setAttribute("style", String.format("width: {0}px; height: {1}px;",
-                                      this.options.width, this.options.height));
+			this.options.width = this.options.width > 0 ? this.options.width : 500;
+			this.options.height = this.options.height > 0 ? this.options.height : 400;
 
-      container.appendChild(this.panel);
+			this.panel = panel ? panel : document.createElement('div');
 
-      this.load = load;
+			this.panel.className = 'wesCountry-panel';
+			this.panel.setAttribute("style", String.format("width: {0}px; min-height: {1}px;",
+										  this.options.width, wesCountry.getFullHeight(container)));
 
-      this.load(this.options);
-    })();
+		  container.appendChild(this.panel);
+
+		  this.load = load;
+
+		  this.load(this.options);
+
+		  this.getData = function() {
+  			return lastData;
+  		  }
+  		  
+  		  this.show = function() {
+  		  	container.style.display = 'block';
+  		  }
+  		  
+  		  this.hide = function() {
+  		  	container.style.display = 'none';
+  		  }
+		})();
 	}
 
   function load(options) {
@@ -53,17 +77,22 @@ wesCountry.loader = new (function() {
 
     var panel = this.panel;
 
-    wesCountry.ajax.load({
-      url: options.url,
-      callback: function(data) {
-        clearInterval(interval);
+  	if (options.url)
+  		wesCountry.ajax.load({
+  		  url: options.url,
+  		  parameters: options.parameters ? options.parameters : "",
+          cache_enabled: options.cache ? true : false,
+  		  callback: function(data) {
+  		    lastData = data;
 
-        panel.innerHTML = '';
+  			  panel.innerHTML = '';
 
-        if (options.callback)
-          options.callback.call(null, data);
-      }
-    });
+  			  if (options.callback)
+  			     options.callback.call(null, data, options);
+
+  			  clearInterval(interval);
+  		  }
+  		});
   }
 
   function showLoading(container, options) {
@@ -91,7 +120,6 @@ wesCountry.loader = new (function() {
       innerCircle.className = 'loading-inner-circle';
       innerCircle.style.width = innerCircle.style.height = innerCircleHeigth + 'px';
       innerCircle.style.marginTop = innerCircleMargin + 'px';
-      innerCircle.style.backgroundColor = options.loading.colour;
       circle.appendChild(innerCircle);
     }
 
@@ -112,7 +140,6 @@ wesCountry.loader = new (function() {
       circles[lastIndex].className = 'loading-circle';
       circles[lastIndex].style.backgroundColor = 'transparent';
       circles[index].className = 'loading-circle loading-circle-active';
-      circles[index].style.backgroundColor = options.loading.colour;
 
       lastIndex = index;
     }, 400);

@@ -56,11 +56,16 @@ wesCountry.ajax = new (function() {
 
 			http.onreadystatechange = function()
 			{
-				if(http.readyState == 4 && callback != null && callback != undefined) {
-					cache[url] = http.responseText;
-
-					callback.call(null, http.responseText);
-				}
+				if (http.readyState == 4)
+					if (http.status == 200) {
+				 		if (callback != null && callback != undefined) {
+							cache[url] = http.responseText;
+							callback.call(null, http.responseText);
+						}
+					}
+					else
+						console.log(String.format("AJAX error, status code: {0}, status text: {1}", 
+										http.status, http.statusText));
 			};
 		}
 	}

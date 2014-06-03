@@ -608,6 +608,11 @@ wesCountry.selector.timeline = function(options) {
       years.appendChild(space);
     }
 
+    // First onChange call
+
+    if (selectedElement && options.onChange)
+      options.onChange(selectedElement);
+
 		this.selected = function() {
 			return selectedElement;
 		}

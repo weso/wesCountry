@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Table test for wesCountry</title>
+	<script src="SortedArray.js"></script>
+	<script src="HashTable.js"></script>
+	<script src="../../../bin/wesCountry.js"></script>
+	<script src="../src/data.js"></script>
+</head>
+<body>
+	<h1>Dinamic test wesCountry</h1>
+	<div class="container">
+	<table border="1" class="graphs">
+		<thead>
+			<tr>
+				<th class="regionName">Country Name</th>
+				<th class="time">Year</th>
+				<th class="indicatorCode">Indicator</th>
+				<th class="value">Value</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>Brazil</td>
+				<td>2009</td>
+				<td>Fertilizer consumption (% of fertilizer production)</td>
+				<td>243.951870842302</td>
+			</tr>
+			<tr>
+				<td>Brazil</td>
+				<td>2008</td>
+				<td>Fertilizer consumption (% of fertilizer production)</td>
+				<td>309.008997833499</td>
+			</tr>
+			<tr>
+				<td>Brazil</td>
+				<td>2007</td>
+				<td>Fertilizer consumption (% of fertilizer production)</td>
+				<td>326.585848270781</td>
+			</tr>
+			<tr>
+				<td>Italy</td>
+				<td>2009</td>
+				<td>Fertilizer consumption (% of fertilizer production)</td>
+				<td>256.268026665139</td>
+			</tr>
+			<tr>
+				<td>Italy</td>
+				<td>2008</td>
+				<td>Fertilizer consumption (% of fertilizer production)</td>
+				<td>222.458534003048</td>
+			</tr>
+			<tr>
+				<td>Italy</td>
+				<td>2007</td>
+				<td>Fertilizer consumption (% of fertilizer production)</td>
+				<td>430.564095118456</td>
+			</tr>
+			<tr>
+				<td>Spain</td>
+				<td>2009</td>
+				<td>Fertilizer consumption (% of fertilizer production)</td>
+				<td>106.145003684811</td>
+			</tr>
+			<tr>
+				<td>Spain</td>
+				<td>2008</td>
+				<td>Fertilizer consumption (% of fertilizer production)</td>
+				<td>89.1699567127999</td>
+			</tr>
+			<tr>
+				<td>Spain</td>
+				<td>2007</td>
+				<td>Fertilizer consumption (% of fertilizer production)</td>
+				<td>117.185367443222</td>
+			</tr>
+			<tr>
+				<td>Brazil</td>
+				<td>2009</td>
+				<td>Agriculture, value added (% of GDP)</td>
+				<td>5.62672623388818</td>
+			</tr>
+			<tr>
+				<td>Brazil</td>
+				<td>2008</td>
+				<td>Agriculture, value added (% of GDP)</td>
+				<td>5.9141622585208</td>
+			</tr>
+			<tr>
+				<td>Brazil</td>
+				<td>2007</td>
+				<td>Agriculture, value added (% of GDP)</td>
+				<td>5.56271655090331</td>
+			</tr>
+			<tr>
+				<td>Italy</td>
+				<td>2009</td>
+				<td>Agriculture, value added (% of GDP)</td>
+				<td>1.89142918105124"</td>
+			</tr>
+			<tr>
+				<td>Italy</td>
+				<td>2008</td>
+				<td>Agriculture, value added (% of GDP)</td>
+				<td>2.01178849487375</td>
+			</tr>
+			<tr>
+				<td>Italy</td>
+				<td>2007</td>
+				<td>Agriculture, value added (% of GDP)</td>
+				<td>2.04609396554568</td>
+			</tr>
+			<tr>
+				<td>Spain</td>
+				<td>2009</td>
+				<td>Agriculture, value added (% of GDP)</td>
+				<td>2.66654201229147</td>
+			</tr>
+			<tr>
+				<td>Spain</td>
+				<td>2008</td>
+				<td>Agriculture, value added (% of GDP)</td>
+				<td>2.65729482291889</td>
+			</tr>
+			<tr>
+				<td>Spain</td>
+				<td>2007</td>
+				<td>Agriculture, value added (% of GDP)</td>
+				<td>2.87540037421114</td>
+			</tr>
+		</tbody>
+	</table>
+	</div>
+	<script>
+		wesCountry.data.getObservationFromTable({
+			container: "div.container"
+		});
+	</script>
+</body>
+</html>

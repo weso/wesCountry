@@ -126,6 +126,11 @@ var wesCountry = new (function() {
 		}).style('fill: #aaa;font-family:Helvetica;font-size:10px;text-anchor: end;dominant-baseline: edge');
 	}
 
+	this.isFunction = function(obj) {
+		var getType = {};
+		return obj && getType.toString.call(obj) === '[object Function]';
+	}
+
 	this.getCssProperty = function(element, property) {
   	return window.getComputedStyle(element, null).getPropertyValue(property);
 	}
@@ -145,7 +150,16 @@ var wesCountry = new (function() {
 			elmMargin = parseInt(wesCountry.getCssProperty(elm, 'margin-top')) + parseInt(wesCountry.getCssProperty(elm, 'margin-bottom'));
 		}
 
-		elmHeight = elmHeight ? Number(elmHeight.match(/(\d*(\.\d*)?)px/)[1]) : 0;
+		if (elmHeight && elmHeight.match) {
+			elmHeight = elmHeight.match(/(\d*(\.\d*)?)px/);
+
+			if (elmHeight && elmHeight.length > 0)
+				elmHeight = Number(elmHeight[1]);
+			else
+				elmHeight = 0;
+		}
+		else
+			elmHeight = 0;
 
     return (elmHeight + elmMargin);
 	}
@@ -155,6 +169,47 @@ var wesCountry = new (function() {
 			element.attachEvent(event, handler);
 		else
 			element.addEventListener(event, handler, false);
+	}
+
+	this.fireEvent = function(element, event) {
+		if ("createEvent" in document) {
+			var evt = document.createEvent("HTMLEvents");
+			evt.initEvent(event, false, true);
+			element.dispatchEvent(evt);
+		}
+		else
+			element.fireEvent("on" + event);
+	}
+
+	this.makeGradientColour = function(colour1, colour2, percent) {
+		var newColour = {};
+
+		function makeChannel(a, b) {
+			return(a + Math.round((b - a) * (percent / 100)));
+		}
+
+		function makeColourPiece(num) {
+			num = Math.min(num, 255);   // not more than 255
+			num = Math.max(num, 0);     // not less than 0
+
+			var str = num.toString(16);
+
+			if (str.length < 2) {
+				str = "0" + str;
+			}
+
+			return(str);
+		}
+
+		newColour.r = makeChannel(colour1.r, colour2.r);
+		newColour.g = makeChannel(colour1.g, colour2.g);
+		newColour.b = makeChannel(colour1.b, colour2.b);
+		newColour.cssColour = "#" +
+							makeColourPiece(newColour.r) +
+							makeColourPiece(newColour.g) +
+							makeColourPiece(newColour.b);
+
+		return(newColour);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -188,6 +243,9 @@ var wesCountry = new (function() {
 	};
 
 	function mergeOptions(to, from) {
+		if (!to)
+			to = {};
+
 		if (from instanceof Array) {
 			return from;
 		}
@@ -348,11 +406,16 @@ wesCountry.ajax = new (function() {
 
 			http.onreadystatechange = function()
 			{
-				if(http.readyState == 4 && callback != null && callback != undefined) {
-					cache[url] = http.responseText;
-
-					callback.call(null, http.responseText);
-				}
+				if (http.readyState == 4)
+					if (http.status == 200) {
+				 		if (callback != null && callback != undefined) {
+							cache[url] = http.responseText;
+							callback.call(null, http.responseText);
+						}
+					}
+					else
+						console.log(String.format("AJAX error, status code: {0}, status text: {1}", 
+										http.status, http.statusText));
 			};
 		}
 	}
@@ -2714,11 +2777,13 @@ function getCountriesForMap(options) {
 
 		for (var j = 0; j < options.xAxis.values.length; j++) {
 			var value = options.series[i].values[j];
+			var time = options.xAxis.values[j];
 
 			if (value) {
 				countryData.push({
 					code: countryId,
-					value: value
+					value: value,
+					time: time
 				});
 
 				break;
@@ -2757,7 +2822,8 @@ wesCountry.charts.chart = function (options) {
 
 	// Height
 
-	var height = options.height;
+	//var height = options.height;
+	var height = wesCountry.getFullHeight(container);
 
 	// Title
 
@@ -2813,7 +2879,10 @@ wesCountry.charts.chart = function (options) {
 	// Chart
 
 	options.height = height;
-	var chart = getChart(options);
+
+	body.style.height = height + 'px';
+
+	var chart = getChart(options, body);
 
 	if (downloadButtons)
 		linkDownloadButtons(downloadButtons, chart, options)
@@ -2823,7 +2892,7 @@ wesCountry.charts.chart = function (options) {
 	if (chart && chart.render)
 		body.appendChild(chart.render());
 
-	return container.parentNode;
+	return chart;
 }
 
 function linkDownloadButtons(downloadButtons, chart, options) {
@@ -2977,7 +3046,7 @@ function getCSV(json) {
   return str;
 }
 
-function getChart(options) {
+function getChart(options, container) {
 	var chartType = options.chartType ? options.chartType.toLowerCase() : "bar";
 
 	var chart = null;
@@ -3012,13 +3081,13 @@ function getChart(options) {
 			innerContainer.id = String.format("map-wrapper-{0}", wesCountry.guid());
 			innerContainer.style.height = options.height + 'px';
 
-			container = document.querySelector(options.container);
+			//container = document.querySelector(options.container);
 			container.appendChild(innerContainer);
 
-			chart = wesCountry.maps.createMap({
-				container: String.format("#{0}", innerContainer.id),
-				countries: getCountriesForMap(options)
-			});
+			options.container = String.format("#{0}", innerContainer.id);
+			options.countries = options.countries ? options.countries : getCountriesForMap(options);
+
+			chart = wesCountry.maps.createMap(options);
 			break;
 	}
 
@@ -3028,7 +3097,7 @@ function getChart(options) {
 ////////////////////////////////////////////////////////////////////////////////
 //                                MULTI CHART
 ////////////////////////////////////////////////////////////////////////////////
-var optionsSave = [];
+/*var optionsSave = [];
 var pushIndex = optionsSave.length;
 wesCountry.charts.multiChartRemoveData = function (from, numberOf) {
 	optionsSave.splice(from, numberOf);
@@ -3041,162 +3110,120 @@ wesCountry.charts.setPushIndex = function (index) {
 		pushIndex = index;
 	}
 };
-
-wesCountry.charts.multiChart = function (optionsReceived, newGraphic, element) {
-	var containerReceived = optionsReceived.container;
-	optionsReceived.container = "body";
-	options = wesCountry.mergeOptionsAndDefaultOptions(optionsReceived, wesCountry.charts.defaultOptions);
-	options.container = containerReceived;
-	optionsReceived.container = containerReceived;
-	if(newGraphic || newGraphic === undefined) {
-		var optionsToSave = wesCountry.clone(options);
-		optionsToSave.xAxis = wesCountry.clone(options.xAxis);
-		optionsSave.splice(pushIndex, 0, optionsToSave);
-		wesCountry.charts.setPushIndex("length");
-	} else {
-		var index = getIndexOfElement(element);
-		optionsSave[index].series = wesCountry.clone(options.series);
-		options.xAxis = wesCountry.clone(options.xAxis);
+*/
+wesCountry.charts.multiChart = function (options) {
+	var defaultOptions = {
+		chartType: ['line']
 	}
-	var charts = options.chartType;
-	charts = charts instanceof Array ? charts : [charts]; //if not array convert to array
-	var container = document.createElement("div");
-	if(typeof options.container === "string")
-		document.querySelector(options.container).appendChild(container);
-	else
-		options.container.appendChild(container);
-	createChartSelector();
-	createSeriesSelector();
-	return createChart();
 
-	function createChartSelector() {
+	options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
+
+	if (typeof options.chartType === "string") {
+		return [wesCountry.charts.chart(options)];
+	}
+
+	var chartTypes = options.chartType;
+	var container = document.querySelector(options.container);
+
+	var chartSelector = document.createElement('div');
+	chartSelector.className = "chart-selector";
+	container.appendChild(chartSelector);
+
+	var buttons = createChartSelector(chartSelector);
+
+	var chartContainer = document.createElement('div');
+	chartContainer.className = 'chart-container';
+	chartContainer.style.height = (container.offsetHeight - chartSelector.offsetHeight) + 'px';
+	container.appendChild(chartContainer);
+
+	return createCharts(chartContainer, buttons);
+
+	function createChartSelector(container) {
+		var buttons = [];
+
 		var div = document.createElement('div');
-		div.className = "chartSelector";
+		container.appendChild(div);
+
 		var ul = document.createElement('ul');
-		for(var i=0; i<charts.length;i++) {
-			var li = document.createElement('li');
-			var a = document.createElement('a');
-			//a.href="#";
-			a.className ="inactive";
-			a.onclick = onGraphSelected;
-			a.innerHTML = charts[i].toFirstUpperCase();
-			li.appendChild(a);
-			ul.appendChild(li);
-		}
 		div.appendChild(ul);
-		div.querySelector("li a").className= "active";
-		container.appendChild(div);
 
-		if (charts.length <= 1)
-			div.style.display = "none";
-	}
+		var length = chartTypes.length;
 
-	function createSeriesSelector() {
-		var div = document.createElement('div');
-		div.className = "seriesSelector";
-		for(var i=0; i<options.series.length;i++) {
-			var input = document.createElement('input');
-			var label = document.createElement('label');
-			input.id = options.series[i].name + "Checkbox" + wesCountry.charts.guid();
-			input.type = "checkbox";
-			input.className = "checks";
-			input.onchange = onSeriesChanged;
-			input.checked = true;
-			label.for = input.id;
-			label.innerHTML = options.series[i].name;
-			div.appendChild(input);
-			div.appendChild(label);
-		} container.appendChild(div);
-	}
+		for (var i = 0; i < length; i++) {
+			var type = chartTypes[i];
 
-	function createChart() {
-		var div = document.createElement('div');
-		div.className = "chartDiv";
-		container.appendChild(div);
-		return showChart(div);
-	}
+			var li = document.createElement('li');
+			li.type = type;
+			li.chart = null;
+			li.className = i == 0 ? 'button-active' : 'button-inactive';
+			ul.appendChild(li);
 
-	function showChart(div) {
-		var typeOfGraph = "bar";
+			var a = document.createElement('a');
+			a.type = type;
+			a.innerHTML = type;
+			li.appendChild(a);
 
-		var active = container.querySelector(".active");
+			a.onclick = function() {
+				var ul = this.parentNode.parentNode;
 
-		if (active && active.innerHTML)
-			typeOfGraph = active.innerHTML.toLowerCase();
+				var buttons = ul.childNodes;
 
-		options.chartType = typeOfGraph;
-		if(div === undefined)
-			options.container = ".chartDiv";
-		else
-			options.container = div;
-		return wesCountry.charts.chart(options);
-	}
+				var length = buttons.length;
 
-	function loadGraph(div) {
-		//remove previous chart
-		div.querySelector(".chartDiv").innerHTML="";
-		showChart(div.querySelector(".chartDiv"));
-	}
+				for (var i = 0; i < length; i++) {
+					var button = buttons[i];
 
-	function setSelectedGraphToActive(name, ul) {
-		var active = ul.querySelector(".active");
-		var inactives = ul.querySelectorAll(".inactive");
-		var length = inactives.length;
-		for(var i=0;i<length;i++)
-			if(name===inactives[i].innerHTML)
-				inactives[i].className="active";
-			else
-				inactives[i].className="inactive";
+					// Set button
+					button.className = 'button-inactive';
 
-		if(name!==active.innerHTML)
-			active.className="inactive";
-	}
+					// Set chart
+					button.chart.style.display = 'none';
+				}
 
-	function onGraphSelected() {
-		setSelectedGraphToActive(this.innerHTML, this.parentNode.parentNode);
-		var div = this.parentNode.parentNode.parentNode.parentNode;
-		var recovered = recoverSeriesAndXValuesItem(this.parentNode.parentNode);
-		options.series = recovered.series;
-		options.xAxis.values = recovered.xAxisValues;
-		loadGraph(div);
-	}
+				// Set button
+				var button = this.parentNode;
+				button.className = 'button-active';
 
-	function onSeriesChanged() {
-		var seriesAndXAxisValues = recoverSeriesAndXValuesItem(this);
-		var checkBoxes = this.parentNode.querySelectorAll("input");
-		var length = seriesAndXAxisValues.series.length;
-		for(var i=0;i<length;i++)
-			if(!checkBoxes[i].checked)
-				delete seriesAndXAxisValues.series[i];
-		optionSeriesWithoutUndefined();
-		putXAxisValuesOnOptions();
-		loadGraph(this.parentNode.parentNode); //div of the grap
+				// Set chart
+				button.chart.style.display = 'block';
+			}
 
-		function putXAxisValuesOnOptions() {
-			options.xAxis.values = seriesAndXAxisValues.xAxisValues;
+			buttons.push(li);
 		}
 
-		function optionSeriesWithoutUndefined() {
-			var seriesReturned = [];
-			for(var i=0;i<length;i++)
-				if(seriesAndXAxisValues.series[i] !== undefined)
-					seriesReturned.push(seriesAndXAxisValues.series[i]);
-			options.series = seriesReturned;
+		return buttons;
+	}
+
+	function createCharts(container) {
+		var length = chartTypes.length;
+
+		var charts = [];
+
+		for (var i = 0; i < length; i++) {
+			var type = chartTypes[i];
+
+			var id = String.format("chart-{0}", wesCountry.guid());
+
+			var chartContainer = document.createElement('div');
+			chartContainer.id = id;
+			chartContainer.style.height = wesCountry.getFullHeight(container) + 'px';
+			container.appendChild(chartContainer);
+
+			buttons[i].chart = chartContainer;
+
+			var chartOptions = wesCountry.clone(options);
+			chartOptions.chartType = type;
+			chartOptions.container = String.format("#{0}", id);
+
+			var chart = wesCountry.charts.chart(chartOptions);
+			
+			charts.push(chart);
+
+			// Is set after rendering the chart (if not height is not obteined properly)
+			chartContainer.style.display = (i == 0) ? 'block' : 'none';
 		}
-	}
-
-	function recoverSeriesAndXValuesItem(element) {
-			var index = getIndexOfElement(element);
-			return {
-				series: wesCountry.clone(optionsSave[index].series),
-				xAxisValues: wesCountry.clone(optionsSave[index].xAxis.values)
-			};
-	}
-
-	function getIndexOfElement(element) {
-		var parent = element.parentNode; //get a div
-		var allDivs = document.querySelectorAll("."+parent.className);
-		return allDivs.indexOf(parent);
+	
+		return charts;
 	}
 };
 Element.prototype.insertAfter = function(newNode) {
@@ -3214,7 +3241,7 @@ if (typeof (wesCountry) === "undefined")
 
 wesCountry.data = new (function() {
     var myData = {};
-    var options = {};
+    //var options = {};
     var tablePosition = null;
     var tableElement;
     var xAxisValues = {};
@@ -3222,6 +3249,266 @@ wesCountry.data = new (function() {
     var times = [];
     var indicators = [];
     var regions = [];
+    
+    this.getObservationFromTable = function(options) {
+    	var container = document.querySelector(options.container);
+    	
+    	var table = container.querySelector('table');
+    	
+    	if (!table)
+    		return null;
+    	
+    	var thead = table.querySelector('thead');
+    	var tbody = table.querySelector('tbody');
+    	
+    	if (!thead || !tbody)
+    		return null;
+    	
+    	// Columns
+    	var ths = thead.querySelectorAll('th');
+    	
+    	var columns = {};
+    	
+    	var length = ths.length;
+    	
+    	for (var i = 0; i < length; i++) {
+    		var column = ths[i];
+    		var className = column.className;
+    		
+    		if (!className)
+    			continue;
+    			
+    		columns[className] = i;
+    	}
+    	
+    	// Rows
+    	var trs = tbody.querySelectorAll('tr');
+    	
+    	var length = trs.length;
+    	
+    	var observations = [];
+    	
+    	for (var i = 0; i < length; i++) {
+    		var tr = trs[i];
+    		
+    		var tds = tr.querySelectorAll('td');
+    		
+    		// regionName
+    		var regionPos = columns["regionName"];	
+    		
+    		if (regionPos === undefined || regionPos > tds.length - 1)
+    			continue;
+    			
+    		var region = tds[regionPos].innerHTML;
+    			
+    		// time
+    		var timePos = columns["time"];	
+    		
+    		if (timePos === undefined || timePos > tds.length - 1)
+    			continue;
+    			
+    		var time = tds[timePos].innerHTML;
+    		
+    		// indicatorCode
+     		var indicatorPos = columns["indicatorCode"];	
+    		
+    		if (indicatorPos === undefined || indicatorPos > tds.length - 1)
+    			continue;
+    			
+    		var indicator = tds[indicatorPos].innerHTML;   		
+    		
+    		// value
+     		var valuePos = columns["value"];	
+    		
+    		if (valuePos === undefined || valuePos > tds.length - 1)
+    			continue;
+    			
+    		var value = tds[valuePos].innerHTML; 
+    		
+    		observations.push({
+    			region: region,
+    			time: time,
+    			indicator: indicator,
+    			value: value
+    		});
+    	}
+    	
+    	observations = this.getChartSeriesFromObservations(observations);
+    	
+    	return observations;
+    }
+    
+    this.getChartSeriesFromObservations = function(observations) {
+    	var times = [];
+    	var regions = [];
+    	var indicators = [];
+    	
+    	var byTime = {};
+    	var byRegion = {};
+    	var byIndicator = {};
+    	
+    	var length = observations.length;
+    	
+    	for (var i = 0; i < length; i++) {
+    		var observation = observations[i];
+    		var time = observation.time;
+    		var region = observation.region;
+    		var indicator = observation.indicator;
+    		
+    		// Time
+    		if (times.indexOf(time) == -1)
+    			times.push(time);
+    			
+    		// Region
+    		if (regions.indexOf(region) == -1)
+    			regions.push(region);
+    			
+    		// 	Indicator
+    		if (indicators.indexOf(indicator) == -1)
+    			indicators.push(indicator);
+    			
+    		// By Time
+    		if (!byTime[time])
+    			byTime[time] = {
+    				regions: {},
+    				indicators: {}
+    			};
+    			
+    		if (!byTime[time].regions[region])
+    			byTime[time].regions[region] = [];
+    		
+    		byTime[time].regions[region].push(observation);
+    		
+    		if (!byTime[time].indicators[indicator])
+    			byTime[time].indicators[indicator] = {};
+    		
+    		byTime[time].indicators[indicator][region] = observation;
+    		
+    		// By Region
+    		if (!byRegion[region])
+    			byRegion[region] = {
+    				times: {},
+    				indicators: {}
+    			};
+    			
+    		if (!byRegion[region].times[time])
+    			byRegion[region].times[time] = [];
+    		
+    		byRegion[region].times[time].push(observation);
+    		
+    		if (!byRegion[region].indicators[indicator])
+    			byRegion[region].indicators[indicator] = {};
+    		
+    		byRegion[region].indicators[indicator][time] = observation;
+    		
+    		// By Indicator
+    		if (!byIndicator[indicator])
+    			byIndicator[indicator] = {
+    				times: {},
+    				regions: {}
+    			};
+    			
+    		if (!byIndicator[indicator].times[time])
+    			byIndicator[indicator].times[time] = [];
+    		
+    		byIndicator[indicator].times[time].push(observation);
+    		
+    		if (!byIndicator[indicator].regions[region])
+    			byIndicator[indicator].regions[region] = {};
+    		
+    		byIndicator[indicator].regions[region][time] = observation;
+    	}
+    	
+    	times.sort();
+    	regions.sort();
+    	indicators.sort();
+    	
+    	// Series By Region
+    	
+    	var seriesByRegion = [];
+    	
+    	var rLength = regions.length;
+    	var tLength = times.length;
+    	var iLength = indicators.length;
+    	
+    	for (var i = 0; i < rLength; i++) {
+    		var regionName = regions[i];
+    		
+    		var series = [];
+    		
+    		var obsIndicators = byRegion[regionName].indicators;
+    		
+    		for (var j = 0; j < iLength; j++) {
+    			var indicator = indicators[j];
+    				
+    			var obsTimes = obsIndicators[indicator];
+    			
+    			var values = [];
+    			
+    			for (var k = 0; k < tLength; k++) {
+    				var time = times[k];
+    				
+    				var value = obsTimes[time] ? obsTimes[time].value : null;
+    				values.push(value);
+    			}
+    			
+    			series.push({
+    				name: indicator,
+    				values: values
+    			});
+    		}
+    		
+    		seriesByRegion.push({
+    			name: regionName,
+    			series: series
+    		});
+    	}
+    	
+		// Series By Indicator
+    	
+    	var seriesByIndicator = [];
+    	
+    	for (var i = 0; i < iLength; i++) {
+    		var indicatorName = indicators[i];
+    		
+    		var series = [];
+    	
+    		var obsRegions = byIndicator[indicatorName].regions;
+    		
+    		for (var j = 0; j < rLength; j++) {
+    			var region = regions[j];
+    			
+    			var obsTimes = obsRegions[region];
+
+    			var values = [];
+    			
+    			for (var k = 0; k < tLength; k++) {
+    				var time = times[k];
+    				
+    				var value = obsTimes[time] ? obsTimes[time].value : null;
+    				values.push(value);
+    			}
+    			
+    			series.push({
+    				name: region,
+    				values: values
+    			});
+    		}
+    		
+    		seriesByIndicator.push({
+    			name: indicatorName,
+    			series: series
+    		});
+    	}    	
+    	
+    	return {
+    		byRegion: seriesByRegion,
+    		byIndicator: seriesByIndicator,
+    		times: times,
+    		regions: regions,
+    		indicator: indicators
+    	}
+    }
 
     this.parseJSON = function(receivedOptions) {
         options = wesCountry
@@ -5356,6 +5643,11 @@ wesCountry.selector.timeline = function(options) {
       years.appendChild(space);
     }
 
+    // First onChange call
+
+    if (selectedElement && options.onChange)
+      options.onChange(selectedElement);
+
 		this.selected = function() {
 			return selectedElement;
 		}
@@ -5696,33 +5988,51 @@ wesCountry.maps = new (function() {
         elements: times,
         selected: times[times.length - 1],
         onChange: function(element, index) {
-          for (var i = 0; i < maps.length; i++)
-            if (i == index)
-              maps[i].showMap();
-            else
-              maps[i].hideMap();
-
+          if (options.onChange)
+          	options.onChange.call(this, element, index);
+          	
+          if (selectedMap === maps[index])
+          	return;
+          
+          selectedMap.hideMap();
+         
+          // On demand map creation
+          if (!maps[index])
+          	maps[index] = new createOneMap(mapContainer, options, mapData[index], true);
+          
           selectedMap = maps[index];
+          selectedMap.showMap();
         }
       });
 
       var timelineHeight = wesCountry.getFullHeight(timelineContainer);
       mapContainerHeight -= timelineHeight;
     }
+    else if (options.onChange)
+    	options.onChange.call(this, times.length == 1 ? times[0] : null, 0);
 
-    mapContainer.style.height = mapContainerHeight + 'px';
+    mapContainer.style.minHeight = mapContainerHeight + 'px';
 
     var last = times.length - 1;
+    var mapData = [];
 
     for (var i = 0; i < times.length; i++) {
       var time = times[i];
       var list = countryList[time];
+      
+      mapData.push(list);
+      
+      // Only visible map is created, the rest is created on demand
+      if (i < last) {
+      	maps.push(null);
+      	continue;
+      }
 
       var map = new createOneMap(mapContainer, options, list, i == last);
       maps.push(map);
     }
 
-    var selectedMap = maps[0];
+    var selectedMap = maps[last];
 
     //this.render = function() {
     //  return selectedMap.render();
@@ -5736,15 +6046,25 @@ wesCountry.maps = new (function() {
       for (var i = 0; i < maps.length; i++)
         maps[i].zoomToCountry(countryCode);
     }
+    
+    this.visor = function() {
+    	return selectedMap.visor();
+    }
 
     return this;
   }
 
   function groupCountriesByTime(options) {
     var countries = options.countries;
-
-    var times = ["-"];
-    var groupedCountries = { "-": [] };
+	
+	if (countries.length == 0)
+		return {
+			times: ["-"],
+			countries: { "-": [] }
+		};
+	
+    var times = [];
+    var groupedCountries = {};
 
     for (var i = 0; i < countries.length; i++) {
       var country = countries[i];
@@ -6012,7 +6332,7 @@ wesCountry.maps = new (function() {
 
       var text = document.createElementNS(namespace, 'text');
       text.setAttribute('x', containerParent.offsetWidth - 4);
-      text.setAttribute('y', containerParent.offsetHeight - 4);
+      text.setAttribute('y', containerParent.offsetHeight - 8);
       text.setAttribute('style', 'fill:#aaa;font-family:Helvetica;font-size:10px;text-anchor: end;dominant-baseline: edge');
       text.textContent = wesCountry.signature.value;
       a.appendChild(text);
@@ -6344,23 +6664,29 @@ if (typeof (wesCountry) === "undefined")
 wesCountry.loader = new (function() {
 	var defaultOptions = {
 		container: "body",
-		width: 500,
-		height: 400,
-    loading: {
-      colour: "#888"
-    },
-    callback: function() {
-      console.log('ready');
-    }
+		callback: function() {
+		  console.log('ready');
+		},
+    cache: false,
+		getChartData: function(options, data) {
+			console.log(data);
+		}
 	};
+
+  var lastData = null;
 
   this.renderChart = function(options) {
     var panel = document.createElement('div');
     panel.id = 'c' + wesCountry.guid();
 
-    options.callback = function() {
+    options.callback = function(data, options) {
+      lastData = data;
       options.container = '#' + panel.id;
-      wesCountry.charts.chart(options);
+      options = options.getChartData ? options.getChartData(options, data) : options;
+      var charts = wesCountry.charts.multiChart(options);
+  
+      if (options.afterRenderCharts)
+      	options.afterRenderCharts.call(null, charts);
     }
 
     return this.render(options, panel);
@@ -6368,23 +6694,41 @@ wesCountry.loader = new (function() {
 
 	this.render = function(options, panel)
 	{
-    return new (function () {
-  		this.options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
+		return new (function () {
+			this.options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
 
-  		var container = document.querySelector(this.options.container);
+			var container = document.querySelector(this.options.container);
 
-  		this.panel = panel ? panel : document.createElement('div');
+			this.options.width = this.options.width ? this.options.width : container.offsetWidth;
+			this.options.height = this.options.height ? this.options.height : container.offsetHeight;
 
-  		this.panel.className = 'wesCountry-panel';
-  		this.panel.setAttribute("style", String.format("width: {0}px; height: {1}px;",
-                                      this.options.width, this.options.height));
+			this.options.width = this.options.width > 0 ? this.options.width : 500;
+			this.options.height = this.options.height > 0 ? this.options.height : 400;
 
-      container.appendChild(this.panel);
+			this.panel = panel ? panel : document.createElement('div');
 
-      this.load = load;
+			this.panel.className = 'wesCountry-panel';
+			this.panel.setAttribute("style", String.format("width: {0}px; min-height: {1}px;",
+										  this.options.width, wesCountry.getFullHeight(container)));
 
-      this.load(this.options);
-    })();
+		  container.appendChild(this.panel);
+
+		  this.load = load;
+
+		  this.load(this.options);
+
+		  this.getData = function() {
+  			return lastData;
+  		  }
+  		  
+  		  this.show = function() {
+  		  	container.style.display = 'block';
+  		  }
+  		  
+  		  this.hide = function() {
+  		  	container.style.display = 'none';
+  		  }
+		})();
 	}
 
   function load(options) {
@@ -6393,17 +6737,22 @@ wesCountry.loader = new (function() {
 
     var panel = this.panel;
 
-    wesCountry.ajax.load({
-      url: options.url,
-      callback: function(data) {
-        clearInterval(interval);
+  	if (options.url)
+  		wesCountry.ajax.load({
+  		  url: options.url,
+  		  parameters: options.parameters ? options.parameters : "",
+          cache_enabled: options.cache ? true : false,
+  		  callback: function(data) {
+  		    lastData = data;
 
-        panel.innerHTML = '';
+  			  panel.innerHTML = '';
 
-        if (options.callback)
-          options.callback.call(null, data);
-      }
-    });
+  			  if (options.callback)
+  			     options.callback.call(null, data, options);
+
+  			  clearInterval(interval);
+  		  }
+  		});
   }
 
   function showLoading(container, options) {
@@ -6431,7 +6780,6 @@ wesCountry.loader = new (function() {
       innerCircle.className = 'loading-inner-circle';
       innerCircle.style.width = innerCircle.style.height = innerCircleHeigth + 'px';
       innerCircle.style.marginTop = innerCircleMargin + 'px';
-      innerCircle.style.backgroundColor = options.loading.colour;
       circle.appendChild(innerCircle);
     }
 
@@ -6452,7 +6800,6 @@ wesCountry.loader = new (function() {
       circles[lastIndex].className = 'loading-circle';
       circles[lastIndex].style.backgroundColor = 'transparent';
       circles[index].className = 'loading-circle loading-circle-active';
-      circles[index].style.backgroundColor = options.loading.colour;
 
       lastIndex = index;
     }, 400);
@@ -6465,43 +6812,83 @@ if (typeof (wesCountry) === "undefined")
 
 wesCountry.stateful = new (function() {
 	var defaultOptions = {
+	init: function(parameters) {
+		console.log('wesCountry:stateful init');
+	},
+	urlChanged: function(parameters) {
+		console.log('wesCountry:stateful urlChanged');
+	},
     elements: [
 /*      {
         name: "name",
         selector: "#selector",
-        onChange: function() {}
+        value: "value",
+        ignoreValue: true,
+        ignore: true,
+        selectedIndex: 0,
+        electedIndex: function() { return 0; },
+        onChange: function(index, value, parameters) {}
       } */
     ]
 	};
 
-  var parameters = [];
+  var parameters = {};
+  var queryParameters = [];
+  var selectors = {};
   var host = "";
+  var options = null;
+  
+  this.getParameters = function() {
+  	return parameters;
+  }
+  
+  this.getSelectors = function() {
+  	return selectors;
+  }
+  
+  // onChange is not invoked
+  this.changeParameter = function(name, value) {
+  	changeParameter(name, value);
+  }
 
-  this.start = function(options) {
+  this.start = function(opts) {
     // Merge default options and user options
-    options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
+    options = wesCountry.mergeOptionsAndDefaultOptions(opts, defaultOptions);
 
     var info = getUrlParameters();
-    parameters = info.parameters;
+    parameters = info.parameters; console.log("parameters");console.log(parameters)
     host = info.host;
 
     var urlDifferentFromInitial = processElements(options, parameters);
 
     if (urlDifferentFromInitial)
       changeUrl();
+
+    if (options.init)
+    	options.init.call(this, parameters, selectors);
+    	
+    return this;
   }
 
   function changeUrl() {
     var queryString = getQueryString();
 
     history.pushState({}, document.title, String.format("{0}?{1}", host, queryString));
+
+    if (options.urlChanged)
+    	options.urlChanged.call(this, parameters, selectors);
   }
 
   function getQueryString() {
     var queryString = "";
 
-    for (var name in parameters)
+    var length = queryParameters.length;
+
+    for (var i = 0; i < length; i++) {
+      var name = queryParameters[i];
+
       queryString += String.format("{0}{1}={2}", queryString == "" ? "" : "&", name, parameters[name]);
+    }
 
     return queryString;
   }
@@ -6511,16 +6898,21 @@ wesCountry.stateful = new (function() {
 
     var changed = false;
 
+	  var initialActions = [];
+
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
 
-      if (!parameters[element.name]) {
+      var ignore = (element.ignore === true);
+      var ignoreValue = (element.ignoreValue === true);
+
+      if (!ignore && !parameters[element.name]) {
         parameters[element.name] = "";
 
         changed = true;
       }
 
-      if (parameters[element.name] == "") {
+      if (!ignore && !ignoreValue && parameters[element.name] == "") {
         var value = element.value ? element.value : "";
 
         if (parameters[element.name] != value)
@@ -6529,14 +6921,43 @@ wesCountry.stateful = new (function() {
         parameters[element.name] = value;
       }
 
-      if (element.selector)
-        processSelector(element.selector, element.name, parameters[element.name], element.onChange);
+      if (!ignore && queryParameters.indexOf(element.name) == -1)
+        queryParameters.push(element.name);
+
+      if (element.selector) {
+        var selector = typeof element.selector === 'string' ? document.querySelector(element.selector) : element.selector;
+        var action = processSelector(selector, element.name, parameters[element.name], element.onChange, element.selectedIndex);
+
+      	if (action)
+      		initialActions.push(action);
+
+        selectors[element.selector] = selector;
+      }
     }
+
+    // We need to process all the selectors firstly
+    // and then we can process initial actions as maybe one selector initial action could invoke other one
+    for (var i = 0; i < initialActions.length; i++) {
+    	var selector = initialActions[i].selector;
+    	var selectedIndex = initialActions[i].selectedIndex;
+
+		var isFunction = selectedIndex && wesCountry.isFunction(selectedIndex);
+
+      if (isFunction)
+        selectedIndex = selectedIndex.call(this, parameters, selectors);
+
+      if (selectedIndex >= 0 && selectedIndex < selector.options.length) {
+    	  selector.selectedIndex = selectedIndex;
+    	  selector.refresh();
+      }
+      else if (!isFunction)
+		selector.refresh();
+       }
 
     return changed;
   }
 
-  function changeParameter(name, value) {
+  function changeParameter(name, value) {console.log("change: " + name + " " + value);console.log(parameters[name])
     var changed = false;
 
     if (!parameters[name]) {
@@ -6555,9 +6976,7 @@ wesCountry.stateful = new (function() {
       changeUrl();
   }
 
-  function processSelector(selector, elementName, initialValue, onChange) {
-    selector = document.querySelector(selector);
-
+  function processSelector(selector, elementName, initialValue, onChange, selectedIndex) {
     selector.element = elementName;
     //selector.element = selector.name ? selector.name : selector.id;
 
@@ -6566,8 +6985,19 @@ wesCountry.stateful = new (function() {
       changeParameter(this.element, value);
 
       if (onChange)
-        onChange.call(this);
+        onChange.call(selector, this.selectedIndex, value, parameters, selectors);
     });
+
+    // Refresh function
+    selector.refresh = function() {
+      var value = (this.options && this.options && this.options[this.selectedIndex]) ?
+                    this.options[this.selectedIndex].value : "";
+                    
+      changeParameter(this.element, value);
+
+      if (onChange)
+        onChange.call(this, this.selectedIndex, value, parameters, selectors);
+    }
 
     // Set initial value
     var options = selector.options;
@@ -6578,20 +7008,27 @@ wesCountry.stateful = new (function() {
 
         break;
       }
+
+    // Set selected index
+
+    return {
+    	selector: selector,
+    	selectedIndex: selectedIndex
+    };
   }
 
   function getUrlParameters() {
     var parameters = {};
 
     var url = document.URL;
-
+console.log(url)
     var queryString = url.split('?');
 
     var host = queryString[0];
 
     if (queryString.length > 1) {
       queryString = queryString[1];
-
+console.log(queryString)
       queryString = queryString.split('&');
 
       for (var i = 0; i < queryString.length; i++) {

@@ -77,33 +77,51 @@ wesCountry.maps = new (function() {
         elements: times,
         selected: times[times.length - 1],
         onChange: function(element, index) {
-          for (var i = 0; i < maps.length; i++)
-            if (i == index)
-              maps[i].showMap();
-            else
-              maps[i].hideMap();
-
+          if (options.onChange)
+          	options.onChange.call(this, element, index);
+          	
+          if (selectedMap === maps[index])
+          	return;
+          
+          selectedMap.hideMap();
+         
+          // On demand map creation
+          if (!maps[index])
+          	maps[index] = new createOneMap(mapContainer, options, mapData[index], true);
+          
           selectedMap = maps[index];
+          selectedMap.showMap();
         }
       });
 
       var timelineHeight = wesCountry.getFullHeight(timelineContainer);
       mapContainerHeight -= timelineHeight;
     }
+    else if (options.onChange)
+    	options.onChange.call(this, times.length == 1 ? times[0] : null, 0);
 
-    mapContainer.style.height = mapContainerHeight + 'px';
+    mapContainer.style.minHeight = mapContainerHeight + 'px';
 
     var last = times.length - 1;
+    var mapData = [];
 
     for (var i = 0; i < times.length; i++) {
       var time = times[i];
       var list = countryList[time];
+      
+      mapData.push(list);
+      
+      // Only visible map is created, the rest is created on demand
+      if (i < last) {
+      	maps.push(null);
+      	continue;
+      }
 
       var map = new createOneMap(mapContainer, options, list, i == last);
       maps.push(map);
     }
 
-    var selectedMap = maps[0];
+    var selectedMap = maps[last];
 
     //this.render = function() {
     //  return selectedMap.render();
@@ -117,15 +135,25 @@ wesCountry.maps = new (function() {
       for (var i = 0; i < maps.length; i++)
         maps[i].zoomToCountry(countryCode);
     }
+    
+    this.visor = function() {
+    	return selectedMap.visor();
+    }
 
     return this;
   }
 
   function groupCountriesByTime(options) {
     var countries = options.countries;
-
-    var times = ["-"];
-    var groupedCountries = { "-": [] };
+	
+	if (countries.length == 0)
+		return {
+			times: ["-"],
+			countries: { "-": [] }
+		};
+	
+    var times = [];
+    var groupedCountries = {};
 
     for (var i = 0; i < countries.length; i++) {
       var country = countries[i];
@@ -393,7 +421,7 @@ wesCountry.maps = new (function() {
 
       var text = document.createElementNS(namespace, 'text');
       text.setAttribute('x', containerParent.offsetWidth - 4);
-      text.setAttribute('y', containerParent.offsetHeight - 4);
+      text.setAttribute('y', containerParent.offsetHeight - 8);
       text.setAttribute('style', 'fill:#aaa;font-family:Helvetica;font-size:10px;text-anchor: end;dominant-baseline: edge');
       text.textContent = wesCountry.signature.value;
       a.appendChild(text);
