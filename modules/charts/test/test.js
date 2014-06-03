@@ -71,6 +71,8 @@ function generateCharts(options) {
 			"font-family": "'Kite One', sans-serif",
 			"font-size": "14px"
 		},
+		sizeByValue: true,
+		serieColours: ["rgba(1, 169, 219, 0.7)", "rgba(220, 0, 154, 0.7)"],
 		series: [{
             name: "Primero",
             values: [[161.2, 51.6], [167.5, 59.0], [159.5, 49.2], [157.0, 63.0], [155.8, 53.6],
