@@ -142,8 +142,12 @@ wesCountry.charts.polarChart = function(options) {
 			for (j = 0; j < numberOfVertices; j++) {
 				var value = options.series[i].values[j];
 
-				if (!value)
-					value = 0;
+				if (!value) {
+					polygonVertices[i].push(null);
+
+					continue;
+				}
+					//value = 0;
 
 				if (value < 0) {
 					//var total = maxValue - minValue;
@@ -215,15 +219,25 @@ wesCountry.charts.polarChart = function(options) {
 		for (var i = 0; i < length; i++) {
 			var lineId = "l" + wesCountry.charts.guid();
 
-            var pathD = "";
+      var pathD = "";
+
+			var lastNotNull = numberOfVertices - 1;
+
+			while (!polygonVertices[i][lastNotNull] && lastNotNull > 0)
+				lastNotNull--;
+
+			var vertexPrev = polygonVertices[i][lastNotNull];
 
 			for (var j = 0; j < numberOfVertices; j++) {
 				var vertex = polygonVertices[i][j];
-				var vertexPrev = j == 0 ? polygonVertices[i][numberOfVertices - 1] : polygonVertices[i][j - 1];
+
 				var value = options.series[i].values[j];
 				var id = options.series[i].id;
 				var serie = options.series[i].name;
 				var pos = options.xAxis.values[j];
+
+				if (!vertex)
+					continue;
 
 				if (options.vertex.show) {
 					g.circle({
@@ -247,20 +261,27 @@ wesCountry.charts.polarChart = function(options) {
 			  		"class": lineId
 			  	}).style(String.format("stroke: {0};", options.serieColours[i % options.serieColours.length]));
 
-                pathD += String.format("{0}{1} {2}", j == 0 ? "M" : "L", vertex.x, vertex.y);
+        pathD += String.format("{0}{1} {2}", pathD == "" ? "M" : "L", vertex.x, vertex.y);
+
+				vertexPrev = vertex;
 			}
 
-            if (length > 0) {
-              var vertex = polygonVertices[i][0];
+			if (pathD != "") {
+				var firstNotNull = 0;
 
-							if (vertex) {
-                pathD += String.format(" L{0} {1} Z", vertex.x, vertex.y);
+				while (!polygonVertices[i][firstNotNull] && firstNotNull < numberOfVertices - 1)
+					firstNotNull++;
 
-                g.path({
-                    d: pathD
-                }).style(String.format("stroke: {0}; fill: {0}; opacity: 0.5", options.serieColours[i % options.serieColours.length]));
-							}
-            }
+	      var vertex = polygonVertices[i][firstNotNull];
+
+				if (vertex) {
+	        pathD += String.format(" L{0} {1} Z", vertex.x, vertex.y);
+
+	        g.path({
+	            d: pathD
+	        }).style(String.format("stroke: {0}; fill: {0}; opacity: 0.5", options.serieColours[i % options.serieColours.length]));
+				}
+			}
 		}
 
 		// Legend

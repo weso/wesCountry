@@ -1,10 +1,12 @@
 body {
-	font-family: "Kite One";
+	font-family: 'Roboto', sans-serif;
+	font-weight: 300;
 	padding: 1em;
 }
 
 h1 {
 	margin: 0 0 1em 0;
+	font-weight: 300;
 }
 
 /* Divs */
@@ -34,14 +36,22 @@ nav ul li {
 
 nav a {
 	cursor: pointer;
+	display: inline-block;
+	padding: 0.2em 0.5em;
+	border-radius: 0.8em;
 }
 
 nav a.active {
 	color: #333;
+	border: 0.1em solid #888;
 }
 
 nav a.inactive {
 	color: #aaa;
+}
+
+nav a.inactive:hover {
+	background-color: #ccc;
 }
 
 nav a.inactive:hover {

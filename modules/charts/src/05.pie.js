@@ -41,7 +41,7 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 
 		var numberOfPies = sizes.maxValueLength;
 
-		if (numberOfPies == 1) {
+		if (numberOfPies <= 1) {
 			var radius = Math.min(sizes.innerWidth - 2 * sizes.yAxisMargin, sizes.innerHeight - 2 * sizes.xAxisMargin) / 2;
 			var startX = sizes.marginLeft + sizes.innerWidth / 2;
 			var startY = sizes.marginTop + sizes.innerHeight / 2;
@@ -170,8 +170,8 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 				angles[j] = value;
 		    }
 
-		    if (numberOfGreaterThanZero == 1) {
-		    	var colour = "";
+		    if (numberOfGreaterThanZero <= 1) {
+		    	var colour = options.backColour;
 		    	var serie = "";
 		    	var value = "";
 		    	var pos = "";

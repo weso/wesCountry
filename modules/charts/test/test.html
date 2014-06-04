@@ -12,8 +12,10 @@
 		<script src="../src/06.polar.js"></script>
 		<script src="../src/07.scatter.js"></script>
 		<script src="../src/08.multi.js"></script>
+		<script src="../src/09.stacked.js"></script>
+		<script src="../src/10.ranking.js"></script>
 		<script src="test.js"></script>
-		<link href='http://fonts.googleapis.com/css?family=Kite+One' rel='stylesheet' type='text/css'>
+		<link href='http://fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="test.css" type="text/css" media="screen"></link>
 	<head>
 	<body>
@@ -22,19 +24,23 @@
 			<ul>
 				<li><a id="lineA" class="inactive">Line</a></li>
 				<li><a id="areaA" class="inactive">Area</a></li>
-				<li><a id="barA" class="active">Bar</a></li>
+				<li><a id="barA" class="inactive">Bar</a></li>
+				<li><a id="stackedA" class="inactive">Stacked</a></li>
 				<li><a id="pieA" class="inactive">Pie</a></li>
 				<li><a id="donutA" class="inactive">Donut</a></li>
 				<li><a id="polarA" class="inactive">Polar</a></li>
 				<li><a id="scatterA" class="inactive">Scatter</a></li>
+				<li><a id="rankingA" class="active">Ranking</a></li>
 			</ul>
 		</nav>
 		<div id="lineDiv" class="invisible"></div>
 		<div id="areaDiv" class="invisible"></div>
-		<div id="barDiv" class="visible"></div>
+		<div id="barDiv" class="invisible"></div>
+		<div id="stackedDiv" class="invisible"></div>
 		<div id="pieDiv" class="invisible"></div>
 		<div id="donutDiv" class="invisible"></div>
 		<div id="polarDiv" class="invisible"></div>
 		<div id="scatterDiv" class="invisible"></div>
+		<div id="rankingDiv" class="visible"></div>
 	</body>
 </html>

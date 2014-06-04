@@ -32,14 +32,15 @@ wesCountry.charts = new (function() {
 		backgroundColour: "none",
 		serieColours: ["#FCD271", "#FA5882", "#2BBBD8", "#102E37"],
 		overColour: "#333",
+		backColour: "#eee", // Pie
 		groupMargin: 4,
 		barMargin: 8,
 		sortSeries: false,
 		valueOnItem: {
 			show: true,
-			margin: 5,
+			margin: 2.5,
 			"font-family": "Helvetica",
-			"font-colour": "#aaa",
+			"font-colour": "#555",
 			"font-size": "16px",
 		},
 		sizeByValue: false,
@@ -360,9 +361,8 @@ wesCountry.charts = new (function() {
 			}
 		}
 
-		if (options.yAxis["from-zero"] == true && minValue > 0)
+		if (options.yAxis["from-zero"] === true && minValue > 0)
 			minValue = 0;
-
 
 		var maxAndMinValues = this.getNearestNumber(minValue, maxValue);
 

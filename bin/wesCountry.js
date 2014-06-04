@@ -683,21 +683,45 @@ wesCountry.charts = new (function() {
 		foot: "",
 		width: 600,
 		height: 400,
-        chartType: "bar",
-        container: "body",
+    chartType: "bar",
+    container: "body",
 		margins: [10, 20, 10, 5],
 		backgroundColour: "none",
 		serieColours: ["#FCD271", "#FA5882", "#2BBBD8", "#102E37"],
 		overColour: "#333",
+		backColour: "#eee", // Pie
 		groupMargin: 4,
 		barMargin: 8,
 		sortSeries: false,
 		valueOnItem: {
 			show: true,
-			margin: 5,
+			margin: 2.5,
 			"font-family": "Helvetica",
-			"font-colour": "#aaa",
+			"font-colour": "#555",
 			"font-size": "16px",
+		},
+		sizeByValue: false,
+		sizeByValueMaxRadius: 5,
+		sizeByValueMinRadius: 1,
+		mean: {
+			show: false,
+			stroke: 2,
+			colour: "#333",
+			margin: 3,
+			text: "mean: ",
+			"font-family": "Helvetica",
+			"font-colour": "#333",
+			"font-size": "12px",
+		},
+		median: {
+			show: false,
+			stroke: 2,
+			colour: "#333",
+			margin: 3,
+			text: "median: ",
+			"font-family": "Helvetica",
+			"font-colour": "#333",
+			"font-size": "12px",
 		},
 		xAxis: {
 			title: "Months",
@@ -721,58 +745,58 @@ wesCountry.charts = new (function() {
 		},
 		series: [{
 			id: "1",
-            name: "First",
-            values: [-1, 4, 5, 3, 6],
-            urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
-        }, {
-        	id: "2",
-            name: "Second",
-            values: [1, 7, 5, 6, 4],
-            urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
-        }, {
-        	id: "3",
-        	name: "Third",
-        	values: [0, 1, 2, 3, 4],
-        	urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
-        }],
-        legend: {
-	        show: true,
-	        itemSize: 1,
-	        "font-colour": "#666",
+      name: "First",
+      values: [-1, 4, 5, 3, 6],
+      urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
+    	}, {
+      id: "2",
+      name: "Second",
+      values: [1, 7, 5, 6, 4],
+      urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
+      }, {
+    	id: "3",
+      name: "Third",
+      values: [0, 1, 2, 3, 4],
+      urls: ["http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es", "http://www.google.es"]
+    }],
+    legend: {
+	    show: true,
+	    itemSize: 1,
+	    "font-colour": "#666",
 			"font-family": "Helvetica",
 			"font-size": "16px"
-        },
-        tooltip: {
-	        show: true,
-	        style: {
-			    display: "none",
-			    padding: "0.8em 0.5em",
-			    "font-size": "12px",
-			    border: "0.1em solid #ccc",
-			    "background-color": "#fff",
-			    position: "absolute",
-			    color: "#000",
-	        }
-        },
-        events: {
-	        "onmouseover": function(info) {
-		    	var text = String.format("Series '{0}': ({1}, {2})", info.serie, info.pos, info.value);
-		    	console.log(text);
-		    	wesCountry.charts.showTooltip(text);
-	        },
-	        "onmouseout": function() {
-	        	wesCountry.charts.hideTooltip();
-	        },
-	        "onclick": function() {
+    },
+    tooltip: {
+	    show: true,
+	    style: {
+			  display: "none",
+			  padding: "0.8em 0.5em",
+			  "font-size": "12px",
+			  border: "0.1em solid #ccc",
+			  "background-color": "#fff",
+			  position: "absolute",
+			  color: "#000",
+	    }
+    },
+    events: {
+	    "onmouseover": function(info) {
+		    var text = String.format("Series '{0}': ({1}, {2})", info.serie, info.pos, info.value);
+		    console.log(text);
+		    wesCountry.charts.showTooltip(text);
+	    },
+	    "onmouseout": function() {
+	      wesCountry.charts.hideTooltip();
+	    },
+	    "onclick": function() {
 
-	        }
-        },
-        vertex: {
-        	show: true
-        },
-        stroke: {
-        	width: 1
-        }
+	    }
+    },
+    vertex: {
+      show: true
+    },
+    stroke: {
+      width: 1
+    }
 	};
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -994,9 +1018,8 @@ wesCountry.charts = new (function() {
 			}
 		}
 
-		if (options.yAxis["from-zero"] == true && minValue > 0)
+		if (options.yAxis["from-zero"] === true && minValue > 0)
 			minValue = 0;
-
 
 		var maxAndMinValues = this.getNearestNumber(minValue, maxValue);
 
@@ -1123,48 +1146,50 @@ wesCountry.charts = new (function() {
 ////////////////////////////////////////////////////////////////////////////////
 //                                  BAR CHART
 ////////////////////////////////////////////////////////////////////////////////
-	
+
 wesCountry.charts.barChart = function(options) {
 	return renderChart();
 
 	function renderChart() {
 		// Options and default options
-		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 		options.yAxis["from-zero"] = true;
-		
+
 		if (options.sortSeries)
 			options.series = wesCountry.charts.sortSeries(options.series);
-		
+
 		// SVG creation
 		var svg = wesCountry.charts.getSVG(options);
-		
+
 		// Size and margins (%)
 		var sizes = getSizes(svg, options);
-		
+
 		var g = svg.g();
 
 		// Background
-	
-		wesCountry.charts.setBackground(g, sizes, options); 		
-				
-		// X Axis & Y Axis		
+
+		wesCountry.charts.setBackground(g, sizes, options);
+
+		// X Axis & Y Axis
 		wesCountry.charts.setAxisY(g, sizes, options);
 		wesCountry.charts.setAxisX(g, sizes, options);
-		
+
 		// Values
 		var length = sizes.maxValueLength;
 		var numberOfSeries = options.series.length;
-		
-		var barMargin = options.barMargin * sizes.xTickWidth / 100;	
+
+		var barMargin = options.barMargin * sizes.xTickWidth / 100;
 		var groupMargin = options.groupMargin * sizes.xTickWidth / 100;
-		
+
 		var barWidth = sizes.barWidth;
 
 		var maxHeight = sizes.innerHeight - sizes.xAxisMargin;
 		var minValuePos = sizes.minValue / (sizes.maxValue - sizes.minValue) * maxHeight;
-	
+
 		// Values
-		
+
+		var valueList = [];
+
 		for (var i = 0; i < length; i++) {
 			for (var j = 0; j < numberOfSeries; j++) {
 				var serie = options.series[j].name;
@@ -1172,28 +1197,21 @@ wesCountry.charts.barChart = function(options) {
 				var value = options.series[j].values[i];
 				var url = options.series[j].urls ? options.series[j].urls[i] : "";
 				var pos = options.xAxis.values[j];
-				
+
 				if (!value)
 					value = 0;
-				
+
+				valueList.push(value);
+
 				var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin * (2 * i + 1) + sizes.barMargin
-						+ sizes.xTickWidth * i 
+						+ sizes.xTickWidth * i
 						+ (barWidth + 2 * sizes.barMargin) * j;
-						
-				if (value >= 0)	{
-					var yPos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
-							+ minValuePos
-							- (value / (sizes.maxValue - sizes.minValue)) 
-							* maxHeight;
-				}
-				else {
-					var yPos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
-							+ minValuePos
-				}
-						
-				var height = (Math.abs(value) / (sizes.maxValue - sizes.minValue)) 
+
+				var yPos = getYPos(value, sizes, minValuePos, maxHeight);
+
+				var height = (Math.abs(value) / (sizes.maxValue - sizes.minValue))
 						* maxHeight;
-					
+
 				var rectangleOptions = {
 					x: xPos,
 					y: yPos,
@@ -1203,68 +1221,68 @@ wesCountry.charts.barChart = function(options) {
 					serie: serie,
 					value: value,
 					pos: pos
-				};			
-				
+				};
+
 				var rectangleStyle = String.format("fill: {0}", options.serieColours[j]);
-			
+
 				// Events
-				
+
 				var selectBar = function(element) {
 					var selectedBars = document.querySelectorAll(options.container + ' rect[selected]');
-					
+
 					for (var i = 0; i < selectedBars.length; i++)
 						unselectBar(selectedBars[i]);
-					
+
 					element.colour = element.style.fill;
 					element.style.fill = options.overColour;
 					element.setAttribute("selected", "selected");
 				};
-				
+
 				var onmouseover = function() {
 					selectBar(this);
-					
+
 					options.events.onmouseover({
 						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"), 
-						pos: this.getAttribute("pos"), 
+						serie: this.getAttribute("serie"),
+						pos: this.getAttribute("pos"),
 						value: this.getAttribute("value")
 					});
 				};
-					
+
 				var unselectBar = function(element) {
 					element.style.fill = element.colour;
-				};					
-											
-				var onmouseout = function() { 
+				};
+
+				var onmouseout = function() {
 					unselectBar(this);
 					options.events.onmouseout({
 						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"), 
-						pos: this.getAttribute("pos"), 
+						serie: this.getAttribute("serie"),
+						pos: this.getAttribute("pos"),
 						value: this.getAttribute("value")
 					});
 				};
-				
-				var onclick = function() { 
+
+				var onclick = function() {
 					this.style.fill = this.colour;
 					options.events.onclick({
 						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"), 
-						pos: this.getAttribute("pos"), 
+						serie: this.getAttribute("serie"),
+						pos: this.getAttribute("pos"),
 						value: this.getAttribute("value")
 					});
 				};
-				
+
 				var r = null;
-				
+
 				if (url && url != "") {
 					var a = g.a({}, url ? url : "")
 					r = a.rectangle(rectangleOptions);
 				}
 				else {
 					r = g.rectangle(rectangleOptions);
-				}			
-				
+				}
+
 				r.style(rectangleStyle).className(serie)
 					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
 					.event("selectBar", function() {
@@ -1272,33 +1290,126 @@ wesCountry.charts.barChart = function(options) {
 					}).event("unselectBar", function() {
 						unselectBar(this);
 					});
-			
+
 				// Value on bar
 				if (options.valueOnItem.show == true) {
 					g.text({
 						x: xPos + barWidth / 2,
 						y: yPos - (options.height / 100) * options.valueOnItem.margin,
 						value: value.toFixed(2)
-					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle", 
+					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
 						options.valueOnItem["font-size"]));
 				}
 			}
 		}
-		
+
+		var statistics = getStatistics(valueList);
+
+		// Show mean
+		var side = statistics.mean - statistics.median >= 0 ? 1 : -1
+
+		showStatistics(g, statistics.mean, options.mean,
+			side , sizes, minValuePos, maxHeight);
+
+		// Show median
+		var side = statistics.mean - statistics.median >= 0 ? -1 : 1
+		side = statistics.mean == statistics.median ? -1 : side;
+
+		showStatistics(g, statistics.median, options.median,
+			side, sizes, minValuePos, maxHeight);
+
 		// Legend
 		if (options.legend.show)
 			wesCountry.charts.showLegend(g, sizes, options);
-		
+
 		// Tooltip
-		wesCountry.charts.createTooltip(options);			
-			
+		wesCountry.charts.createTooltip(options);
+
 		return svg;
 	}
-	
+
+	function getYPos(value, sizes, minValuePos, maxHeight) {
+		if (value >= 0)	{
+			return sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
+					+ minValuePos
+					- (value / (sizes.maxValue - sizes.minValue))
+					* maxHeight;
+		}
+		else {
+			return sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
+					+ minValuePos
+		}
+	}
+
+	function showStatistics(container, value, option, textSide, sizes, minValuePos, maxHeight) {
+		if (option.show !== true)
+			return;
+
+		var posY = getYPos(value, sizes, minValuePos, maxHeight);
+
+		var x1 = sizes.marginLeft + sizes.yAxisMargin;
+		var x2 = sizes.marginLeft + sizes.innerWidth;
+
+		container.line({
+			x1: x1,
+			x2: x2,
+			y1: posY,
+			y2: posY,
+			"stroke-width": option.stroke
+		}).style(String.format("stroke: {0}", option.colour))
+		.className("statistics");
+
+		var sign = textSide >= 0 ? 1 : -1;
+
+		container.text({
+			x: x2,
+			y: posY - sign * (options.height / 100) * option.margin,
+			value: String.format("{0}{1}", option.text, value.toFixed(2))
+		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor:end;dominant-baseline: middle",
+			option["font-colour"],
+			option["font-family"],
+			option["font-size"]));
+	}
+
+	function getStatistics(values) {
+		if (values == 0)
+			return {
+				median: 0,
+				mean: 0
+			}
+
+		// Median
+		values.sort(function(a,b) { return a - b; });
+
+    var half = Math.floor(values.length / 2);
+		var median = 0;
+
+    if(values.length % 2)
+        median = values[half];
+    else
+        median = (values[half - 1] + values[half]) / 2.0;
+
+		// Mean
+		var sum = 0;
+
+		var length = values.length;
+
+		for(var i = 0; i < length; i++) {
+		    sum += values[i];
+		}
+
+		var mean = sum / length;
+
+		return {
+			median: median,
+			mean: mean
+		}
+	}
+
 	function getSizes(svg, options) {
-		var width = svg.width(); 
+		var width = svg.width();
 		var height = svg.height();
 		var marginTop = height * options.margins[0] / 100;
 		var marginRight = width * options.margins[1] / 100;
@@ -1308,24 +1419,30 @@ wesCountry.charts.barChart = function(options) {
 		var xAxisMargin = options.xAxis.margin * height / 100;
 		var innerWidth = width - marginLeft - marginRight;
 		var innerHeight = height - marginTop - marginBottom;
-		
+
 		// Max value & min value
 		var maxAndMinValues = wesCountry.charts.getMaxAndMinValuesAxisY(options);
 		var maxValue = maxAndMinValues.max;
 		var minValue = maxAndMinValues.min > 0 ? 0 : maxAndMinValues.min;
-		var maxValueLength = maxAndMinValues.valueLength; 	
-		
+		var maxValueLength = maxAndMinValues.valueLength;
+
+		// If max and min Value are the same we set difference
+		if (minValue == maxValue) {
+			minValue = minValue >= 0 ? 0 : minValue - 2;
+			maxValue += 2;
+		}
+
 		var ticksY = (maxValue - minValue) / maxAndMinValues.inc;
 		var yTickHeight = ticksY != 0 ? (innerHeight - xAxisMargin) / ticksY : 0;
-		var xTickWidth = (innerWidth - yAxisMargin) / maxAndMinValues.valueLength;		
-		
-		var groupMargin = options.groupMargin * xTickWidth / 100;	
+		var xTickWidth = maxAndMinValues.valueLength != 0 ? (innerWidth - yAxisMargin) / maxAndMinValues.valueLength : 0;
+
+		var groupMargin = options.groupMargin * xTickWidth / 100;
 		xTickWidth -= 2 * groupMargin;
-			
-		var barWidth = xTickWidth / options.series.length;	
-		var barMargin = options.barMargin * barWidth / 100;	
-		barWidth -= 2 * barMargin;			
-				
+
+		var barWidth = xTickWidth / options.series.length;
+		var barMargin = options.barMargin * barWidth / 100;
+		barWidth -= 2 * barMargin;
+
 		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
 
 		var legendItemSize = options.legend.itemSize * width / 100;
@@ -1337,138 +1454,139 @@ wesCountry.charts.barChart = function(options) {
 			marginRight : marginRight,
 			marginBottom : marginBottom,
 			marginLeft : marginLeft,
-			
+
 			innerWidth : innerWidth,
 			innerHeight : innerHeight,
-			
+
 			yAxisMargin: yAxisMargin,
 			xAxisMargin: xAxisMargin,
-			
+
 			maxValue: maxValue,
 			minValue: minValue,
 			maxValueLength: maxValueLength,
-			
+
 			ticksY: ticksY,
 			yTickHeight: yTickHeight,
 			xTickWidth: xTickWidth,
 			valueInc: valueInc,
-			
+
 			barMargin: barMargin,
 			groupMargin: groupMargin,
 			barWidth: barWidth,
-			
+
 			legendItemSize: legendItemSize
 		};
-	}		
-};////////////////////////////////////////////////////////////////////////////////
+	}
+};
+////////////////////////////////////////////////////////////////////////////////
 //                                  LINE CHART
 ////////////////////////////////////////////////////////////////////////////////
-	
+
 wesCountry.charts.lineChart = function(options) {
 	return this.generateLineChart(options, false);
-}	
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                  AREA CHART
 ////////////////////////////////////////////////////////////////////////////////
-	
+
 wesCountry.charts.areaChart = function(options) {
 	return this.generateLineChart(options, true);
 }
-	
-// Auxiliary line fuction	
-	
+
+// Auxiliary line fuction
+
 wesCountry.charts.generateLineChart = function(options, area) {
 	return renderChart();
 
 	function renderChart() {
 		// Options and default options
-		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 
 		if (options.sortSeries)
 			options.series = wesCountry.charts.sortSeries(options.series);
-		
+
 		// SVG creation
 		var svg = wesCountry.charts.getSVG(options);
-		
+
 		// Size and margins (%)
 		var sizes = getSizes(svg, options);
-		
+
 		var g = svg.g();
-	
+
 		// Background
-	
-		wesCountry.charts.setBackground(g, sizes, options); 
-				
-		// X Axis & Y Axis		
+
+		wesCountry.charts.setBackground(g, sizes, options);
+
+		// X Axis & Y Axis
 		wesCountry.charts.setAxisY(g, sizes, options);
 		wesCountry.charts.setAxisX(g, sizes, options);
-				
+
 		// Values
 		var length = options.series.length;
 		var valueLength = sizes.maxValueLength;
-	
+
 		var maxHeight = sizes.innerHeight - sizes.xAxisMargin;
 		var zeroPos = sizes.minValue / (sizes.maxValue - sizes.minValue) * maxHeight;
-		
+
 		// Iteration
 		for (var i = 0; i < length; i++) {
 			// Position of zero y line
 			var minValue = Math.max(0, sizes.minValue);
 			var posZero = getYPos(minValue, sizes, zeroPos, maxHeight);
-		
+
 			var lineId = "l" + wesCountry.charts.guid();
-			
+
 			// Previous value, it could be null
 			var valuePrevAux = null;
 			// Previous non-null value position
 			var valuePrevPos = 0;
-			
+
 			var serieGroup = g.g();
 			serieGroup.className('serie_' + options.series[i].name);
-			
+
 			// Polygon path
 			var pathD = "";
 			if (area) {
 				var path = serieGroup.path();
-			}			
-			
+			}
+
 			var firstValue = -1;
-			
+
 			for (var j = 0; j < valueLength; j++) {
 				var value = options.series[i].values[j];
 				var valuePrev = j > 0 ? options.series[i].values[j - 1] : 0;
-				
+
 				var url = options.series[i].urls ? options.series[i].urls[j] : "";
-				
+
 				var id = options.series[i].id;
 				var serie = options.series[i].name;
 				var pos = options.xAxis.values[j];
-			
+
 				if (!value)
 					continue;
-					
+
 				firstValue++;
-					
-				// If previous value is null we rescue the last non-null value	
-				
+
+				// If previous value is null we rescue the last non-null value
+
 				if (!valuePrev)
 					valuePrev = valuePrevAux;
-				
+
 				// We store this as the new previous value
 				valuePrevAux = value;
-				
+
 				var xPos = getXPos(j, sizes, zeroPos);
 				var yPos = getYPos(value, sizes, zeroPos, maxHeight);
-				
+
 				if (valuePrev) {
-					var xPosPrev = getXPos(valuePrevPos, sizes, zeroPos);	
+					var xPosPrev = getXPos(valuePrevPos, sizes, zeroPos);
 					var yPosPrev = getYPos(valuePrev, sizes, zeroPos, maxHeight);
 				}
-				
+
 				// We store this as the new previous value position
 				valuePrevPos = j;
-				
+
 				var pointOptions = {
 					cx: xPos,
 					cy: yPos,
@@ -1479,52 +1597,52 @@ wesCountry.charts.generateLineChart = function(options, area) {
 					value: value,
 					pos: pos
 				};
-				
+
 				var pointStyle = String.format("fill: {0}", options.serieColours[i % options.serieColours.length]);
-				
+
 				var setLineWidth = function(element, stroke) {
 					var className = element.getAttribute("class");
 					var lines = element.parentNode.querySelectorAll("line." + className);
 					var length = lines.length;
-				
+
 					for (var k = 0; k < length; k++) {
 						lines[k].setAttribute("stroke-width", stroke)
-					}	
+					}
 				};
-				
-				var onmouseover = function() { 
+
+				var onmouseover = function() {
 					this.setAttribute("r", 8);
 					setLineWidth(this, 2);
 					options.events.onmouseover({
 						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"), 
-						pos: this.getAttribute("pos"), 
+						serie: this.getAttribute("serie"),
+						pos: this.getAttribute("pos"),
 						value: this.getAttribute("value")
 					});
 				};
-											
-				var onmouseout = function() { 
-					this.setAttribute("r", 5); 
+
+				var onmouseout = function() {
+					this.setAttribute("r", 5);
 					setLineWidth(this, 1);
 					options.events.onmouseout({
 						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"), 
-						pos: this.getAttribute("pos"), 
+						serie: this.getAttribute("serie"),
+						pos: this.getAttribute("pos"),
 						value: this.getAttribute("value")
 					});
 				};
-				
-				var onclick = function() { 
-					this.setAttribute("r", 5); 
+
+				var onclick = function() {
+					this.setAttribute("r", 5);
 					setLineWidth(this, 1);
 					options.events.onclick({
 						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"), 
-						pos: this.getAttribute("pos"), 
+						serie: this.getAttribute("serie"),
+						pos: this.getAttribute("pos"),
 						value: this.getAttribute("value")
 					});
 				};
-				
+
 				if (options.vertex.show) {
 					if (url && url != "") {
 						var a = serieGroup.a({}, url ? url : "")
@@ -1536,20 +1654,20 @@ wesCountry.charts.generateLineChart = function(options, area) {
 						.style(pointStyle).event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 					}
 				}
-							
-				// Value on bar		
+
+				// Value on bar
 				if (options.valueOnItem.show == true) {
 					serieGroup.text({
 						x: xPos,
 						y: yPos - (options.height / 100) * options.valueOnItem.margin,
 						value: value == 0 ? "0" : value.toFixed(2)
-					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle", 
+					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
 						options.valueOnItem["font-size"])
 					);
-				}	
-		
+				}
+
 				if (firstValue > 0) {
 					if (valuePrev) {
 						serieGroup.line({
@@ -1562,47 +1680,51 @@ wesCountry.charts.generateLineChart = function(options, area) {
 						}).style(String.format("stroke: {0}", options.serieColours[i % options.serieColours.length]))
 						.event("onmouseover", function() { setLineWidth(this, options.stroke.width * 1.5); })
 						.event("onmouseout", function() { setLineWidth(this, options.stroke.width); });
-				
+
 						pathD += String.format(" L{0} {1}", xPos, yPos);
 					}
 				}
 				else {
 					pathD = String.format("M{0} {1} L{2} {3}", xPos, posZero, xPos, yPos);
 				}
-				
+
 			}
-			
-			pathD += String.format(" L{0} {1} Z", xPos, posZero);
-			if (area) {
-				path.attribute(null, "d", pathD)
-				.style(String.format("stroke: {0}; fill: {0}; opacity: 0.5", options.serieColours[i % options.serieColours.length]));
+
+			if (pathD != "") {
+				if (xPos)
+					pathD += String.format(" L{0} {1} Z", xPos, posZero);
+
+				if (area && pathD != "") {
+					path.attribute(null, "d", pathD)
+					.style(String.format("stroke: {0}; fill: {0}; opacity: 0.5", options.serieColours[i % options.serieColours.length]));
+				}
 			}
 		}
 
 		// Legend
 		if (options.legend.show)
 			wesCountry.charts.showLegend(g, sizes, options);
-			
+
 		// Tooltip
-		wesCountry.charts.createTooltip(options);				
-			
+		wesCountry.charts.createTooltip(options);
+
 		return svg;
 	}
-	
+
 	function getXPos(pos, sizes, zeroPos) {
-		return sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin 
+		return sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin
 				+ sizes.xTickWidth / 2 + (sizes.xTickWidth + 2 * sizes.groupMargin) * pos;
 	};
-	
+
 	function getYPos(value, sizes, zeroPos, maxHeight) {
 		return sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
 			+ zeroPos
-			- (value / (sizes.maxValue - sizes.minValue)) 
+			- (value / (sizes.maxValue - sizes.minValue))
 			* maxHeight;
 	};
-	
+
 	function getSizes(svg, options) {
-		var width = svg.width(); 
+		var width = svg.width();
 		var height = svg.height();
 		var marginTop = height * options.margins[0] / 100;
 		var marginRight = width * options.margins[1] / 100;
@@ -1612,30 +1734,30 @@ wesCountry.charts.generateLineChart = function(options, area) {
 		var xAxisMargin = options.xAxis.margin * height / 100;
 		var innerWidth = width - marginLeft - marginRight;
 		var innerHeight = height - marginTop - marginBottom;
-		
+
 		// Max value & min value
 		var maxAndMinValues = wesCountry.charts.getMaxAndMinValuesAxisY(options);
 		var maxValue = maxAndMinValues.max;
 		var minValue = maxAndMinValues.min;
-		var maxValueLength = maxAndMinValues.valueLength; 	
-		
+		var maxValueLength = maxAndMinValues.valueLength;
+
 		// If max and min Value are the same we set difference
 		if (minValue == maxValue) {
 			minValue = minValue >= 0 ? 0 : minValue - 2;
 			maxValue += 2;
 		}
-		
+
 		var ticksY = (maxValue - minValue) / maxAndMinValues.inc;
 		var yTickHeight = ticksY != 0 ? (innerHeight - xAxisMargin) / ticksY : 0;
-		var xTickWidth = (innerWidth - yAxisMargin) / maxAndMinValues.valueLength;		
-		
-		var groupMargin = options.groupMargin * xTickWidth / 100;	
+		var xTickWidth = maxAndMinValues.valueLength != 0 ? (innerWidth - yAxisMargin) / maxAndMinValues.valueLength : 0;
+
+		var groupMargin = options.groupMargin * xTickWidth / 100;
 		xTickWidth -= 2 * groupMargin;
-			
-		var barWidth = xTickWidth / options.series.length;	
-		var barMargin = options.barMargin * barWidth / 100;	
-		barWidth -= 2 * barMargin;			
-				
+
+		var barWidth = xTickWidth / options.series.length;
+		var barMargin = options.barMargin * barWidth / 100;
+		barWidth -= 2 * barMargin;
+
 		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
 
 		var legendItemSize = options.legend.itemSize * width / 100;
@@ -1647,30 +1769,31 @@ wesCountry.charts.generateLineChart = function(options, area) {
 			marginRight : marginRight,
 			marginBottom : marginBottom,
 			marginLeft : marginLeft,
-			
+
 			innerWidth : innerWidth,
 			innerHeight : innerHeight,
-			
+
 			yAxisMargin: yAxisMargin,
 			xAxisMargin: xAxisMargin,
-			
+
 			maxValue: maxValue,
 			minValue: minValue,
 			maxValueLength: maxValueLength,
-			
+
 			ticksY: ticksY,
 			yTickHeight: yTickHeight,
 			xTickWidth: xTickWidth,
 			valueInc: valueInc,
-			
+
 			barMargin: barMargin,
 			groupMargin: groupMargin,
 			barWidth: barWidth,
-			
+
 			legendItemSize: legendItemSize
 		};
 	}
-};////////////////////////////////////////////////////////////////////////////////
+};
+////////////////////////////////////////////////////////////////////////////////
 //                                   PIE CHART
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1713,7 +1836,7 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 
 		var numberOfPies = sizes.maxValueLength;
 
-		if (numberOfPies == 1) {
+		if (numberOfPies <= 1) {
 			var radius = Math.min(sizes.innerWidth - 2 * sizes.yAxisMargin, sizes.innerHeight - 2 * sizes.xAxisMargin) / 2;
 			var startX = sizes.marginLeft + sizes.innerWidth / 2;
 			var startY = sizes.marginTop + sizes.innerHeight / 2;
@@ -1842,8 +1965,8 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 				angles[j] = value;
 		    }
 
-		    if (numberOfGreaterThanZero == 1) {
-		    	var colour = "";
+		    if (numberOfGreaterThanZero <= 1) {
+		    	var colour = options.backColour;
 		    	var serie = "";
 		    	var value = "";
 		    	var pos = "";
@@ -1992,7 +2115,7 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 
 		var ticksY = (maxValue - minValue) / maxAndMinValues.inc;
 		var yTickHeight = ticksY != 0 ? (innerHeight - xAxisMargin) / ticksY : 0;
-		var xTickWidth = (innerWidth - yAxisMargin) / maxAndMinValues.valueLength;
+		var xTickWidth = maxAndMinValues.valueLength != 0 ? (innerWidth - yAxisMargin) / maxAndMinValues.valueLength : 0;
 
 		var groupMargin = options.groupMargin * xTickWidth / 100;
 		xTickWidth -= 2 * groupMargin;
@@ -2039,49 +2162,49 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 ////////////////////////////////////////////////////////////////////////////////
 //                                  POLAR CHART
 ////////////////////////////////////////////////////////////////////////////////
-	
+
 wesCountry.charts.polarChart = function(options) {
 	return renderChart();
 
 	function renderChart() {
 		// Options and default options
-		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);				
-		
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+
 		// SVG creation
 		var svg = wesCountry.charts.getSVG(options);
-		
+
 		// Size and margins (%)
 		var sizes = getSizes(svg, options);
-		
+
 		var g = svg.g();
 
 		// Background
-	
+
 		wesCountry.charts.setBackground(g, sizes, options);
-		
+
 		// Axis
-		
+
 		var radius = Math.min(sizes.innerWidth - 2 * sizes.yAxisMargin, sizes.innerHeight - 2 * sizes.xAxisMargin) / 2;
-		var numberOfVertices = sizes.maxValueLength; 
+		var numberOfVertices = sizes.maxValueLength;
 		var cx = sizes.width / 2;
 		var cy = sizes.height / 2;
 
 		// Vertex calculation
-		
+
 		var vertices = [];
-		
+
 		for (var i = 0; i < numberOfVertices; i++) {
 			vertices.push({
 				x: cx + radius * Math.cos((2 * Math.PI * i) / numberOfVertices - Math.PI / 2),
 				y: cy + radius * Math.sin((2 * Math.PI * i) / numberOfVertices - Math.PI / 2)
 			});
 		}
-		
+
 		// Radius
-		
+
 		for (var i = 0; i < numberOfVertices; i++) {
 			var vertex = vertices[i];
-			
+
 		  	g.line({
 		  		x1: cx,
 		  		y1: cy,
@@ -2089,10 +2212,10 @@ wesCountry.charts.polarChart = function(options) {
 		  		y2: vertex.y
 		  	}).style(String.format("stroke: {0};", options.yAxis.tickColour));
 		}
-		
-		// Label 
-		
-		for (var i = 0; i < numberOfVertices; i++) {  	
+
+		// Label
+
+		for (var i = 0; i < numberOfVertices; i++) {
 			var x = cx + (radius + sizes.xAxisMargin / 2) * Math.cos((2 * Math.PI * i) / numberOfVertices - Math.PI / 2);
 			var y = cy + (radius + sizes.xAxisMargin / 2) * Math.sin((2 * Math.PI * i) / numberOfVertices - Math.PI / 2);
 
@@ -2102,60 +2225,60 @@ wesCountry.charts.polarChart = function(options) {
 				x: x,
 				y: y,
 				value: value
-			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle", 
+			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 				options.xAxis["font-colour"],
 				options.xAxis["font-family"],
 				options.xAxis["font-size"]));
 		}
-		
+
 		// Polygon sides
-		
+
 		var maxValue = sizes.maxValue;
 		var minValue = sizes.minValue;
-		
+
 		var pow = 5;
 		maxValue =  Math.ceil(maxValue / pow) * pow;
 		minValue =  Math.floor(minValue / pow) * pow;
-		
+
 		//var ticksY = maxValue - minValue;
-		
+
 		//var numberOfAxis = 5;
 		var ticksY = 5;
 		//maxValue = numberOfAxis.max;
 
 		var radiusInc = radius / ticksY;
 		var tickInc = (maxValue - minValue) / ticksY;
-		
+
 		for (var i = 0; i <= ticksY; i++) {
 			var polygonVertices = [];
 			var polygonRadius = radiusInc * i;
-		
+
 			// Label (Vertical Number)
-			
+
 			g.text({
 				x: cx - sizes.xAxisMargin / 2,
 				y: cy - polygonRadius,
 				value: minValue + i * tickInc
-			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle", 
+			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle",
 				options.yAxis["font-colour"],
 				options.yAxis["font-family"],
 				options.yAxis["font-size"]));
-		
+
 			// Polygon vertex calculation
-			
+
 			for (var j = 0; j < numberOfVertices; j++) {
 				polygonVertices.push({
 					x: cx + polygonRadius * Math.cos((2 * Math.PI * j) / numberOfVertices - Math.PI / 2),
 					y: cy + polygonRadius * Math.sin((2 * Math.PI * j) / numberOfVertices - Math.PI / 2)
 				});
 			}
-			
+
 			// Polygon side drawing
-			
-			for (var j = 0; j < numberOfVertices; j++) {	
+
+			for (var j = 0; j < numberOfVertices; j++) {
 				var vertex = polygonVertices[j];
 				var vertexPrev = j == 0 ? polygonVertices[numberOfVertices - 1] : polygonVertices[j - 1];
-				
+
 			  	g.line({
 			  		x1: vertexPrev.x,
 			  		y1: vertexPrev.y,
@@ -2164,105 +2287,119 @@ wesCountry.charts.polarChart = function(options) {
 			  	}).style(String.format("stroke: {0};", options.yAxis.tickColour));
 			}
 		}
-			
+
 		// Values
-		
+
 		var zeroRadius = Math.abs(minValue / (maxValue - minValue)) * radius;
 		var length = options.series.length;
 		var polygonVertices = [];
 
 		// Vertex calculation
-		
+
 		for (var i = 0; i < length; i++) {
-		
+
 			polygonVertices[i] = new Array();
-		
+
 			for (j = 0; j < numberOfVertices; j++) {
 				var value = options.series[i].values[j];
-				
-				if (!value)
-					value = 0;
-				
-				if (value < 0) { 
+
+				if (!value) {
+					polygonVertices[i].push(null);
+
+					continue;
+				}
+					//value = 0;
+
+				if (value < 0) {
 					//var total = maxValue - minValue;
 					//var amount = Math.abs(value) / total;
-					//var valueRadius = (amount * radius); 
+					//var valueRadius = (amount * radius);
 					var valueRadius = zeroRadius - Math.abs(value / minValue) * zeroRadius;
 				}
 				else {
 					var valueRadius = (value / maxValue) * (radius - zeroRadius) + zeroRadius;
 				}
-				
+
 				var x = cx + valueRadius * Math.cos((2 * Math.PI * j) / numberOfVertices - Math.PI / 2);
 				var y = cy + valueRadius * Math.sin((2 * Math.PI * j) / numberOfVertices - Math.PI / 2);
-					
+
 				polygonVertices[i].push({
 					x: x,
 					y: y
 				});
 			}
-		}	
-		
+		}
+
 		// Events
-		
+
 		var setLineWidth = function(element, stroke) {
 			var className = element.getAttribute("class");
 			var lines = element.parentNode.querySelectorAll("line." + className);
 			var length = lines.length;
-	
+
 			for (var k = 0; k < length; k++) {
 				lines[k].setAttribute("stroke-width", stroke)
-			}	
-		};			
-		
-		var onmouseover = function() { 
+			}
+		};
+
+		var onmouseover = function() {
 			this.setAttribute("r", 8);
 			setLineWidth(this, 2);
 			options.events.onmouseover({
 				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"), 
-				pos: this.getAttribute("pos"), 
+				serie: this.getAttribute("serie"),
+				pos: this.getAttribute("pos"),
 				value: this.getAttribute("value")
 			});
 		};
-									
-		var onmouseout = function() { 
-			this.setAttribute("r", 5); 
+
+		var onmouseout = function() {
+			this.setAttribute("r", 5);
 			setLineWidth(this, 1);
 			options.events.onmouseout({
 				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"), 
-				pos: this.getAttribute("pos"), 
+				serie: this.getAttribute("serie"),
+				pos: this.getAttribute("pos"),
 				value: this.getAttribute("value")
 			});
 		};
-		
-		var onclick = function() { 
-			this.setAttribute("r", 5); 
+
+		var onclick = function() {
+			this.setAttribute("r", 5);
 			setLineWidth(this, 1);
 			options.events.onclick({
 				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"), 
-				pos: this.getAttribute("pos"), 
+				serie: this.getAttribute("serie"),
+				pos: this.getAttribute("pos"),
 				value: this.getAttribute("value")
 			});
-		};			
-		
+		};
+
 		// Polygon drawing
-        
+
 		for (var i = 0; i < length; i++) {
 			var lineId = "l" + wesCountry.charts.guid();
-            
-            var pathD = "";
-        
+
+      var pathD = "";
+
+			var lastNotNull = numberOfVertices - 1;
+
+			while (!polygonVertices[i][lastNotNull] && lastNotNull > 0)
+				lastNotNull--;
+
+			var vertexPrev = polygonVertices[i][lastNotNull];
+
 			for (var j = 0; j < numberOfVertices; j++) {
 				var vertex = polygonVertices[i][j];
-				var vertexPrev = j == 0 ? polygonVertices[i][numberOfVertices - 1] : polygonVertices[i][j - 1];
+
 				var value = options.series[i].values[j];
 				var id = options.series[i].id;
 				var serie = options.series[i].name;
 				var pos = options.xAxis.values[j];
-			
+
+				if (!vertex)
+					continue;
+
 				if (options.vertex.show) {
 					g.circle({
 						cx: vertex.x,
@@ -2276,7 +2413,7 @@ wesCountry.charts.polarChart = function(options) {
 					}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]))
 					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 				}
-				
+
 				g.line({
 			  		x1: vertexPrev.x,
 			  		y1: vertexPrev.y,
@@ -2284,32 +2421,42 @@ wesCountry.charts.polarChart = function(options) {
 			  		y2: vertex.y,
 			  		"class": lineId
 			  	}).style(String.format("stroke: {0};", options.serieColours[i % options.serieColours.length]));
-                
-                pathD += String.format("{0}{1} {2}", j == 0 ? "M" : "L", vertex.x, vertex.y);
+
+        pathD += String.format("{0}{1} {2}", pathD == "" ? "M" : "L", vertex.x, vertex.y);
+
+				vertexPrev = vertex;
 			}
-            
-            if (length > 0) {
-                var vertex = polygonVertices[i][0];
-                pathD += String.format(" L{0} {1} Z", vertex.x, vertex.y);
-            
-                g.path({
-                    d: pathD
-                }).style(String.format("stroke: {0}; fill: {0}; opacity: 0.5", options.serieColours[i % options.serieColours.length]));
-            }
+
+			if (pathD != "") {
+				var firstNotNull = 0;
+
+				while (!polygonVertices[i][firstNotNull] && firstNotNull < numberOfVertices - 1)
+					firstNotNull++;
+
+	      var vertex = polygonVertices[i][firstNotNull];
+
+				if (vertex) {
+	        pathD += String.format(" L{0} {1} Z", vertex.x, vertex.y);
+
+	        g.path({
+	            d: pathD
+	        }).style(String.format("stroke: {0}; fill: {0}; opacity: 0.5", options.serieColours[i % options.serieColours.length]));
+				}
+			}
 		}
-	
+
 		// Legend
 		if (options.legend.show)
 			wesCountry.charts.showLegend(g, sizes, options);
-			
+
 		// Tooltip
-		wesCountry.charts.createTooltip(options);				
-			
+		wesCountry.charts.createTooltip(options);
+
 		return svg;
 	}
-	
+
 	function getSizes(svg, options) {
-		var width = svg.width(); 
+		var width = svg.width();
 		var height = svg.height();
 		var marginTop = height * options.margins[0] / 100;
 		var marginRight = width * options.margins[1] / 100;
@@ -2319,24 +2466,24 @@ wesCountry.charts.polarChart = function(options) {
 		var xAxisMargin = options.xAxis.margin * height / 100;
 		var innerWidth = width - marginLeft - marginRight;
 		var innerHeight = height - marginTop - marginBottom;
-		
+
 		// Max value & min value
 		var maxAndMinValues = wesCountry.charts.getMaxAndMinValuesAxisY(options);
 		var maxValue = maxAndMinValues.max;
 		var minValue = maxAndMinValues.min > 0 ? 0 : maxAndMinValues.min;
-		var maxValueLength = maxAndMinValues.valueLength; 	
-		
+		var maxValueLength = maxAndMinValues.valueLength;
+
 		var ticksY = (maxValue - minValue) / maxAndMinValues.inc;
 		var yTickHeight = ticksY != 0 ? (innerHeight - xAxisMargin) / ticksY : 0;
-		var xTickWidth = (innerWidth - yAxisMargin) / maxAndMinValues.valueLength;		
-		
-		var groupMargin = options.groupMargin * xTickWidth / 100;	
+		var xTickWidth = maxAndMinValues.valueLength != 0 ? (innerWidth - yAxisMargin) / maxAndMinValues.valueLength : 0;
+
+		var groupMargin = options.groupMargin * xTickWidth / 100;
 		xTickWidth -= 2 * groupMargin;
-			
-		var barWidth = xTickWidth / options.series.length;	
-		var barMargin = options.barMargin * barWidth / 100;	
-		barWidth -= 2 * barMargin;			
-				
+
+		var barWidth = xTickWidth / options.series.length;
+		var barMargin = options.barMargin * barWidth / 100;
+		barWidth -= 2 * barMargin;
+
 		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
 
 		var legendItemSize = options.legend.itemSize * width / 100;
@@ -2348,156 +2495,182 @@ wesCountry.charts.polarChart = function(options) {
 			marginRight : marginRight,
 			marginBottom : marginBottom,
 			marginLeft : marginLeft,
-			
+
 			innerWidth : innerWidth,
 			innerHeight : innerHeight,
-			
+
 			yAxisMargin: yAxisMargin,
 			xAxisMargin: xAxisMargin,
-			
+
 			maxValue: maxValue,
 			minValue: minValue,
 			maxValueLength: maxValueLength,
-			
+
 			ticksY: ticksY,
 			yTickHeight: yTickHeight,
 			xTickWidth: xTickWidth,
 			valueInc: valueInc,
-			
+
 			barMargin: barMargin,
 			groupMargin: groupMargin,
 			barWidth: barWidth,
-			
+
 			legendItemSize: legendItemSize
 		};
-	}	
-};////////////////////////////////////////////////////////////////////////////////
+	}
+};
+////////////////////////////////////////////////////////////////////////////////
 //                                SCATTER PLOT
 ////////////////////////////////////////////////////////////////////////////////
-	
+
 wesCountry.charts.scatterPlot = function(options) {
 	return renderChart();
 
 	function renderChart() {
 		// Options and default options
-		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);	
-	
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+
 		// SVG creation
 		var svg = wesCountry.charts.getSVG(options);
-		
+
 		// Size and margins (%)
 		var sizes = getSizes(svg, options);
-	
+
 		var g = svg.g();
-	
+
 		// Background
-	
-		wesCountry.charts.setBackground(g, sizes, options); 
-				
-		// X Axis & Y Axis		
+
+		wesCountry.charts.setBackground(g, sizes, options);
+
+		// X Axis & Y Axis
 		wesCountry.charts.setAxisY(g, sizes, options);
 		var sizesX = setAxisX(g, sizes, options);
-				
+
 		// Values
 		var length = options.series.length;
-	
+
 		var maxHeight = sizes.innerHeight - sizes.xAxisMargin;
 		var maxWidth = sizes.innerWidth - sizes.yAxisMargin;
-		
+
 		var zeroPos = 0;
-		
+
 		if (sizes.minValue <= 0 && sizes.maxValue - sizes.minValue != 0)
 			zeroPos = sizes.minValue / (sizes.maxValue - sizes.minValue) * maxHeight;
-			
+
 		var zeroPosX = 0;
-		
+
 		if (sizesX.minValue <= 0)
-			zeroPosX = sizesX.xTickWidth * Math.abs(sizesX.minValue);		
+			zeroPosX = sizesX.xTickWidth * Math.abs(sizesX.minValue);
 
 		// Events
-	
+
 		var onmouseover = function() {
 			this.colour = this.style.fill;
 			this.style.fill = options.overColour;
-			
+
 			options.events.onmouseover({
 				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"), 
-				pos: this.getAttribute("pos"), 
+				serie: this.getAttribute("serie"),
+				pos: this.getAttribute("pos"),
 				value: this.getAttribute("value")
 			});
 		};
-									
-		var onmouseout = function() { 
+
+		var onmouseout = function() {
 			this.style.fill = this.colour;
 			options.events.onmouseout({
 				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"), 
-				pos: this.getAttribute("pos"), 
+				serie: this.getAttribute("serie"),
+				pos: this.getAttribute("pos"),
 				value: this.getAttribute("value")
 			});
 		};
-		
-		var onclick = function() { 
+
+		var onclick = function() {
 			this.style.fill = this.colour;
 			options.events.onclick({
 				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"), 
-				pos: this.getAttribute("pos"), 
+				serie: this.getAttribute("serie"),
+				pos: this.getAttribute("pos"),
 				value: this.getAttribute("value")
 			});
-		};		
-	
+		};
+
+		var maxRadius = options.sizeByValueMaxRadius * maxWidth / 100;
+		var minRadius = options.sizeByValueMinRadius * maxWidth / 100;
+		var radiusRange = maxRadius - minRadius;
+
 		for (var i = 0; i < length; i++) {
 			var values = options.series[i].values;
+
+			values.sort(function(a, b) {
+				var value1x = a[0] ? a[0] : 0;
+				var value1y = a[1] ? a[1] : 0;
+				var value2x = b[0] ? b[0] : 0;
+				var value2y = b[1] ? b[1] : 0;
+				return Math.abs(value2x * value2y) - Math.abs(value1x * value1y);
+			});
+
 			var valueLength = values.length;
-		
+
+			// Max and min
+			var maxValue = 1;
+			var minValue = 1;
+			var range = 1;
+
+			if (valueLength > 0) {
+				var maxX = values[0][0] ? values[0][0] : 1;
+				var maxY = values[0][1] ? values[0][1] : 1;
+				maxValue = Math.abs(maxX * maxY);
+
+				var minX = values[valueLength - 1][0] ? values[valueLength - 1][0] : 1;
+				var minY = values[valueLength - 1][1] ? values[valueLength - 1][1] : 1;
+				minValue = Math.abs(minX * minY);
+
+				range = maxValue - minValue;
+			}
+
 			for (var j = 0; j < valueLength; j++) {
 				var valueX = values[j][0] ? values[j][0] : 0;
-				var valueXPrev = 0;
-				
+
 				var value = options.series[i].values[j];
 				var id = options.series[i].id;
 				var serie = options.series[i].name;
 				var pos = valueX;
-			
-				if (j > 0)
-					valueXPrev = values[j - 1][0] ? values[j - 1][0] : 0;
-				
+
 				if (!valueX)
 					valueX = 0;
-					
-				if (!valueXPrev)
-					valueXPrev = 0;			
-			
+
 				var valueY = values[j][1] ? values[j][1] : 0;
-				var valueYPrev = 0;
-				
-				if (j > 0)
-					valueYPrev = values[j - 1][1] ? values[j - 1][1] : 0;
-				
+
 				if (!valueY)
 					valueY = 0;
-					
-				if (!valueYPrev)
-					valueYPrev = 0;
+
+				// Circle radius
+				var radius = minRadius;
+
+				// Circle radius by size
+				if (options.sizeByValue === true) {
+					var rValue = valueX * valueY != 0 ? Math.abs(valueX * valueY) : 1;
+					radius = (((rValue - minValue) * radiusRange) / range) + minRadius;
+				}
 
 				var xPos = sizes.marginLeft + sizes.yAxisMargin
 						+ zeroPosX
-						+ (sizesX.maxValue - sizesX.minValue == 0 ? 0 : 
+						+ (sizesX.maxValue - sizesX.minValue == 0 ? 0 :
 							(valueX - sizesX.minValue) / (sizesX.maxValue - sizesX.minValue))
 						* maxWidth;
 
 				var yPos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
 						+ zeroPos
-						- (sizes.maxValue - sizes.minValue == 0 ? 1 : 
-							(valueY - sizes.minValue) / (sizes.maxValue - sizes.minValue)) 
+						- (sizes.maxValue - sizes.minValue == 0 ? 1 :
+							(valueY - sizes.minValue) / (sizes.maxValue - sizes.minValue))
 						* maxHeight;
 
 				g.circle({
 					cx: xPos,
 					cy: yPos,
-					r: 5,
+					r: radius,
 					id: id,
 					serie: serie,
 					value: value,
@@ -2506,19 +2679,19 @@ wesCountry.charts.scatterPlot = function(options) {
 				.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 			}
 		}
-		
+
 		// Legend
 		if (options.legend.show)
 			wesCountry.charts.showLegend(g, sizes, options);
-			
+
 		// Tooltip
-		wesCountry.charts.createTooltip(options);	
-			
+		wesCountry.charts.createTooltip(options);
+
 		return svg;
 	}
-	
+
 	function getSizes(svg, options) {
-		var width = svg.width(); 
+		var width = svg.width();
 		var height = svg.height();
 		var marginTop = height * options.margins[0] / 100;
 		var marginRight = width * options.margins[1] / 100;
@@ -2528,24 +2701,24 @@ wesCountry.charts.scatterPlot = function(options) {
 		var xAxisMargin = options.xAxis.margin * height / 100;
 		var innerWidth = width - marginLeft - marginRight;
 		var innerHeight = height - marginTop - marginBottom;
-		
+
 		// Max value & min value
 		var maxAndMinValues = wesCountry.charts.getMaxAndMinValuesAxisY(options);
 		var maxValue = maxAndMinValues.max;
 		var minValue = maxAndMinValues.min;
-		var maxValueLength = maxAndMinValues.valueLength; 	
-		
+		var maxValueLength = maxAndMinValues.valueLength;
+
 		var ticksY = (maxValue - minValue) / maxAndMinValues.inc;
 		var yTickHeight = ticksY != 0 ? (innerHeight - xAxisMargin) / ticksY : 0;
-		var xTickWidth = (innerWidth - yAxisMargin) / maxAndMinValues.valueLength;		
-		
-		var groupMargin = options.groupMargin * xTickWidth / 100;	
+		var xTickWidth = (innerWidth - yAxisMargin) / maxAndMinValues.valueLength;
+
+		var groupMargin = options.groupMargin * xTickWidth / 100;
 		xTickWidth -= 2 * groupMargin;
-			
-		var barWidth = xTickWidth / options.series.length;	
-		var barMargin = options.barMargin * barWidth / 100;	
-		barWidth -= 2 * barMargin;			
-				
+
+		var barWidth = xTickWidth / options.series.length;
+		var barMargin = options.barMargin * barWidth / 100;
+		barWidth -= 2 * barMargin;
+
 		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
 
 		var legendItemSize = options.legend.itemSize * width / 100;
@@ -2557,139 +2730,140 @@ wesCountry.charts.scatterPlot = function(options) {
 			marginRight : marginRight,
 			marginBottom : marginBottom,
 			marginLeft : marginLeft,
-			
+
 			innerWidth : innerWidth,
 			innerHeight : innerHeight,
-			
+
 			yAxisMargin: yAxisMargin,
 			xAxisMargin: xAxisMargin,
-			
+
 			maxValue: maxValue,
 			minValue: minValue,
 			maxValueLength: maxValueLength,
-			
+
 			ticksY: ticksY,
 			yTickHeight: yTickHeight,
 			xTickWidth: xTickWidth,
 			valueInc: valueInc,
-			
+
 			barMargin: barMargin,
 			groupMargin: groupMargin,
 			barWidth: barWidth,
-			
+
 			legendItemSize: legendItemSize
 		};
-	}	
-	
+	}
+
 	// For scatter plot
-	function setAxisX(container, sizes, options) {		
+	function setAxisX(container, sizes, options) {
 		// X Axis
-		
+
 		var maxHeight = sizes.innerHeight - sizes.xAxisMargin;
 		var divisor = sizes.maxValue - sizes.minValue != 0 ? sizes.maxValue - sizes.minValue : 1;
-		var zeroPos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin	
+		var zeroPos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
 					+ sizes.minValue / divisor * maxHeight;
-	
+
 		container.line({
 			x1: sizes.marginLeft + sizes.yAxisMargin,
 			x2: sizes.marginLeft + sizes.innerWidth,
 			y1: zeroPos,
 			y2: zeroPos
 		}).style(String.format("stroke: {0}", options.xAxis.colour));
-	
+
 		// X Axis Ticks
-		
+
 		var maxAndMinValues = getMaxAndMinValuesAxisX(options);
 		var maxValue = maxAndMinValues.max;
-		var minValue = maxAndMinValues.min; 	
+		var minValue = maxAndMinValues.min;
 		var maxValueLength = maxAndMinValues.valueLength;
-		
+
 		var ticksX = (maxValue - minValue) / maxAndMinValues.inc;
-		var xTickWidth = (sizes.innerWidth - sizes.yAxisMargin) / (ticksX);	
+		var xTickWidth = (sizes.innerWidth - sizes.yAxisMargin) / (ticksX);
 		var incX = maxAndMinValues.inc;
-			
+
 		var length = ticksX + 1;
-	
+
 		for (var i = 0; i < length; i++) {
 			// Line
-			
+
 			var xPos = sizes.marginLeft + sizes.yAxisMargin + xTickWidth * i;
-		
+
 			container.line({
 				x1: xPos,
 				x2: xPos,
 				y1: sizes.marginTop,
 				y2: sizes.innerHeight + sizes.marginTop - sizes.xAxisMargin
 			}).style(String.format("stroke: {0}", options.xAxis.tickColour));
-			
+
 			// Label
-			
+
 			var value = minValue + incX * i;
-			
+
 			container.text({
 				x: xPos,
 				y: sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin / 2,
 				value: value
-			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle", 
+			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle",
 				options.xAxis["font-colour"],
 				options.xAxis["font-family"],
 				options.xAxis["font-size"]));
 		}
-		
+
 		// X Axis Title
-		
+
 		container.text({
 			x: sizes.marginLeft + sizes.yAxisMargin + (sizes.innerWidth - sizes.yAxisMargin) / 2,
 			y: sizes.marginTop + sizes.innerHeight + sizes.xAxisMargin / 2,
 			value: options.xAxis.title
-		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle", 
+		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle",
 				options.xAxis["font-colour"],
 				options.xAxis["font-family"],
 				options.xAxis["font-size"]));
-				
+
 		return {
 			"maxAndMinValues": maxAndMinValues,
 			maxValue: maxValue,
-			minValue: minValue, 	
+			minValue: minValue,
 			maxValueLength: maxValueLength,
-		
+
 			ticksX: ticksX,
-			xTickWidth: xTickWidth,	
-			incX: incX,	
+			xTickWidth: xTickWidth,
+			incX: incX,
 		};
-	}	
-	
+	}
+
 	// For scatter plot
 	function getMaxAndMinValuesAxisX(options) {
 		var maxValue = 0, minValue = Number.MAX_VALUE;
-		
+
 		var length = options.series.length;
 		var valueLength = null;
 		var value = null;
-	
+
 		for (var i = 0; i < length; i++) {
 			valueLength = options.series[i].values.length;
-			
-			for (var j = 0; j < valueLength; j++) {	
+
+			for (var j = 0; j < valueLength; j++) {
 				value = options.series[i].values[j][0] ? options.series[i].values[j][0] : 0;
-					
+
 				if (value > maxValue)
 					maxValue = value;
-						
+
 				if (value < minValue)
 					minValue = value;
 			}
 		}
-		
+
 		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue);
-	
-		return { 
-			max: maxAndMinValues.max, 
-			min: maxAndMinValues.min, 
+
+		return {
+			max: maxAndMinValues.max,
+			min: maxAndMinValues.min,
 			inc: maxAndMinValues.inc
 		};
-	}		
-};NodeList.prototype.indexOf = function (element) {
+	}
+};
+NodeList.prototype.indexOf = function (element) {
 	for(var i=0;i<this.length;i++) {
 		if(this[i] == element)
 			return i;
@@ -3224,6 +3398,652 @@ wesCountry.charts.multiChart = function (options) {
 		}
 	
 		return charts;
+	}
+};
+////////////////////////////////////////////////////////////////////////////////
+//                               STACKED CHART
+////////////////////////////////////////////////////////////////////////////////
+
+wesCountry.charts.stackedChart = function(options) {
+	return renderChart();
+
+	function renderChart() {
+		// Options and default options
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+		options.yAxis["from-zero"] = true;
+
+		if (options.sortSeries)
+			options.series = wesCountry.charts.sortSeries(options.series);
+
+		// SVG creation
+		var svg = wesCountry.charts.getSVG(options);
+
+		// Size and margins (%)
+		var sizes = getSizes(svg, options);
+
+		var g = svg.g();
+
+		// Background
+
+		wesCountry.charts.setBackground(g, sizes, options);
+
+		// X Axis & Y Axis
+		wesCountry.charts.setAxisY(g, sizes, options);
+		wesCountry.charts.setAxisX(g, sizes, options);
+
+		// Values
+		var length = sizes.maxValueLength;
+		var numberOfSeries = options.series.length;
+
+		var barMargin = options.barMargin * sizes.xTickWidth / 100;
+		var groupMargin = options.groupMargin * sizes.xTickWidth / 100;
+
+		var barWidth = sizes.barWidth;
+
+		var maxHeight = sizes.innerHeight - sizes.xAxisMargin;
+		var minValuePos = sizes.minValue / (sizes.maxValue - sizes.minValue) * maxHeight;
+
+		// Values
+
+		for (var i = 0; i < length; i++) {
+
+			var auxPositivePos = minValuePos;
+			var auxNegativePos = minValuePos;
+
+			for (var j = 0; j < numberOfSeries; j++) {
+				var serie = options.series[j].name;
+				var id = options.series[j].id;
+				var value = options.series[j].values[i];
+				var url = options.series[j].urls ? options.series[j].urls[i] : "";
+				var pos = options.xAxis.values[j];
+
+				if (!value)
+					value = 0;
+
+				var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin * (2 * i + 1) + sizes.barMargin
+						+ sizes.xTickWidth * i;
+
+				var yPos = getYPos(value, sizes, value >= 0 ? auxPositivePos : auxNegativePos, maxHeight);
+
+				var height = (Math.abs(value) / (sizes.maxValue - sizes.minValue))
+						* maxHeight;
+
+				// Accumulative initial pos
+				if (value >= 0)
+					auxPositivePos -= height;
+				else
+					auxNegativePos += height;
+
+				var rectangleOptions = {
+					x: xPos,
+					y: yPos,
+					width: barWidth,
+					height: height,
+					id: id,
+					serie: serie,
+					value: value,
+					pos: pos
+				};
+
+				var rectangleStyle = String.format("fill: {0}", options.serieColours[j]);
+
+				// Events
+
+				var selectBar = function(element) {
+					var selectedBars = document.querySelectorAll(options.container + ' rect[selected]');
+
+					for (var i = 0; i < selectedBars.length; i++)
+						unselectBar(selectedBars[i]);
+
+					element.colour = element.style.fill;
+					element.style.fill = options.overColour;
+					element.setAttribute("selected", "selected");
+				};
+
+				var onmouseover = function() {
+					selectBar(this);
+
+					options.events.onmouseover({
+						id: this.getAttribute("id"),
+						serie: this.getAttribute("serie"),
+						pos: this.getAttribute("pos"),
+						value: this.getAttribute("value")
+					});
+				};
+
+				var unselectBar = function(element) {
+					element.style.fill = element.colour;
+				};
+
+				var onmouseout = function() {
+					unselectBar(this);
+					options.events.onmouseout({
+						id: this.getAttribute("id"),
+						serie: this.getAttribute("serie"),
+						pos: this.getAttribute("pos"),
+						value: this.getAttribute("value")
+					});
+				};
+
+				var onclick = function() {
+					this.style.fill = this.colour;
+					options.events.onclick({
+						id: this.getAttribute("id"),
+						serie: this.getAttribute("serie"),
+						pos: this.getAttribute("pos"),
+						value: this.getAttribute("value")
+					});
+				};
+
+				var r = null;
+
+				if (url && url != "") {
+					var a = g.a({}, url ? url : "")
+					r = a.rectangle(rectangleOptions);
+				}
+				else {
+					r = g.rectangle(rectangleOptions);
+				}
+
+				r.style(rectangleStyle).className(serie)
+					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
+					.event("selectBar", function() {
+						selectBar(this);
+					}).event("unselectBar", function() {
+						unselectBar(this);
+					});
+
+				// Value on bar
+				if (options.valueOnItem.show == true && value != 0) {
+					g.text({
+						x: xPos + barWidth / 2,
+						y: yPos + height / 2,
+						value: value.toFixed(2)
+					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
+						options.valueOnItem["font-colour"],
+						options.valueOnItem["font-family"],
+						options.valueOnItem["font-size"]));
+				}
+			}
+		}
+
+		// Legend
+		if (options.legend.show)
+			wesCountry.charts.showLegend(g, sizes, options);
+
+		// Tooltip
+		wesCountry.charts.createTooltip(options);
+
+		return svg;
+	}
+
+	function getYPos(value, sizes, minValuePos, maxHeight) {
+		if (value >= 0)	{
+			return sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
+					+ minValuePos
+					- (value / (sizes.maxValue - sizes.minValue))
+					* maxHeight;
+		}
+		else {
+			return sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
+					+ minValuePos
+		}
+	}
+
+	function getSizes(svg, options) {
+		var width = svg.width();
+		var height = svg.height();
+		var marginTop = height * options.margins[0] / 100;
+		var marginRight = width * options.margins[1] / 100;
+		var marginBottom = height * options.margins[2] / 100;
+		var marginLeft = width * options.margins[3] / 100;
+		var yAxisMargin = options.yAxis.margin * width / 100;
+		var xAxisMargin = options.xAxis.margin * height / 100;
+		var innerWidth = width - marginLeft - marginRight;
+		var innerHeight = height - marginTop - marginBottom;
+
+		// Max value & min value
+		var maxAndMinValues = getMaxAndMinValuesAxisY(options);
+		var maxValue = maxAndMinValues.max;
+		var minValue = maxAndMinValues.min > 0 ? 0 : maxAndMinValues.min;
+		var maxValueLength = maxAndMinValues.valueLength;
+
+		// If max and min Value are the same we set difference
+		if (minValue == maxValue) {
+			minValue = minValue >= 0 ? 0 : minValue - 2;
+			maxValue += 2;
+		}
+
+		var ticksY = (maxValue - minValue) / maxAndMinValues.inc;
+		var yTickHeight = ticksY != 0 ? (innerHeight - xAxisMargin) / ticksY : 0;
+		var xTickWidth = maxValueLength != 0 ? (innerWidth - yAxisMargin) / maxValueLength : 0;
+
+		var groupMargin = options.groupMargin * xTickWidth / 100;
+		xTickWidth -= 2 * groupMargin;
+
+		var barWidth = xTickWidth;
+		var barMargin = options.barMargin * barWidth / 100;
+		barWidth -= 2 * barMargin;
+
+		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
+
+		var legendItemSize = options.legend.itemSize * width / 100;
+
+		return {
+			width : width,
+			height : height,
+			marginTop : marginTop,
+			marginRight : marginRight,
+			marginBottom : marginBottom,
+			marginLeft : marginLeft,
+
+			innerWidth : innerWidth,
+			innerHeight : innerHeight,
+
+			yAxisMargin: yAxisMargin,
+			xAxisMargin: xAxisMargin,
+
+			maxValue: maxValue,
+			minValue: minValue,
+			maxValueLength: maxValueLength,
+
+			ticksY: ticksY,
+			yTickHeight: yTickHeight,
+			xTickWidth: xTickWidth,
+			valueInc: valueInc,
+
+			barMargin: barMargin,
+			groupMargin: groupMargin,
+			barWidth: barWidth,
+
+			legendItemSize: legendItemSize
+		};
+	}
+
+	function getMaxAndMinValuesAxisY(options) {
+		var maxValue = 0, minValue = Number.MAX_VALUE;
+
+		var length = options.series.length;
+		var valueLength = null;
+		var value = null;
+		var maxValueLength = 0;
+
+		for (var i = 0; i < length; i++) {
+			valueLength = options.series[i].values.length;
+
+			if (valueLength > maxValueLength)
+				maxValueLength = valueLength;
+		}
+
+		for (var i = 0; i < maxValueLength; i++) {
+
+			var positiveSum = 0;
+			var negativeSum = 0;
+
+			for (var j = 0; j < length; j++) {
+				var serie = options.series[j];
+				value = serie.values && serie.values[i] ? serie.values[i] : 0;
+
+				if (value >= 0)
+					positiveSum += value;
+				else
+					negativeSum += value;
+			}
+
+			if (positiveSum > maxValue)
+				maxValue = positiveSum;
+
+			if (negativeSum < minValue)
+				minValue = negativeSum;
+		}
+
+		if (options.yAxis["from-zero"] === true && minValue > 0)
+			minValue = 0;
+
+		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue);
+
+		return {
+			max: maxAndMinValues.max,
+			min: maxAndMinValues.min,
+			valueLength: maxValueLength,
+			length: length,
+			inc: maxAndMinValues.inc
+		};
+	}
+};
+////////////////////////////////////////////////////////////////////////////////
+//                                RANKING CHART
+////////////////////////////////////////////////////////////////////////////////
+
+wesCountry.charts.rankingChart = function(options) {
+	return renderChart();
+
+	function renderChart() {
+		// Options and default options
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
+		options.yAxis["from-zero"] = true;
+
+		if (options.sortSeries)
+			options.series = wesCountry.charts.sortSeries(options.series);
+
+		// SVG creation
+		var svg = wesCountry.charts.getSVG(options);
+
+		// Size and margins (%)
+		var sizes = getSizes(svg, options);
+
+		var g = svg.g();
+
+		// Background
+
+		wesCountry.charts.setBackground(g, sizes, options);
+
+		// X Axis & Y Axis
+		wesCountry.charts.setAxisY(g, sizes, options);
+		wesCountry.charts.setAxisX(g, sizes, options);
+
+		// Values
+		var length = sizes.maxValueLength;
+		var numberOfSeries = options.series.length;
+
+		var barMargin = options.barMargin * sizes.xTickWidth / 100;
+		var groupMargin = options.groupMargin * sizes.xTickWidth / 100;
+
+		var barWidth = sizes.barWidth;
+
+		var maxHeight = sizes.innerHeight - sizes.xAxisMargin;
+		var minValuePos = sizes.minValue / (sizes.maxValue - sizes.minValue) * maxHeight;
+
+		// Values
+
+		var valueList = [];
+
+		for (var i = 0; i < length; i++) {
+			for (var j = 0; j < numberOfSeries; j++) {
+				var serie = options.series[j].name;
+				var id = options.series[j].id;
+				var value = options.series[j].values[i];
+				var url = options.series[j].urls ? options.series[j].urls[i] : "";
+				var pos = options.xAxis.values[j];
+
+				if (!value)
+					value = 0;
+
+				valueList.push(value);
+
+				var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin * (2 * i + 1) + sizes.barMargin
+						+ sizes.xTickWidth * i
+						+ (barWidth + 2 * sizes.barMargin) * j;
+
+				var yPos = getYPos(value, sizes, minValuePos, maxHeight);
+
+				var height = (Math.abs(value) / (sizes.maxValue - sizes.minValue))
+						* maxHeight;
+
+				var rectangleOptions = {
+					x: xPos,
+					y: yPos,
+					width: barWidth,
+					height: height,
+					id: id,
+					serie: serie,
+					value: value,
+					pos: pos
+				};
+
+				var rectangleStyle = String.format("fill: {0}", options.serieColours[j]);
+
+				// Events
+
+				var selectBar = function(element) {
+					var selectedBars = document.querySelectorAll(options.container + ' rect[selected]');
+
+					for (var i = 0; i < selectedBars.length; i++)
+						unselectBar(selectedBars[i]);
+
+					element.colour = element.style.fill;
+					element.style.fill = options.overColour;
+					element.setAttribute("selected", "selected");
+				};
+
+				var onmouseover = function() {
+					selectBar(this);
+
+					options.events.onmouseover({
+						id: this.getAttribute("id"),
+						serie: this.getAttribute("serie"),
+						pos: this.getAttribute("pos"),
+						value: this.getAttribute("value")
+					});
+				};
+
+				var unselectBar = function(element) {
+					element.style.fill = element.colour;
+				};
+
+				var onmouseout = function() {
+					unselectBar(this);
+					options.events.onmouseout({
+						id: this.getAttribute("id"),
+						serie: this.getAttribute("serie"),
+						pos: this.getAttribute("pos"),
+						value: this.getAttribute("value")
+					});
+				};
+
+				var onclick = function() {
+					this.style.fill = this.colour;
+					options.events.onclick({
+						id: this.getAttribute("id"),
+						serie: this.getAttribute("serie"),
+						pos: this.getAttribute("pos"),
+						value: this.getAttribute("value")
+					});
+				};
+
+				var r = null;
+
+				if (url && url != "") {
+					var a = g.a({}, url ? url : "")
+					r = a.rectangle(rectangleOptions);
+				}
+				else {
+					r = g.rectangle(rectangleOptions);
+				}
+
+				r.style(rectangleStyle).className(serie)
+					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
+					.event("selectBar", function() {
+						selectBar(this);
+					}).event("unselectBar", function() {
+						unselectBar(this);
+					});
+
+				// Value on bar
+				if (options.valueOnItem.show == true) {
+					g.text({
+						x: xPos + barWidth / 2,
+						y: yPos - (options.height / 100) * options.valueOnItem.margin,
+						value: value.toFixed(2)
+					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
+						options.valueOnItem["font-colour"],
+						options.valueOnItem["font-family"],
+						options.valueOnItem["font-size"]));
+				}
+			}
+		}
+
+		var statistics = getStatistics(valueList);
+
+		// Show mean
+		var side = statistics.mean - statistics.median >= 0 ? 1 : -1
+
+		showStatistics(g, statistics.mean, options.mean,
+			side , sizes, minValuePos, maxHeight);
+
+		// Show median
+		var side = statistics.mean - statistics.median >= 0 ? -1 : 1
+		side = statistics.mean == statistics.median ? -1 : side;
+
+		showStatistics(g, statistics.median, options.median,
+			side, sizes, minValuePos, maxHeight);
+
+		// Legend
+		if (options.legend.show)
+			wesCountry.charts.showLegend(g, sizes, options);
+
+		// Tooltip
+		wesCountry.charts.createTooltip(options);
+
+		return svg;
+	}
+
+	function getYPos(value, sizes, minValuePos, maxHeight) {
+		if (value >= 0)	{
+			return sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
+					+ minValuePos
+					- (value / (sizes.maxValue - sizes.minValue))
+					* maxHeight;
+		}
+		else {
+			return sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
+					+ minValuePos
+		}
+	}
+
+	function showStatistics(container, value, option, textSide, sizes, minValuePos, maxHeight) {
+		if (option.show !== true)
+			return;
+
+		var posY = getYPos(value, sizes, minValuePos, maxHeight);
+
+		var x1 = sizes.marginLeft + sizes.yAxisMargin;
+		var x2 = sizes.marginLeft + sizes.innerWidth;
+
+		container.line({
+			x1: x1,
+			x2: x2,
+			y1: posY,
+			y2: posY,
+			"stroke-width": option.stroke
+		}).style(String.format("stroke: {0}", option.colour))
+		.className("statistics");
+
+		var sign = textSide >= 0 ? 1 : -1;
+
+		container.text({
+			x: x2,
+			y: posY - sign * (options.height / 100) * option.margin,
+			value: String.format("{0}{1}", option.text, value.toFixed(2))
+		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor:end;dominant-baseline: middle",
+			option["font-colour"],
+			option["font-family"],
+			option["font-size"]));
+	}
+
+	function getStatistics(values) {
+		if (values == 0)
+			return {
+				median: 0,
+				mean: 0
+			}
+
+		// Median
+		values.sort(function(a,b) { return a - b; });
+
+    var half = Math.floor(values.length / 2);
+		var median = 0;
+
+    if(values.length % 2)
+        median = values[half];
+    else
+        median = (values[half - 1] + values[half]) / 2.0;
+
+		// Mean
+		var sum = 0;
+
+		var length = values.length;
+
+		for(var i = 0; i < length; i++) {
+		    sum += values[i];
+		}
+
+		var mean = sum / length;
+
+		return {
+			median: median,
+			mean: mean
+		}
+	}
+
+	function getSizes(svg, options) {
+		var width = svg.width();
+		var height = svg.height();
+		var marginTop = height * options.margins[0] / 100;
+		var marginRight = width * options.margins[1] / 100;
+		var marginBottom = height * options.margins[2] / 100;
+		var marginLeft = width * options.margins[3] / 100;
+		var yAxisMargin = options.yAxis.margin * width / 100;
+		var xAxisMargin = options.xAxis.margin * height / 100;
+		var innerWidth = width - marginLeft - marginRight;
+		var innerHeight = height - marginTop - marginBottom;
+
+		// Max value & min value
+		var maxAndMinValues = wesCountry.charts.getMaxAndMinValuesAxisY(options);
+		var maxValue = maxAndMinValues.max;
+		var minValue = maxAndMinValues.min > 0 ? 0 : maxAndMinValues.min;
+		var maxValueLength = maxAndMinValues.valueLength;
+
+		// If max and min Value are the same we set difference
+		if (minValue == maxValue) {
+			minValue = minValue >= 0 ? 0 : minValue - 2;
+			maxValue += 2;
+		}
+
+		var ticksY = (maxValue - minValue) / maxAndMinValues.inc;
+		var yTickHeight = ticksY != 0 ? (innerHeight - xAxisMargin) / ticksY : 0;
+		var xTickWidth = maxAndMinValues.valueLength != 0 ? (innerWidth - yAxisMargin) / maxAndMinValues.valueLength : 0;
+
+		var groupMargin = options.groupMargin * xTickWidth / 100;
+		xTickWidth -= 2 * groupMargin;
+
+		var barWidth = xTickWidth / options.series.length;
+		var barMargin = options.barMargin * barWidth / 100;
+		barWidth -= 2 * barMargin;
+
+		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
+
+		var legendItemSize = options.legend.itemSize * width / 100;
+
+		return {
+			width : width,
+			height : height,
+			marginTop : marginTop,
+			marginRight : marginRight,
+			marginBottom : marginBottom,
+			marginLeft : marginLeft,
+
+			innerWidth : innerWidth,
+			innerHeight : innerHeight,
+
+			yAxisMargin: yAxisMargin,
+			xAxisMargin: xAxisMargin,
+
+			maxValue: maxValue,
+			minValue: minValue,
+			maxValueLength: maxValueLength,
+
+			ticksY: ticksY,
+			yTickHeight: yTickHeight,
+			xTickWidth: xTickWidth,
+			valueInc: valueInc,
+
+			barMargin: barMargin,
+			groupMargin: groupMargin,
+			barWidth: barWidth,
+
+			legendItemSize: legendItemSize
+		};
 	}
 };
 Element.prototype.insertAfter = function(newNode) {

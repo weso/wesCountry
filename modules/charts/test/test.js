@@ -3,10 +3,12 @@ window.onload = function() {
 		"line",
 		"area",
 		"bar",
+		"stacked",
 		"pie",
 		"donut",
 		"polar",
-		"scatter"
+		"scatter",
+		"ranking"
 	]);
 
 	var options = {
@@ -204,11 +206,13 @@ function generateCharts(options) {
     ];
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
+	renderRankingChart(options);
 
 	options.series = [
 		{
@@ -222,11 +226,13 @@ function generateCharts(options) {
     ];
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
+	renderRankingChart(options);
 
 	options.series = [
 		{
@@ -240,11 +246,13 @@ function generateCharts(options) {
     ];
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
+	renderRankingChart(options);
 
 	options.series = [
 		{
@@ -262,11 +270,13 @@ function generateCharts(options) {
     ];
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
+	renderRankingChart(options);
 
 	options.series = [
 		{
@@ -280,11 +290,13 @@ function generateCharts(options) {
     };
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
+	renderRankingChart(options);
 
 	options.series = [
 		{
@@ -293,7 +305,7 @@ function generateCharts(options) {
         },
         {
         	name: "2013",
-         	values: [null, 50, 7.4, 15, null]
+         	values: [null, 50, 20.4, 15, null]
         },
         {
         	name: "2009",
@@ -306,12 +318,34 @@ function generateCharts(options) {
     };
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
+	renderRankingChart(options);
 
+	options.series = [
+		{
+            name: "2012",
+            values: [null]
+        },
+        {
+        	name: "2013",
+         	values: [null]
+        }
+    ];
+
+	renderBarChart(options);
+	renderStackedChart(options);
+	renderLineChart(options);
+	renderAreaChart(options);
+	renderPieChart(options);
+	renderDonutChart(options);
+	renderPolarChart(options);
+	renderRankingChart(options);
+	
 	options.series = [
 		{
             name: "2012",
@@ -324,16 +358,43 @@ function generateCharts(options) {
     ];
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
+	renderRankingChart(options);
+	
+	options.series = [
+		{
+            name: "2012",
+            values: [null, 1, null]
+        },
+        {
+        	name: "2013",
+         	values: [null, null, null]
+        }
+    ];
+
+	renderBarChart(options);
+	renderStackedChart(options);
+	renderLineChart(options);
+	renderAreaChart(options);
+	renderPieChart(options);
+	renderDonutChart(options);
+	renderPolarChart(options);
+	renderRankingChart(options);
 }
 
 function renderBarChart(options) {
 	var chart = wesCountry.charts.barChart(options);
 	document.getElementById("barDiv").appendChild(chart.render());
+}
+
+function renderStackedChart(options) {
+	var chart = wesCountry.charts.stackedChart(options);
+	document.getElementById("stackedDiv").appendChild(chart.render());
 }
 
 function renderLineChart(options) {
@@ -364,4 +425,9 @@ function renderScatterPlot(options) {
 function renderAreaChart(options) {
 	var chart = wesCountry.charts.areaChart(options);
 	document.getElementById("areaDiv").appendChild(chart.render());
+}
+
+function renderRankingChart(options) {
+	var chart = wesCountry.charts.rankingChart(options);
+	document.getElementById("rankingDiv").appendChild(chart.render());
 }

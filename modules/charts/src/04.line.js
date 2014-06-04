@@ -210,12 +210,14 @@ wesCountry.charts.generateLineChart = function(options, area) {
 
 			}
 
-			if (xPos)
-				pathD += String.format(" L{0} {1} Z", xPos, posZero);
+			if (pathD != "") {
+				if (xPos)
+					pathD += String.format(" L{0} {1} Z", xPos, posZero);
 
-			if (area && pathD != "") {
-				path.attribute(null, "d", pathD)
-				.style(String.format("stroke: {0}; fill: {0}; opacity: 0.5", options.serieColours[i % options.serieColours.length]));
+				if (area && pathD != "") {
+					path.attribute(null, "d", pathD)
+					.style(String.format("stroke: {0}; fill: {0}; opacity: 0.5", options.serieColours[i % options.serieColours.length]));
+				}
 			}
 		}
 
