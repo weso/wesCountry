@@ -127,15 +127,17 @@
 				<td>Spain</td>
 				<td>2007</td>
 				<td>Agriculture, value added (% of GDP)</td>
-				<td>2.87540037421114</td>
+				<td>null</td>
 			</tr>
 		</tbody>
 	</table>
 	</div>
 	<script>
-		wesCountry.data.getObservationFromTable({
+		var obs = wesCountry.data.getObservationFromTable({
 			container: "div.container"
 		});
+		
+		console.log(obs)
 	</script>
 </body>
 </html>

@@ -97,6 +97,9 @@ wesCountry.data = new (function() {
     			
     		var value = tds[valuePos].innerHTML; 
     		
+    		if (!value || value == "" || value == "null")
+    			value = null;
+    		
     		observations.push({
     			region: region,
     			time: time,

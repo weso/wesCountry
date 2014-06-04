@@ -78,7 +78,8 @@ wesCountry.charts.barChart = function(options) {
 					pos: pos
 				};
 
-				var rectangleStyle = String.format("fill: {0}", options.serieColours[j]);
+				var colour = options.getElementColour(options, options.series[j], j);
+				var rectangleStyle = String.format("fill: {0}", colour);
 
 				// Events
 
@@ -166,14 +167,14 @@ wesCountry.charts.barChart = function(options) {
 		var side = statistics.mean - statistics.median >= 0 ? 1 : -1
 
 		showStatistics(g, statistics.mean, options.mean,
-			side , sizes, minValuePos, maxHeight);
+			side , sizes, minValuePos, maxHeight, options.series);
 
 		// Show median
 		var side = statistics.mean - statistics.median >= 0 ? -1 : 1
 		side = statistics.mean == statistics.median ? -1 : side;
 
 		showStatistics(g, statistics.median, options.median,
-			side, sizes, minValuePos, maxHeight);
+			side, sizes, minValuePos, maxHeight, options.series);
 
 		// Legend
 		if (options.legend.show)
@@ -198,8 +199,8 @@ wesCountry.charts.barChart = function(options) {
 		}
 	}
 
-	function showStatistics(container, value, option, textSide, sizes, minValuePos, maxHeight) {
-		if (option.show !== true)
+	function showStatistics(container, value, option, textSide, sizes, minValuePos, maxHeight, series) {
+		if (option.show !== true && series.length > 1)
 			return;
 
 		var posY = getYPos(value, sizes, minValuePos, maxHeight);

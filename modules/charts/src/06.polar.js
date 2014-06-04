@@ -55,8 +55,8 @@ wesCountry.charts.polarChart = function(options) {
 		// Label
 
 		for (var i = 0; i < numberOfVertices; i++) {
-			var x = cx + (radius + sizes.xAxisMargin / 2) * Math.cos((2 * Math.PI * i) / numberOfVertices - Math.PI / 2);
-			var y = cy + (radius + sizes.xAxisMargin / 2) * Math.sin((2 * Math.PI * i) / numberOfVertices - Math.PI / 2);
+			var x = cx + (radius + sizes.xAxisMargin) * Math.cos((2 * Math.PI * i) / numberOfVertices - Math.PI / 2);
+			var y = cy + (radius + sizes.yAxisMargin) * Math.sin((2 * Math.PI * i) / numberOfVertices - Math.PI / 2);
 
 			var value = options.xAxis.values[i] ? options.xAxis.values[i] : "";
 
@@ -239,6 +239,8 @@ wesCountry.charts.polarChart = function(options) {
 				if (!vertex)
 					continue;
 
+				var colour = options.getElementColour(options, options.series[i], i);
+
 				if (options.vertex.show) {
 					g.circle({
 						cx: vertex.x,
@@ -249,7 +251,7 @@ wesCountry.charts.polarChart = function(options) {
 						value: value,
 						pos: pos,
 						"class": lineId
-					}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]))
+					}).style(String.format("fill: {0}", colour))
 					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 				}
 
@@ -259,7 +261,7 @@ wesCountry.charts.polarChart = function(options) {
 			  		x2: vertex.x,
 			  		y2: vertex.y,
 			  		"class": lineId
-			  	}).style(String.format("stroke: {0};", options.serieColours[i % options.serieColours.length]));
+			  	}).style(String.format("stroke: {0};", colour));
 
         pathD += String.format("{0}{1} {2}", pathD == "" ? "M" : "L", vertex.x, vertex.y);
 
@@ -279,7 +281,7 @@ wesCountry.charts.polarChart = function(options) {
 
 	        g.path({
 	            d: pathD
-	        }).style(String.format("stroke: {0}; fill: {0}; opacity: 0.5", options.serieColours[i % options.serieColours.length]));
+	        }).style(String.format("stroke: {0}; fill: {0}; opacity: 0.5", colour));
 				}
 			}
 		}

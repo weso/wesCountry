@@ -30,7 +30,17 @@ wesCountry.charts = new (function() {
     container: "body",
 		margins: [10, 20, 10, 5],
 		backgroundColour: "none",
-		serieColours: ["#FCD271", "#FA5882", "#2BBBD8", "#102E37"],
+		serieColours: ["#FCD271", "#FA5882", "#2BBBD8", "#01DFA5"],
+		getElementColour: function(options, element, index) {
+			if (!options || !options.serieColours
+				|| !options.serieColours.length || options.serieColours.length < 1)
+				return "black";
+
+			return options.serieColours[index % options.serieColours.length];
+		},
+		getLegendElements: function(options) {
+			return options.series;
+		},
 		overColour: "#333",
 		backColour: "#eee", // Pie
 		groupMargin: 4,
@@ -41,12 +51,12 @@ wesCountry.charts = new (function() {
 			margin: 2.5,
 			"font-family": "Helvetica",
 			"font-colour": "#555",
-			"font-size": "16px",
+			"font-size": "11px",
 		},
-		sizeByValue: false,
-		sizeByValueMaxRadius: 5,
-		sizeByValueMinRadius: 1,
-		mean: {
+		sizeByValue: false, // Scatter
+		sizeByValueMaxRadius: 5, // Scatter
+		sizeByValueMinRadius: 1, // Scatter
+		mean: { // Bar
 			show: false,
 			stroke: 2,
 			colour: "#333",
@@ -56,7 +66,7 @@ wesCountry.charts = new (function() {
 			"font-colour": "#333",
 			"font-size": "12px",
 		},
-		median: {
+		median: { // Bar
 			show: false,
 			stroke: 2,
 			colour: "#333",
@@ -66,6 +76,11 @@ wesCountry.charts = new (function() {
 			"font-colour": "#333",
 			"font-size": "12px",
 		},
+		maxRankingRows: 8, // Ranking
+		rankingElementShape: "circle", // Ranking
+		rankingDirection: "lowerToHigher", // Ranking
+		rankingLower: "Lower", // Ranking
+		rankingHigher: "Higher", // Ranking
 		xAxis: {
 			title: "Months",
 			colour: "none",
@@ -193,23 +208,29 @@ wesCountry.charts = new (function() {
 	////////////////////////////////////////////////////////////////////////////////
 
 	this.showLegend = function(container, sizes, options) {
-		var length = options.series.length;
+		var elements = options.getLegendElements(options);
+		var length = elements.length;
 
 		var xPos = sizes.width - sizes.marginRight * 0.2;
 
 		for (var i = 0; i < length; i++) {
 			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
 
+			var element = elements[i];
+
+			var name = element.name ? element.name : "";
+			var colour = options.getElementColour(options, element, i);
+
 			container.circle({
 				cx: xPos,
 				cy: yPos,
 				r: sizes.legendItemSize
-			}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]));
+			}).style(String.format("fill: {0}", colour));
 
 			container.text({
 				x: xPos - 2 * sizes.legendItemSize,
 				y: yPos,
-				value: options.series[i].name
+				value: name
 			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: end;dominant-baseline: middle",
 				options.legend["font-colour"],
 				options.legend["font-family"],

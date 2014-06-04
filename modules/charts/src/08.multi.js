@@ -385,6 +385,9 @@ function getChart(options, container) {
 		case 'table':
 			chart = wesCountry.charts.table(options);
 			break;
+		case 'stacked':
+			chart = wesCountry.charts.stackedChart(options);
+			break;
 		case 'map':
 			var innerContainer = document.createElement('div');
 			innerContainer.id = String.format("map-wrapper-{0}", wesCountry.guid());
@@ -525,13 +528,13 @@ wesCountry.charts.multiChart = function (options) {
 			chartOptions.container = String.format("#{0}", id);
 
 			var chart = wesCountry.charts.chart(chartOptions);
-			
+
 			charts.push(chart);
 
 			// Is set after rendering the chart (if not height is not obteined properly)
 			chartContainer.style.display = (i == 0) ? 'block' : 'none';
 		}
-	
+
 		return charts;
 	}
 };

@@ -10,14 +10,37 @@ wesCountry.charts.rankingChart = function(options) {
 		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 		options.yAxis["from-zero"] = true;
 
-		if (options.sortSeries)
-			options.series = wesCountry.charts.sortSeries(options.series);
-
 		// SVG creation
 		var svg = wesCountry.charts.getSVG(options);
 
+		var groups = splitIntoGroups(options.series);
+		var length = groups.length;
+
 		// Size and margins (%)
-		var sizes = getSizes(svg, options);
+		var sizes = getSizes(svg, options, groups);
+
+		// Direction
+		if (options.rankingDirection != "lowerToHigher")
+			groups.reverse();
+
+		// Labels
+		var firstLabel = options.rankingDirection ==
+			"lowerToHigher" ? options.rankingLower : options.rankingHigher;
+
+		var lastLabel = options.rankingDirection ==
+			"lowerToHigher" ? options.rankingHigher : options.rankingLower;
+
+		var labels = [];
+
+		for (var i = 0; i < length; i++)
+			if (i == 0 && length > 0)
+				labels.push(firstLabel);
+			else if (i == length -1 && length > 0)
+				labels.push(lastLabel);
+			else
+				labels.push("");
+
+		options.xAxis.values = labels;
 
 		var g = svg.g();
 
@@ -30,55 +53,60 @@ wesCountry.charts.rankingChart = function(options) {
 		wesCountry.charts.setAxisX(g, sizes, options);
 
 		// Values
-		var length = sizes.maxValueLength;
-		var numberOfSeries = options.series.length;
 
-		var barMargin = options.barMargin * sizes.xTickWidth / 100;
+		var barMarginWidth = sizes.barMarginWidth;
+		var barMarginHeight = sizes.barMarginHeight;
 		var groupMargin = options.groupMargin * sizes.xTickWidth / 100;
 
 		var barWidth = sizes.barWidth;
+		var barHeight = sizes.barHeight;
 
 		var maxHeight = sizes.innerHeight - sizes.xAxisMargin;
-		var minValuePos = sizes.minValue / (sizes.maxValue - sizes.minValue) * maxHeight;
 
 		// Values
 
-		var valueList = [];
-
 		for (var i = 0; i < length; i++) {
-			for (var j = 0; j < numberOfSeries; j++) {
-				var serie = options.series[j].name;
-				var id = options.series[j].id;
-				var value = options.series[j].values[i];
-				var url = options.series[j].urls ? options.series[j].urls[i] : "";
-				var pos = options.xAxis.values[j];
+			var group = groups[i];
+			var groupLength = group.length;
+
+			for (var j = 0; j < groupLength; j++) {
+				var serie = group[j].name;
+				var id = group[j].id;
+				var value = group[j].value;
+				var url = group[j].url;
+				//var pos = options.xAxis.values[j];
+				var pos = "";
 
 				if (!value)
 					value = 0;
 
-				valueList.push(value);
+				var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin * (2 * i + 1) + sizes.barMarginWidth
+						+ sizes.xTickWidth * i;
 
-				var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin * (2 * i + 1) + sizes.barMargin
-						+ sizes.xTickWidth * i
-						+ (barWidth + 2 * sizes.barMargin) * j;
+				var height = barHeight;
 
-				var yPos = getYPos(value, sizes, minValuePos, maxHeight);
+				var yPos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin - sizes.barMarginHeight
+						- height
+						- (barHeight + 2 * sizes.barMarginHeight) * j;
 
-				var height = (Math.abs(value) / (sizes.maxValue - sizes.minValue))
-						* maxHeight;
+				var radius = barWidth / 2;
 
-				var rectangleOptions = {
+				var elementOptions = {
 					x: xPos,
 					y: yPos,
+					cx: xPos + radius,
+					cy: yPos + radius,
 					width: barWidth,
 					height: height,
+					r: radius,
 					id: id,
 					serie: serie,
 					value: value,
 					pos: pos
 				};
 
-				var rectangleStyle = String.format("fill: {0}", options.serieColours[j]);
+				var colour = options.getElementColour(options, group[j], j);
+				var rectangleStyle = String.format("fill: {0}", colour);
 
 				// Events
 
@@ -132,11 +160,16 @@ wesCountry.charts.rankingChart = function(options) {
 
 				if (url && url != "") {
 					var a = g.a({}, url ? url : "")
-					r = a.rectangle(rectangleOptions);
+					r = a;
 				}
 				else {
-					r = g.rectangle(rectangleOptions);
+					r = g;
 				}
+
+				if (options.rankingElementShape == "circle")
+					r = r.circle(elementOptions);
+				else
+					r = r.rectangle(elementOptions);
 
 				r.style(rectangleStyle).className(serie)
 					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
@@ -150,8 +183,8 @@ wesCountry.charts.rankingChart = function(options) {
 				if (options.valueOnItem.show == true) {
 					g.text({
 						x: xPos + barWidth / 2,
-						y: yPos - (options.height / 100) * options.valueOnItem.margin,
-						value: value.toFixed(2)
+						y: yPos + height / 2,
+						value: serie
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
@@ -159,21 +192,6 @@ wesCountry.charts.rankingChart = function(options) {
 				}
 			}
 		}
-
-		var statistics = getStatistics(valueList);
-
-		// Show mean
-		var side = statistics.mean - statistics.median >= 0 ? 1 : -1
-
-		showStatistics(g, statistics.mean, options.mean,
-			side , sizes, minValuePos, maxHeight);
-
-		// Show median
-		var side = statistics.mean - statistics.median >= 0 ? -1 : 1
-		side = statistics.mean == statistics.median ? -1 : side;
-
-		showStatistics(g, statistics.median, options.median,
-			side, sizes, minValuePos, maxHeight);
 
 		// Legend
 		if (options.legend.show)
@@ -185,85 +203,7 @@ wesCountry.charts.rankingChart = function(options) {
 		return svg;
 	}
 
-	function getYPos(value, sizes, minValuePos, maxHeight) {
-		if (value >= 0)	{
-			return sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
-					+ minValuePos
-					- (value / (sizes.maxValue - sizes.minValue))
-					* maxHeight;
-		}
-		else {
-			return sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin
-					+ minValuePos
-		}
-	}
-
-	function showStatistics(container, value, option, textSide, sizes, minValuePos, maxHeight) {
-		if (option.show !== true)
-			return;
-
-		var posY = getYPos(value, sizes, minValuePos, maxHeight);
-
-		var x1 = sizes.marginLeft + sizes.yAxisMargin;
-		var x2 = sizes.marginLeft + sizes.innerWidth;
-
-		container.line({
-			x1: x1,
-			x2: x2,
-			y1: posY,
-			y2: posY,
-			"stroke-width": option.stroke
-		}).style(String.format("stroke: {0}", option.colour))
-		.className("statistics");
-
-		var sign = textSide >= 0 ? 1 : -1;
-
-		container.text({
-			x: x2,
-			y: posY - sign * (options.height / 100) * option.margin,
-			value: String.format("{0}{1}", option.text, value.toFixed(2))
-		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor:end;dominant-baseline: middle",
-			option["font-colour"],
-			option["font-family"],
-			option["font-size"]));
-	}
-
-	function getStatistics(values) {
-		if (values == 0)
-			return {
-				median: 0,
-				mean: 0
-			}
-
-		// Median
-		values.sort(function(a,b) { return a - b; });
-
-    var half = Math.floor(values.length / 2);
-		var median = 0;
-
-    if(values.length % 2)
-        median = values[half];
-    else
-        median = (values[half - 1] + values[half]) / 2.0;
-
-		// Mean
-		var sum = 0;
-
-		var length = values.length;
-
-		for(var i = 0; i < length; i++) {
-		    sum += values[i];
-		}
-
-		var mean = sum / length;
-
-		return {
-			median: median,
-			mean: mean
-		}
-	}
-
-	function getSizes(svg, options) {
+	function getSizes(svg, options, groups) {
 		var width = svg.width();
 		var height = svg.height();
 		var marginTop = height * options.margins[0] / 100;
@@ -275,30 +215,44 @@ wesCountry.charts.rankingChart = function(options) {
 		var innerWidth = width - marginLeft - marginRight;
 		var innerHeight = height - marginTop - marginBottom;
 
-		// Max value & min value
-		var maxAndMinValues = wesCountry.charts.getMaxAndMinValuesAxisY(options);
-		var maxValue = maxAndMinValues.max;
-		var minValue = maxAndMinValues.min > 0 ? 0 : maxAndMinValues.min;
-		var maxValueLength = maxAndMinValues.valueLength;
+		var maxRankingRows = options.maxRankingRows > 0 ? options.maxRankingRows : 8;
+		var columnNumber = groups.length;
+		var rowNumber = 0;
+		var length = groups.length;
 
-		// If max and min Value are the same we set difference
-		if (minValue == maxValue) {
-			minValue = minValue >= 0 ? 0 : minValue - 2;
-			maxValue += 2;
+		for (var i = 0; i < length; i++) {
+			var group = groups[i];
+			var groupLength = group.length;
+
+			rowNumber = Math.max(rowNumber, groupLength);
 		}
 
-		var ticksY = (maxValue - minValue) / maxAndMinValues.inc;
-		var yTickHeight = ticksY != 0 ? (innerHeight - xAxisMargin) / ticksY : 0;
-		var xTickWidth = maxAndMinValues.valueLength != 0 ? (innerWidth - yAxisMargin) / maxAndMinValues.valueLength : 0;
+		rowNumber = Math.min(rowNumber, maxRankingRows);
+
+		var xTickWidth = columnNumber != 0 ? (innerWidth - yAxisMargin) / columnNumber : 0;
+		var yTickHeight = (innerHeight - xAxisMargin) / rowNumber;
 
 		var groupMargin = options.groupMargin * xTickWidth / 100;
 		xTickWidth -= 2 * groupMargin;
 
-		var barWidth = xTickWidth / options.series.length;
-		var barMargin = options.barMargin * barWidth / 100;
-		barWidth -= 2 * barMargin;
+		var barWidth = xTickWidth;
+		var barHeight = yTickHeight;
+		var barMarginWidth = options.barMargin * barWidth / 100;
+		var barMarginHeight = options.barMargin * barHeight / 100;
+		barWidth -= 2 * barMarginWidth;
+		barHeight -= 2 * barMarginHeight;
 
-		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
+		// Make size square
+		if (barWidth > barHeight) {
+			var diff = barWidth - barHeight;
+			barMarginWidth += diff / 2;
+			barWidth = barHeight;
+		}
+		else {
+			var diff = barHeight - barWidth;
+			barMarginHeight += diff / 2;
+			barHeight = barWidth;
+		}
 
 		var legendItemSize = options.legend.itemSize * width / 100;
 
@@ -316,20 +270,145 @@ wesCountry.charts.rankingChart = function(options) {
 			yAxisMargin: yAxisMargin,
 			xAxisMargin: xAxisMargin,
 
-			maxValue: maxValue,
-			minValue: minValue,
-			maxValueLength: maxValueLength,
-
-			ticksY: ticksY,
-			yTickHeight: yTickHeight,
 			xTickWidth: xTickWidth,
-			valueInc: valueInc,
+			yTickHeight: yTickHeight,
 
-			barMargin: barMargin,
+			barMarginWidth: barMarginWidth,
+			barMarginHeight: barMarginHeight,
+			barMargin: Math.min(barMarginWidth, barMarginHeight),
 			groupMargin: groupMargin,
 			barWidth: barWidth,
+			barHeight: barHeight,
+
+			ticksY: -1,
+			ticksX: -1,
+			minValue: 0,
+			maxValue: 1,
+
+			maxValueLength: groups.length,
 
 			legendItemSize: legendItemSize
 		};
+	}
+
+	function splitIntoGroups(series) {
+		var groups = getGroups(series);
+		var length = groups.length;
+
+		// Split into smaller groups based on maxRankingRows
+		var maxRankingRows = options.maxRankingRows > 0 ? options.maxRankingRows : 8;
+
+		var splittedGroups = [];
+
+		for (var i = 0; i < length; i++) {
+			var group = groups[i];
+			var groupLength = group.length;
+
+			if (groupLength <= maxRankingRows)
+				splittedGroups.push(group);
+			else {
+				var newGroup = [];
+				var count = 0;
+
+				for (var j = 0; j < groupLength; j++) {
+					if (count >= maxRankingRows) {
+						splittedGroups.push(newGroup);
+						newGroup = [];
+						count = 0;
+					}
+
+					var element = group[j];
+
+					newGroup.push(element);
+					count++;
+				}
+
+				splittedGroups.push(newGroup);
+			}
+		}
+
+		return splittedGroups;
+	}
+
+	function getGroups(series) {
+		var groups = [];
+
+		var numbers = [];
+
+		var length = series.length;
+
+		for (var i = 0; i < length; i++) {
+			var valueLength = series[i].values.length;
+
+			for (var j = 0; j < valueLength; j++) {
+				var url = series[i].urls && series[i].urls[j] ? series[i].urls[j] : "";
+				var value = series[i].values[j];
+
+				var element = wesCountry.clone(series[i]);
+				element.url = url;
+				element.value = value;
+
+				numbers.push(element);
+			}
+		}
+
+		numbers = numbers.sort(function(a, b) {
+			return a.value - b.value;
+		});
+
+		var factor = Math.min(
+			Math.ceil(Math.sqrt(numbers.length)),
+			10
+		);
+
+		var deciles = getDeciles(numbers, factor);
+
+		if (numbers.length > 0)
+			deciles.push(numbers[numbers.length - 1].value);
+
+		var length = deciles.length;
+		var numberLength = numbers.length;
+
+		var j = 0;
+
+		for (var i = 0; i < length; i++) {
+			var decile = deciles[i];
+
+			var group = [];
+
+			while (j <= numberLength - 1 && numbers[j].value <= decile) {
+				group.push(numbers[j]);
+
+				j++;
+			}
+
+			if (group.length > 0)
+				groups.push(group);
+		}
+
+		return groups;
+	}
+
+	function getDeciles(numbers, factor) {
+		var deciles = [];
+
+		var length = numbers.length;
+
+		for (var i = 1; i < factor; i++) {
+			var pos = (length + 1) * i / factor;
+			var remainder = pos - Math.floor(pos);
+
+			var index1 = Math.floor(pos) - 1;
+			var index2 = Math.ceil(pos) - 1;
+
+			var value1 = numbers[index1].value;
+			var value2 = numbers[index2].value;
+
+			var decile = value1 + (value2 - value1) * remainder;
+
+			deciles.push(decile);
+		}
+
+		return deciles;
 	}
 };

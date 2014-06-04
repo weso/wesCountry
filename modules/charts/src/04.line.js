@@ -118,7 +118,8 @@ wesCountry.charts.generateLineChart = function(options, area) {
 					pos: pos
 				};
 
-				var pointStyle = String.format("fill: {0}", options.serieColours[i % options.serieColours.length]);
+				var colour = options.getElementColour(options, options.series[i], i);
+				var pointStyle = String.format("fill: {0}", colour);
 
 				var setLineWidth = function(element, stroke) {
 					var className = element.getAttribute("class");

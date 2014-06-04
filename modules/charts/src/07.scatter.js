@@ -146,6 +146,8 @@ wesCountry.charts.scatterPlot = function(options) {
 							(valueY - sizes.minValue) / (sizes.maxValue - sizes.minValue))
 						* maxHeight;
 
+				var colour = options.getElementColour(options, options.series[i], i);
+
 				g.circle({
 					cx: xPos,
 					cy: yPos,
@@ -154,7 +156,7 @@ wesCountry.charts.scatterPlot = function(options) {
 					serie: serie,
 					value: value,
 					pos: pos
-				}).style(String.format("fill: {0}", options.serieColours[i % options.serieColours.length]))
+				}).style(String.format("fill: {0}", colour))
 				.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 			}
 		}

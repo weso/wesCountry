@@ -178,7 +178,7 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 
 		    	for(var j = 0; j < length; j++)
 		    		if (angles[j] != 0) {
-		    			colour = options.serieColours[j];
+							colour = options.getElementColour(options, options.series[j], j);
 		    			id = options.series[j].id;
 		    			serie = options.series[j].name;
 		    			value = Math.abs(options.series[0].values[j]).toFixed(2);
@@ -257,11 +257,13 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 						pos: pos
 					};
 
+					var colour = options.getElementColour(options, options.series[j], j);
+
 					var path = g.path(pathOptions)
 					.event("onmouseover", onmouseover)
 					.event("onmouseout", onmouseout)
 					.event("onclick", onclick)
-			    .style(String.format("fill: {0}", options.serieColours[j]));
+			    .style(String.format("fill: {0}", colour));
 
 					if (donut) {
 						g.circle({

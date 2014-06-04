@@ -212,7 +212,6 @@ function generateCharts(options) {
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
-	renderRankingChart(options);
 
 	options.series = [
 		{
@@ -232,7 +231,6 @@ function generateCharts(options) {
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
-	renderRankingChart(options);
 
 	options.series = [
 		{
@@ -252,7 +250,6 @@ function generateCharts(options) {
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
-	renderRankingChart(options);
 
 	options.series = [
 		{
@@ -276,7 +273,6 @@ function generateCharts(options) {
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
-	renderRankingChart(options);
 
 	options.series = [
 		{
@@ -296,7 +292,6 @@ function generateCharts(options) {
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
-	renderRankingChart(options);
 
 	options.series = [
 		{
@@ -324,7 +319,6 @@ function generateCharts(options) {
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
-	renderRankingChart(options);
 
 	options.series = [
 		{
@@ -344,8 +338,7 @@ function generateCharts(options) {
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
-	renderRankingChart(options);
-	
+
 	options.series = [
 		{
             name: "2012",
@@ -364,8 +357,7 @@ function generateCharts(options) {
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
-	renderRankingChart(options);
-	
+
 	options.series = [
 		{
             name: "2012",
@@ -384,6 +376,208 @@ function generateCharts(options) {
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
+
+	options.xAxis.colour = "#ccc";
+
+	options.series = [
+		{
+				name: "ESP",
+				values: [1],
+				continent: "Europe"
+		},
+		{
+				name: "FRA",
+				values: [2],
+				continent: "Europe"
+		},
+		{
+				name: "POR",
+				values: [1.2],
+				continent: "Europe"
+		},
+		{
+				name: "GRE",
+				values: [0.5],
+				continent: "Europe"
+		},
+		{
+				name: "ITA",
+				values: [1],
+				continent: "Europe"
+		},
+		{
+				name: "IRL",
+				values: [1.1],
+				continent: "Europe"
+		},
+		{
+				name: "SUI",
+				values: [5],
+				continent: "Europe"
+		},
+		{
+				name: "NOR",
+				values: [6],
+				continent: "Europe"
+		},
+		{
+				name: "GBR",
+				values: [3],
+				continent: "Europe"
+		},
+		{
+				name: "GER",
+				values: [5],
+				continent: "Europe"
+		},
+		{
+				name: "RUS",
+				values: [1.3],
+				continent: "Europe"
+		},
+		{
+				name: "FIN",
+				values: [6],
+				continent: "Europe"
+		},
+		{
+				name: "ISL",
+				values: [0.3],
+				continent: "Europe"
+		},
+		{
+				name: "CAN",
+				values: [5],
+				continent: "America"
+		},
+		{
+				name: "USA",
+				values: [4.9],
+				continent: "America"
+		},
+		{
+				name: "MEX",
+				values: [0.5],
+				continent: "America"
+		},
+		{
+				name: "CUB",
+				values: [0.1],
+				continent: "America"
+		},
+		{
+				name: "AGO",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "ETH",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "EGY",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "SUD",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "CON",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "CCM",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "XX1",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "XX2",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "XX3",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "CHI",
+				values: [3],
+				continent: "Asia"
+		},
+		{
+				name: "KOR",
+				values: [0],
+				continent: "Asia"
+		},
+		{
+				name: "JAP",
+				values: [5],
+				continent: "Asia"
+		}
+	];
+
+	options.getElementColour = function(options, element, index) {
+		var pos = 0;
+
+		switch(element.continent) {
+			case "Europe":
+				pos = 0;
+				break;
+			case "America":
+				pos = 1;
+				break;
+			case "Africa":
+				pos = 2;
+				break;
+			case "Asia":
+				pos = 3;
+				break;
+		}
+
+		return options.serieColours[pos];
+	};
+
+	options.getLegendElements = function(options) {
+		var elements = [];
+
+		var series = options.series;
+		var length = series.length;
+
+		for (var i = 0; i < length; i++) {
+			var continent = series[i].continent;
+
+			if (elements.indexOf(continent) == -1)
+				elements.push(continent);
+		}
+
+		elements = elements.sort();
+
+		var length = elements.length;
+
+		for (var i = 0; i < length; i++)
+			elements[i] = {
+				name: elements[i],
+				continent: elements[i]
+			};
+
+		return elements;
+	};
+
+	options.maxRankingRows = 6;
+	options.margins = [2, 10, 1, 1];
+	options.xAxis.title = options.yAxis.title = "";
+
 	renderRankingChart(options);
 }
 
