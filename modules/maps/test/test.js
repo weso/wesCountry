@@ -1,23 +1,28 @@
 var countries = [
 	{
 		"code": "ESP",
-		"value": 1
+		"value": 1,
+		"time": "2010"
 	},
 	{
 		"code": "FRA",
-		"value": 2
+		"value": 2,
+		"time": "2011"
 	},
 	{
 		"code": "GBR",
-		"value": 3
+		"value": 3,
+		"time": "2011"
 	},
 	{
 		"code": "ITA",
-		"value": 4
+		"value": 4,
+		"time": "2010"
 	},
 	{
 		"code": "IRL",
-		"value": 5
+		"value": 5,
+		"time": "2011"
 	},
 	{
 		"code": "USA",
@@ -86,6 +91,13 @@ var map = wesCountry.maps.createMap({
 	"borderWidth": 1.5,
 	countries: countries
 });
+
+var countries = [
+	{
+		"code": "PRT",
+		"value": 2
+	}
+]
 
 var map2 = wesCountry.maps.createMap({
 	container: '#map2',

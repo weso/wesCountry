@@ -13,7 +13,7 @@ if (typeof (wesCountry) === "undefined")
 
 wesCountry.data = new (function() {
     var myData = {};
-    var options = {};
+    //var options = {};
     var tablePosition = null;
     var tableElement;
     var xAxisValues = {};
@@ -21,6 +21,269 @@ wesCountry.data = new (function() {
     var times = [];
     var indicators = [];
     var regions = [];
+    
+    this.getObservationFromTable = function(options) {
+    	var container = document.querySelector(options.container);
+    	
+    	var table = container.querySelector('table');
+    	
+    	if (!table)
+    		return null;
+    	
+    	var thead = table.querySelector('thead');
+    	var tbody = table.querySelector('tbody');
+    	
+    	if (!thead || !tbody)
+    		return null;
+    	
+    	// Columns
+    	var ths = thead.querySelectorAll('th');
+    	
+    	var columns = {};
+    	
+    	var length = ths.length;
+    	
+    	for (var i = 0; i < length; i++) {
+    		var column = ths[i];
+    		var className = column.className;
+    		
+    		if (!className)
+    			continue;
+    			
+    		columns[className] = i;
+    	}
+    	
+    	// Rows
+    	var trs = tbody.querySelectorAll('tr');
+    	
+    	var length = trs.length;
+    	
+    	var observations = [];
+    	
+    	for (var i = 0; i < length; i++) {
+    		var tr = trs[i];
+    		
+    		var tds = tr.querySelectorAll('td');
+    		
+    		// regionName
+    		var regionPos = columns["regionName"];	
+    		
+    		if (regionPos === undefined || regionPos > tds.length - 1)
+    			continue;
+    			
+    		var region = tds[regionPos].innerHTML;
+    			
+    		// time
+    		var timePos = columns["time"];	
+    		
+    		if (timePos === undefined || timePos > tds.length - 1)
+    			continue;
+    			
+    		var time = tds[timePos].innerHTML;
+    		
+    		// indicatorCode
+     		var indicatorPos = columns["indicatorCode"];	
+    		
+    		if (indicatorPos === undefined || indicatorPos > tds.length - 1)
+    			continue;
+    			
+    		var indicator = tds[indicatorPos].innerHTML;   		
+    		
+    		// value
+     		var valuePos = columns["value"];	
+    		
+    		if (valuePos === undefined || valuePos > tds.length - 1)
+    			continue;
+    			
+    		var value = tds[valuePos].innerHTML; 
+    		
+    		if (!value || value == "" || value == "null")
+    			value = null;
+    		
+    		observations.push({
+    			region: region,
+    			time: time,
+    			indicator: indicator,
+    			value: value
+    		});
+    	}
+    	
+    	observations = this.getChartSeriesFromObservations(observations);
+    	
+    	return observations;
+    }
+    
+    this.getChartSeriesFromObservations = function(observations) {
+    	var times = [];
+    	var regions = [];
+    	var indicators = [];
+    	
+    	var byTime = {};
+    	var byRegion = {};
+    	var byIndicator = {};
+    	
+    	var length = observations.length;
+    	
+    	for (var i = 0; i < length; i++) {
+    		var observation = observations[i];
+    		var time = observation.time;
+    		var region = observation.region;
+    		var indicator = observation.indicator;
+    		
+    		// Time
+    		if (times.indexOf(time) == -1)
+    			times.push(time);
+    			
+    		// Region
+    		if (regions.indexOf(region) == -1)
+    			regions.push(region);
+    			
+    		// 	Indicator
+    		if (indicators.indexOf(indicator) == -1)
+    			indicators.push(indicator);
+    			
+    		// By Time
+    		if (!byTime[time])
+    			byTime[time] = {
+    				regions: {},
+    				indicators: {}
+    			};
+    			
+    		if (!byTime[time].regions[region])
+    			byTime[time].regions[region] = [];
+    		
+    		byTime[time].regions[region].push(observation);
+    		
+    		if (!byTime[time].indicators[indicator])
+    			byTime[time].indicators[indicator] = {};
+    		
+    		byTime[time].indicators[indicator][region] = observation;
+    		
+    		// By Region
+    		if (!byRegion[region])
+    			byRegion[region] = {
+    				times: {},
+    				indicators: {}
+    			};
+    			
+    		if (!byRegion[region].times[time])
+    			byRegion[region].times[time] = [];
+    		
+    		byRegion[region].times[time].push(observation);
+    		
+    		if (!byRegion[region].indicators[indicator])
+    			byRegion[region].indicators[indicator] = {};
+    		
+    		byRegion[region].indicators[indicator][time] = observation;
+    		
+    		// By Indicator
+    		if (!byIndicator[indicator])
+    			byIndicator[indicator] = {
+    				times: {},
+    				regions: {}
+    			};
+    			
+    		if (!byIndicator[indicator].times[time])
+    			byIndicator[indicator].times[time] = [];
+    		
+    		byIndicator[indicator].times[time].push(observation);
+    		
+    		if (!byIndicator[indicator].regions[region])
+    			byIndicator[indicator].regions[region] = {};
+    		
+    		byIndicator[indicator].regions[region][time] = observation;
+    	}
+    	
+    	times.sort();
+    	regions.sort();
+    	indicators.sort();
+    	
+    	// Series By Region
+    	
+    	var seriesByRegion = [];
+    	
+    	var rLength = regions.length;
+    	var tLength = times.length;
+    	var iLength = indicators.length;
+    	
+    	for (var i = 0; i < rLength; i++) {
+    		var regionName = regions[i];
+    		
+    		var series = [];
+    		
+    		var obsIndicators = byRegion[regionName].indicators;
+    		
+    		for (var j = 0; j < iLength; j++) {
+    			var indicator = indicators[j];
+    				
+    			var obsTimes = obsIndicators[indicator];
+    			
+    			var values = [];
+    			
+    			for (var k = 0; k < tLength; k++) {
+    				var time = times[k];
+    				
+    				var value = obsTimes[time] ? obsTimes[time].value : null;
+    				values.push(value);
+    			}
+    			
+    			series.push({
+    				name: indicator,
+    				values: values
+    			});
+    		}
+    		
+    		seriesByRegion.push({
+    			name: regionName,
+    			series: series
+    		});
+    	}
+    	
+		// Series By Indicator
+    	
+    	var seriesByIndicator = [];
+    	
+    	for (var i = 0; i < iLength; i++) {
+    		var indicatorName = indicators[i];
+    		
+    		var series = [];
+    	
+    		var obsRegions = byIndicator[indicatorName].regions;
+    		
+    		for (var j = 0; j < rLength; j++) {
+    			var region = regions[j];
+    			
+    			var obsTimes = obsRegions[region];
+
+    			var values = [];
+    			
+    			for (var k = 0; k < tLength; k++) {
+    				var time = times[k];
+    				
+    				var value = obsTimes[time] ? obsTimes[time].value : null;
+    				values.push(value);
+    			}
+    			
+    			series.push({
+    				name: region,
+    				values: values
+    			});
+    		}
+    		
+    		seriesByIndicator.push({
+    			name: indicatorName,
+    			series: series
+    		});
+    	}    	
+    	
+    	return {
+    		byRegion: seriesByRegion,
+    		byIndicator: seriesByIndicator,
+    		times: times,
+    		regions: regions,
+    		indicator: indicators
+    	}
+    }
 
     this.parseJSON = function(receivedOptions) {
         options = wesCountry

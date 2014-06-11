@@ -16,8 +16,8 @@ var wesCountry = new (function() {
 	this.version = "1.0.0.0";
 
 	this.signature = {
-		value: "© wesCountry",
-		url: "https://github.com/weso/wesCountry"
+		value: "by wesCountry",
+		url: "http://wescountry.weso.es"
 	}
 
 	function s4() {
@@ -41,9 +41,103 @@ var wesCountry = new (function() {
 		}).style('fill: #aaa;font-family:Helvetica;font-size:10px;text-anchor: end;dominant-baseline: edge');
 	}
 
+	this.isFunction = function(obj) {
+		var getType = {};
+		return obj && getType.toString.call(obj) === '[object Function]';
+	}
+
+	this.getCssProperty = function(element, property) {
+  	return window.getComputedStyle(element, null).getPropertyValue(property);
+	}
+
+	this.getFullHeight = function(element) {
+    var elmHeight, elmMargin, elm = element;
+
+    if (document.all) { // IE
+      elmHeight = elm.currentStyle.height;
+      elmMargin = parseInt(elm.currentStyle.marginTop, 10) + parseInt(elm.currentStyle.marginBottom, 10);
+    } else if (document.defaultView && document.defaultView.getComputedStyle) { // Mozilla
+      elmHeight = document.defaultView.getComputedStyle(elm, '').getPropertyValue('height');
+      elmMargin = parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('margin-top')) + parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('margin-bottom'));
+    }
+		else {
+			elmHeight = wesCountry.getCssProperty(elm, 'height');
+			elmMargin = parseInt(wesCountry.getCssProperty(elm, 'margin-top')) + parseInt(wesCountry.getCssProperty(elm, 'margin-bottom'));
+		}
+
+		if (elmHeight && elmHeight.match) {
+			elmHeight = elmHeight.match(/(\d*(\.\d*)?)px/);
+
+			if (elmHeight && elmHeight.length > 0)
+				elmHeight = Number(elmHeight[1]);
+			else
+				elmHeight = 0;
+		}
+		else
+			elmHeight = 0;
+
+    return (elmHeight + elmMargin);
+	}
+
+	this.registerEvent = function(element, event, handler) {
+		if (element.attachEvent)
+			element.attachEvent(event, handler);
+		else
+			element.addEventListener(event, handler, false);
+	}
+
+	this.fireEvent = function(element, event) {
+		if ("createEvent" in document) {
+			var evt = document.createEvent("HTMLEvents");
+			evt.initEvent(event, false, true);
+			element.dispatchEvent(evt);
+		}
+		else
+			element.fireEvent("on" + event);
+	}
+
+	this.makeGradientColour = function(colour1, colour2, percent) {
+		var newColour = {};
+
+		function makeChannel(a, b) {
+			return(a + Math.round((b - a) * (percent / 100)));
+		}
+
+		function makeColourPiece(num) {
+			num = Math.min(num, 255);   // not more than 255
+			num = Math.max(num, 0);     // not less than 0
+
+			var str = num.toString(16);
+
+			if (str.length < 2) {
+				str = "0" + str;
+			}
+
+			return(str);
+		}
+
+		newColour.r = makeChannel(colour1.r, colour2.r);
+		newColour.g = makeChannel(colour1.g, colour2.g);
+		newColour.b = makeChannel(colour1.b, colour2.b);
+		newColour.cssColour = "#" +
+							makeColourPiece(newColour.r) +
+							makeColourPiece(newColour.g) +
+							makeColourPiece(newColour.b);
+
+		return(newColour);
+	}
+
 	////////////////////////////////////////////////////////////////////////////////
 	//                              MERGING OPTIONS
 	////////////////////////////////////////////////////////////////////////////////
+
+	this.addOptions = function(opt1, opt2) {
+		for (var o in opt2)
+			if (!opt1[o])
+				opt1[o] = opt2[o];
+
+		return opt1;
+	}
 
 	this.mergeOptionsAndDefaultOptions = function(options, defaultOptions) {
 		if (options) {
@@ -64,6 +158,9 @@ var wesCountry = new (function() {
 	};
 
 	function mergeOptions(to, from) {
+		if (!to)
+			to = {};
+
 		if (from instanceof Array) {
 			return from;
 		}
@@ -81,12 +178,14 @@ var wesCountry = new (function() {
 	this.clone = function(obj) {
 		// Not valid for copying objects that contain methods
 	    //return JSON.parse(JSON.stringify(obj));
+
 	    if (null == obj || "object" != typeof obj) return obj;
 
 	    var copy = obj.constructor();
 
 	    for (var attr in obj) {
-	        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+	        if (obj.hasOwnProperty(attr))
+						copy[attr] = this.clone(obj[attr]);
 	    }
 
 	    return copy;

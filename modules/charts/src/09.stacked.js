@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
-//                                  BAR CHART
+//                               STACKED CHART
 ////////////////////////////////////////////////////////////////////////////////
 
-wesCountry.charts.barChart = function(options) {
+wesCountry.charts.stackedChart = function(options) {
 	return renderChart();
 
 	function renderChart() {
@@ -43,11 +43,11 @@ wesCountry.charts.barChart = function(options) {
 
 		// Values
 
-		var valueList = [];
-
-		var numColumnsDifferentFromZero = 0;
-
 		for (var i = 0; i < length; i++) {
+
+			var auxPositivePos = minValuePos;
+			var auxNegativePos = minValuePos;
+
 			for (var j = 0; j < numberOfSeries; j++) {
 				var element = options.series[j];
 				var serie = element.name;
@@ -59,19 +59,19 @@ wesCountry.charts.barChart = function(options) {
 				if (!value)
 					value = 0;
 
-				if (value != 0)
-					numColumnsDifferentFromZero++;
-
-				valueList.push(value);
-
 				var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin * (2 * i + 1) + sizes.barMargin
-						+ sizes.xTickWidth * i
-						+ (barWidth + 2 * sizes.barMargin) * j;
+						+ sizes.xTickWidth * i;
 
-				var yPos = getYPos(value, sizes, minValuePos, maxHeight);
+				var yPos = getYPos(value, sizes, value >= 0 ? auxPositivePos : auxNegativePos, maxHeight);
 
 				var height = (Math.abs(value) / (sizes.maxValue - sizes.minValue))
 						* maxHeight;
+
+				// Accumulative initial pos
+				if (value >= 0)
+					auxPositivePos -= height;
+				else
+					auxNegativePos += height;
 
 				var rectangleOptions = {
 					x: xPos,
@@ -86,8 +86,7 @@ wesCountry.charts.barChart = function(options) {
 
 				wesCountry.charts.setElementInfo(element, rectangleOptions);
 
-				var colour = options.getElementColour(options, options.series[j], j);
-				var rectangleStyle = String.format("fill: {0}", colour);
+				var rectangleStyle = String.format("fill: {0}", options.serieColours[j]);
 
 				// Events
 
@@ -97,9 +96,11 @@ wesCountry.charts.barChart = function(options) {
 					for (var i = 0; i < selectedBars.length; i++)
 						unselectBar(selectedBars[i]);
 
-					element.colour = element.style.fill;
-					element.style.fill = options.overColour;
-					element.setAttribute("selected", "selected");
+					var rect = element.querySelector('rect');
+
+					rect.colour = rect.style.fill;
+					rect.style.fill = options.overColour;
+					rect.setAttribute("selected", "selected");
 				};
 
 				var onmouseover = function() {
@@ -109,7 +110,10 @@ wesCountry.charts.barChart = function(options) {
 				};
 
 				var unselectBar = function(element) {
-					element.style.fill = element.colour;
+					var rect = element.querySelector('rect');
+
+					if (rect)
+						rect.style.fill = rect.colour;
 				};
 
 				var onmouseout = function() {
@@ -122,52 +126,51 @@ wesCountry.charts.barChart = function(options) {
 					options.events.onclick(wesCountry.charts.getElementAttributes(this));
 				};
 
+				// Node for element and text
+				var nodeOptions = {
+					id: id,
+					serie: serie,
+					value: value,
+					pos: pos
+				};
+
+				wesCountry.charts.setElementInfo(element, nodeOptions);
+
+				var node = g.g(nodeOptions);
+
 				var r = null;
 
 				if (url && url != "") {
-					var a = g.a({}, url ? url : "")
+					var a = node.a({}, url ? url : "")
 					r = a.rectangle(rectangleOptions);
 				}
 				else {
-					r = g.rectangle(rectangleOptions);
+					r = node.rectangle(rectangleOptions);
 				}
 
-				r.style(rectangleStyle).className(serie)
-					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
-					.event("selectBar", function() {
-						selectBar(this);
-					}).event("unselectBar", function() {
-						unselectBar(this);
-					});
+				r.style(rectangleStyle).className(serie);
+
+				node.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
+				.event("selectBar", function() {
+					selectBar(this);
+				}).event("unselectBar", function() {
+					unselectBar(this);
+				});
 
 				// Value on bar
-				if (options.valueOnItem.show == true) {
-					g.text({
+				if (options.valueOnItem.show == true && value != 0) {
+					node.text({
 						x: xPos + barWidth / 2,
-						y: yPos - (options.height / 100) * options.valueOnItem.margin,
+						y: yPos + height / 2,
 						value: value.toFixed(2)
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
-						options.valueOnItem["font-size"]));
+						options.valueOnItem["font-size"]))
+						.className("ranking-item-name");
 				}
 			}
 		}
-
-		var statistics = getStatistics(valueList);
-
-		// Show mean
-		var side = statistics.mean - statistics.median >= 0 ? 1 : -1
-
-		showStatistics(g, statistics.mean, options.mean,
-			side , sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
-
-		// Show median
-		var side = statistics.mean - statistics.median >= 0 ? -1 : 1
-		side = statistics.mean == statistics.median ? -1 : side;
-
-		showStatistics(g, statistics.median, options.median,
-			side, sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
 
 		// Legend
 		if (options.legend.show)
@@ -192,71 +195,6 @@ wesCountry.charts.barChart = function(options) {
 		}
 	}
 
-	function showStatistics(container, value, option, textSide, sizes, minValuePos, maxHeight, toShow) {
-		if (option.show !== true || !toShow)
-			return;
-
-		var posY = getYPos(value, sizes, minValuePos, maxHeight);
-
-		var x1 = sizes.marginLeft + sizes.yAxisMargin;
-		var x2 = sizes.marginLeft + sizes.innerWidth;
-
-		container.line({
-			x1: x1,
-			x2: x2,
-			y1: posY,
-			y2: posY,
-			"stroke-width": option.stroke
-		}).style(String.format("stroke: {0}", option.colour))
-		.className("statistics");
-
-		var sign = textSide >= 0 ? 1 : -1;
-
-		container.text({
-			x: x2,
-			y: posY - sign * (options.height / 100) * option.margin,
-			value: String.format("{0}{1}", option.text, value.toFixed(2))
-		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor:end;dominant-baseline: middle",
-			option["font-colour"],
-			option["font-family"],
-			option["font-size"]));
-	}
-
-	function getStatistics(values) {
-		if (values == 0)
-			return {
-				median: 0,
-				mean: 0
-			}
-
-		// Median
-		values.sort(function(a,b) { return a - b; });
-
-    var half = Math.floor(values.length / 2);
-		var median = 0;
-
-    if(values.length % 2)
-        median = values[half];
-    else
-        median = (values[half - 1] + values[half]) / 2.0;
-
-		// Mean
-		var sum = 0;
-
-		var length = values.length;
-
-		for(var i = 0; i < length; i++) {
-		    sum += values[i];
-		}
-
-		var mean = sum / length;
-
-		return {
-			median: median,
-			mean: mean
-		}
-	}
-
 	function getSizes(svg, options) {
 		var width = svg.width();
 		var height = svg.height();
@@ -271,7 +209,7 @@ wesCountry.charts.barChart = function(options) {
 		var maxBarWidth = options.maxBarWidth * innerWidth / 100;
 
 		// Max value & min value
-		var maxAndMinValues = wesCountry.charts.getMaxAndMinValuesAxisY(options);
+		var maxAndMinValues = getMaxAndMinValuesAxisY(options);
 		var maxValue = maxAndMinValues.max;
 		var minValue = maxAndMinValues.min > 0 ? 0 : maxAndMinValues.min;
 		var maxValueLength = maxAndMinValues.valueLength;
@@ -284,12 +222,12 @@ wesCountry.charts.barChart = function(options) {
 
 		var ticksY = (maxValue - minValue) / maxAndMinValues.inc;
 		var yTickHeight = ticksY != 0 ? (innerHeight - xAxisMargin) / ticksY : 0;
-		var xTickWidth = maxAndMinValues.valueLength != 0 ? (innerWidth - yAxisMargin) / maxAndMinValues.valueLength : 0;
+		var xTickWidth = maxValueLength != 0 ? (innerWidth - yAxisMargin) / maxValueLength : 0;
 
 		var groupMargin = options.groupMargin * xTickWidth / 100;
 		xTickWidth -= 2 * groupMargin;
 
-		var barWidth = xTickWidth / options.series.length;
+		var barWidth = xTickWidth;
 		var barMargin = options.barMargin * barWidth / 100;
 		barWidth -= 2 * barMargin;
 
@@ -331,6 +269,57 @@ wesCountry.charts.barChart = function(options) {
 			barWidth: barWidth,
 
 			legendItemSize: legendItemSize
+		};
+	}
+
+	function getMaxAndMinValuesAxisY(options) {
+		var maxValue = 0, minValue = Number.MAX_VALUE;
+
+		var length = options.series.length;
+		var valueLength = null;
+		var value = null;
+		var maxValueLength = 0;
+
+		for (var i = 0; i < length; i++) {
+			valueLength = options.series[i].values.length;
+
+			if (valueLength > maxValueLength)
+				maxValueLength = valueLength;
+		}
+
+		for (var i = 0; i < maxValueLength; i++) {
+
+			var positiveSum = 0;
+			var negativeSum = 0;
+
+			for (var j = 0; j < length; j++) {
+				var serie = options.series[j];
+				value = serie.values && serie.values[i] ? serie.values[i] : 0;
+
+				if (value >= 0)
+					positiveSum += value;
+				else
+					negativeSum += value;
+			}
+
+			if (positiveSum > maxValue)
+				maxValue = positiveSum;
+
+			if (negativeSum < minValue)
+				minValue = negativeSum;
+		}
+
+		if (options.yAxis["from-zero"] === true && minValue > 0)
+			minValue = 0;
+
+		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue);
+
+		return {
+			max: maxAndMinValues.max,
+			min: maxAndMinValues.min,
+			valueLength: maxValueLength,
+			length: length,
+			inc: maxAndMinValues.inc
 		};
 	}
 };

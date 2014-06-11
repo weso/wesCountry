@@ -3,17 +3,36 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Multi Chart</title>
+	<link rel="stylesheet" type="text/css" href="../../../bin/wesCountry.css"></link>
+	<link rel="stylesheet" type="text/css" href="../src/charts.css"></link>
 	<script src="../../../bin/wesCountry.js"></script>
+	<script src="../src/08.multi.js"></script>
+	<style>
+		#chartDiv, #chartDiv2 {
+			width: 600px;
+			height: 400px;
+		}
+	</style>
 </head>
 <body>
-	<div id="chartDiv">
+	<div id="chartDiv"></div>
+	<div id="chartDiv2"></div>
 	<script type="text/javascript">
 		var options = {
 			container: "#chartDiv",
-			chartType: ["line", "bar", "pie", "area"]
+			download: true,
+			chartType: ["table", "line", "bar", "pie", "area", "polar", "stacked", "donut"]
 		};
-		wesCountry.charts.multiChart(options);
-		</script>
-	</div>
+		var chart = wesCountry.charts.multiChart(options);
+		console.log(chart)
+
+		var options = {
+			container: "#chartDiv2",
+			download: true,
+			chartType: "map"
+		};
+		var chart = wesCountry.charts.multiChart(options);
+		console.log(chart)
+	</script>
 </body>
 </html>

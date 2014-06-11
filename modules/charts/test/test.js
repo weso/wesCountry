@@ -3,10 +3,12 @@ window.onload = function() {
 		"line",
 		"area",
 		"bar",
+		"stacked",
 		"pie",
 		"donut",
 		"polar",
-		"scatter"
+		"scatter",
+		"ranking"
 	]);
 
 	var options = {
@@ -44,6 +46,14 @@ function generateLinks(links) {
 function generateCharts(options) {
 	var options = {
 		sortSeries: true,
+		mean: {
+			show: true,
+			stroke: 1
+		},
+		median: {
+			show: true,
+			stroke: 1
+		},
 		xAxis: {
 			"font-family": "'Kite One', sans-serif",
 			"font-size": "14px"
@@ -71,8 +81,10 @@ function generateCharts(options) {
 			"font-family": "'Kite One', sans-serif",
 			"font-size": "14px"
 		},
+		sizeByValue: true,
+		serieColours: ["rgba(1, 169, 219, 0.7)", "rgba(220, 0, 154, 0.7)"],
 		series: [{
-            name: "Primero",
+            name: "First",
             values: [[161.2, 51.6], [167.5, 59.0], [159.5, 49.2], [157.0, 63.0], [155.8, 53.6],
                     [170.0, 59.0], [159.1, 47.6], [166.0, 69.8], [176.2, 66.8], [160.2, 75.2],
                     [172.5, 55.2], [170.9, 54.2], [172.9, 62.5], [153.4, 42.0], [160.0, 50.0],
@@ -126,7 +138,7 @@ function generateCharts(options) {
                     [169.5, 67.3], [160.0, 75.5], [172.7, 68.2], [162.6, 61.4], [157.5, 76.8],
                     [176.5, 71.8], [164.4, 55.5], [160.7, 48.6], [174.0, 66.4], [163.8, 67.3]]
         }, {
-            name: "Segundo",
+            name: "Second",
             values: [[174.0, 65.6], [175.3, 71.8], [193.5, 80.7], [186.5, 72.6], [187.2, 78.8],
                     [181.5, 74.8], [184.0, 86.4], [184.5, 78.4], [175.0, 62.0], [184.0, 81.6],
                     [180.0, 76.6], [177.8, 83.6], [192.0, 90.0], [176.0, 74.6], [174.0, 71.0],
@@ -184,16 +196,32 @@ function generateCharts(options) {
 
 	options.series = [
 		{
-            name: "Primero",
-            values: [99.80]
+			name: "First",
+			values: [99.80]
+		}
+	];
+
+	renderBarChart(options);
+	renderStackedChart(options);
+	renderLineChart(options);
+	renderAreaChart(options);
+	renderPieChart(options);
+	renderDonutChart(options);
+	renderPolarChart(options);
+
+	options.series = [
+		{
+            name: "First",
+            values: [70]
         },
         {
-        	name: "Segundo",
+        	name: "Second",
          	values: [99]
         }
     ];
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
@@ -212,6 +240,7 @@ function generateCharts(options) {
     ];
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
@@ -230,6 +259,7 @@ function generateCharts(options) {
     ];
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
@@ -252,6 +282,7 @@ function generateCharts(options) {
     ];
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
@@ -270,6 +301,7 @@ function generateCharts(options) {
     };
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
@@ -283,7 +315,7 @@ function generateCharts(options) {
         },
         {
         	name: "2013",
-         	values: [null, 50, 7.4, 15, null]
+         	values: [null, 50, 20.4, 15, null]
         },
         {
         	name: "2009",
@@ -296,6 +328,26 @@ function generateCharts(options) {
     };
 
 	renderBarChart(options);
+	renderStackedChart(options);
+	renderLineChart(options);
+	renderAreaChart(options);
+	renderPieChart(options);
+	renderDonutChart(options);
+	renderPolarChart(options);
+
+	options.series = [
+		{
+            name: "2012",
+            values: [null]
+        },
+        {
+        	name: "2013",
+         	values: [null]
+        }
+    ];
+
+	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
@@ -314,16 +366,244 @@ function generateCharts(options) {
     ];
 
 	renderBarChart(options);
+	renderStackedChart(options);
 	renderLineChart(options);
 	renderAreaChart(options);
 	renderPieChart(options);
 	renderDonutChart(options);
 	renderPolarChart(options);
+
+	options.series = [
+		{
+            name: "2012",
+            values: [null, 1, null]
+        },
+        {
+        	name: "2013",
+         	values: [null, null, null]
+        }
+    ];
+
+	renderBarChart(options);
+	renderStackedChart(options);
+	renderLineChart(options);
+	renderAreaChart(options);
+	renderPieChart(options);
+	renderDonutChart(options);
+	renderPolarChart(options);
+
+	options.xAxis.colour = "#ccc";
+
+	options.series = [
+		{
+				name: "ESP",
+				values: [1],
+				continent: "Europe"
+		},
+		{
+				name: "FRA",
+				values: [2],
+				continent: "Europe"
+		},
+		{
+				name: "POR",
+				values: [1.2],
+				continent: "Europe"
+		},
+		{
+				name: "GRE",
+				values: [0.5],
+				continent: "Europe"
+		},
+		{
+				name: "ITA",
+				values: [1],
+				continent: "Europe"
+		},
+		{
+				name: "IRL",
+				values: [1.1],
+				continent: "Europe"
+		},
+		{
+				name: "SUI",
+				values: [5],
+				continent: "Europe"
+		},
+		{
+				name: "NOR",
+				values: [6],
+				continent: "Europe"
+		},
+		{
+				name: "GBR",
+				values: [3],
+				continent: "Europe"
+		},
+		{
+				name: "GER",
+				values: [5],
+				continent: "Europe"
+		},
+		{
+				name: "RUS",
+				values: [1.3],
+				continent: "Europe"
+		},
+		{
+				name: "FIN",
+				values: [6],
+				continent: "Europe"
+		},
+		{
+				name: "ISL",
+				values: [0.3],
+				continent: "Europe"
+		},
+		{
+				name: "CAN",
+				values: [5],
+				continent: "America"
+		},
+		{
+				name: "USA",
+				values: [4.9],
+				continent: "America"
+		},
+		{
+				name: "MEX",
+				values: [0.5],
+				continent: "America"
+		},
+		{
+				name: "CUB",
+				values: [0.1],
+				continent: "America"
+		},
+		{
+				name: "AGO",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "ETH",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "EGY",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "SUD",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "CON",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "CCM",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "XX1",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "XX2",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "XX3",
+				values: [0],
+				continent: "Africa"
+		},
+		{
+				name: "CHI",
+				values: [3],
+				continent: "Asia"
+		},
+		{
+				name: "KOR",
+				values: [0],
+				continent: "Asia"
+		},
+		{
+				name: "JAP",
+				values: [5],
+				continent: "Asia"
+		}
+	];
+
+	options.getElementColour = function(options, element, index) {
+		var pos = 0;
+
+		switch(element.continent) {
+			case "Europe":
+				pos = 0;
+				break;
+			case "America":
+				pos = 1;
+				break;
+			case "Africa":
+				pos = 2;
+				break;
+			case "Asia":
+				pos = 3;
+				break;
+		}
+
+		return options.serieColours[pos];
+	};
+
+	options.getLegendElements = function(options) {
+		var elements = [];
+
+		var series = options.series;
+		var length = series.length;
+
+		for (var i = 0; i < length; i++) {
+			var continent = series[i].continent;
+
+			if (elements.indexOf(continent) == -1)
+				elements.push(continent);
+		}
+
+		elements = elements.sort();
+
+		var length = elements.length;
+
+		for (var i = 0; i < length; i++)
+			elements[i] = {
+				name: elements[i],
+				continent: elements[i]
+			};
+
+		return elements;
+	};
+
+	options.maxRankingRows = 6;
+	options.margins = [2, 10, 1, 1];
+	options.xAxis.title = options.yAxis.title = "";
+
+	renderRankingChart(options);
 }
 
 function renderBarChart(options) {
 	var chart = wesCountry.charts.barChart(options);
 	document.getElementById("barDiv").appendChild(chart.render());
+}
+
+function renderStackedChart(options) {
+	var chart = wesCountry.charts.stackedChart(options);
+	document.getElementById("stackedDiv").appendChild(chart.render());
 }
 
 function renderLineChart(options) {
@@ -354,4 +634,9 @@ function renderScatterPlot(options) {
 function renderAreaChart(options) {
 	var chart = wesCountry.charts.areaChart(options);
 	document.getElementById("areaDiv").appendChild(chart.render());
+}
+
+function renderRankingChart(options) {
+	var chart = wesCountry.charts.rankingChart(options);
+	document.getElementById("rankingDiv").appendChild(chart.render());
 }

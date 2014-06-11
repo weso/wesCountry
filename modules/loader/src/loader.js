@@ -4,23 +4,29 @@ if (typeof (wesCountry) === "undefined")
 wesCountry.loader = new (function() {
 	var defaultOptions = {
 		container: "body",
-		width: 500,
-		height: 300,
-    loading: {
-      colour: "#2EFE64"
-    },
-    callback: function() {
-      console.log('ready');
-    }
+		callback: function() {
+		  console.log('ready');
+		},
+    cache: false,
+		getChartData: function(options, data) {
+			console.log(data);
+		}
 	};
+
+  var lastData = null;
 
   this.renderChart = function(options) {
     var panel = document.createElement('div');
     panel.id = 'c' + wesCountry.guid();
 
-    options.callback = function() {
+    options.callback = function(data, options) {
+      lastData = data;
       options.container = '#' + panel.id;
-      wesCountry.charts.chart(options);
+      options = options.getChartData ? options.getChartData(options, data) : options;
+      var charts = wesCountry.charts.multiChart(options);
+  
+      if (options.afterRenderCharts)
+      	options.afterRenderCharts.call(null, charts);
     }
 
     return this.render(options, panel);
@@ -28,23 +34,41 @@ wesCountry.loader = new (function() {
 
 	this.render = function(options, panel)
 	{
-    return new (function () {
-  		this.options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
+		return new (function () {
+			this.options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
 
-  		var container = document.querySelector(this.options.container);
+			var container = document.querySelector(this.options.container);
 
-  		this.panel = panel ? panel : document.createElement('div');
+			this.options.width = this.options.width ? this.options.width : container.offsetWidth;
+			this.options.height = this.options.height ? this.options.height : container.offsetHeight;
 
-  		this.panel.className = 'wesCountry-panel';
-  		this.panel.setAttribute("style", String.format("width: {0}px; height: {1}px;",
-                                      this.options.width, this.options.height));
+			this.options.width = this.options.width > 0 ? this.options.width : 500;
+			this.options.height = this.options.height > 0 ? this.options.height : 400;
 
-      container.appendChild(this.panel);
+			this.panel = panel ? panel : document.createElement('div');
 
-      this.load = load;
+			this.panel.className = 'wesCountry-panel';
+			this.panel.setAttribute("style", String.format("width: {0}px; min-height: {1}px;",
+										  this.options.width, wesCountry.getFullHeight(container)));
 
-      this.load(this.options);
-    })();
+		  container.appendChild(this.panel);
+
+		  this.load = load;
+
+		  this.load(this.options);
+
+		  this.getData = function() {
+  			return lastData;
+  		  }
+  		  
+  		  this.show = function() {
+  		  	container.style.display = 'block';
+  		  }
+  		  
+  		  this.hide = function() {
+  		  	container.style.display = 'none';
+  		  }
+		})();
 	}
 
   function load(options) {
@@ -53,65 +77,72 @@ wesCountry.loader = new (function() {
 
     var panel = this.panel;
 
-    wesCountry.ajax.load({
-      url: options.url,
-      callback: function(data) {
-        clearInterval(interval);
+  	if (options.url)
+  		wesCountry.ajax.load({
+  		  url: options.url,
+  		  parameters: options.parameters ? options.parameters : "",
+          cache_enabled: options.cache ? true : false,
+  		  callback: function(data) {
+  		    lastData = data;
 
-        panel.innerHTML = '';
+  			  panel.innerHTML = '';
 
-        if (options.callback)
-          options.callback.call(null, data);
-      }
-    });
+  			  if (options.callback)
+  			     options.callback.call(null, data, options);
+
+  			  clearInterval(interval);
+  		  }
+  		});
   }
 
   function showLoading(container, options) {
     var animation = document.createElement('div');
+    animation.className = 'loading';
     container.appendChild(animation);
 
-    var chartOptions = {
-      width: options.width,
-      height: options.height,
-      legend: {
-        show: false
-      },
-      xAxis: {
-        values: []
-      },
-      margins: [30, 0, 30, 0],
-      series: [
-        {
-          values: [0]
-        },
-        {
-          values: [100]
-        }
-      ],
-      valueOnItem: {
-        show: false
-      },
-      serieColours: [options.loading.colour, "#fff"]
-    };
+    var circles = [];
 
-    var cont1 = -1;
-    var cont2 = 101;
+    for (var i = 0; i < 3; i++) {
+      var circle = document.createElement('div');
+      circle.className = 'loading-circle';
+      animation.appendChild(circle);
+
+      circles.push(circle);
+
+      var width = wesCountry.getCssProperty(circle, 'width');
+      circle.style.height = width;
+
+      var circleHeight = circle.offsetHeight;
+      var innerCircleHeigth = circleHeight / 1.5;
+      var innerCircleMargin = (circleHeight - innerCircleHeigth) / 2;
+
+      var innerCircle = document.createElement('div');
+      innerCircle.className = 'loading-inner-circle';
+      innerCircle.style.width = innerCircle.style.height = innerCircleHeigth + 'px';
+      innerCircle.style.marginTop = innerCircleMargin + 'px';
+      circle.appendChild(innerCircle);
+    }
+
+    var containerHeight = wesCountry.getFullHeight(container);
+    var loadingHeight = wesCountry.getFullHeight(animation);
+
+    animation.style.top = (containerHeight / 2 - loadingHeight / 2) + 'px';
+
+    var index = 0;
+    var lastIndex = 0;
 
     var interval = setInterval(function() {
-      chartOptions.series[0].values[0] = ++cont1;
-      chartOptions.series[1].values[0] = --cont2;
+      index++;
 
-      if (cont2 == 0) {
-        cont1 = -1;
-        cont2 = 101;
-        chartOptions.serieColours = chartOptions.serieColours.reverse();
-      }
+      if (index > 2)
+        index = 0;
 
-      animation.innerHTML = '';
+      circles[lastIndex].className = 'loading-circle';
+      circles[lastIndex].style.backgroundColor = 'transparent';
+      circles[index].className = 'loading-circle loading-circle-active';
 
-      var chart = wesCountry.charts.donutChart(chartOptions);
-      animation.appendChild(chart.render());
-    }, 5);
+      lastIndex = index;
+    }, 400);
 
     return interval;
   }

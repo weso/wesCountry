@@ -41,7 +41,7 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 
 		var numberOfPies = sizes.maxValueLength;
 
-		if (numberOfPies == 1) {
+		if (numberOfPies <= 1) {
 			var radius = Math.min(sizes.innerWidth - 2 * sizes.yAxisMargin, sizes.innerHeight - 2 * sizes.xAxisMargin) / 2;
 			var startX = sizes.marginLeft + sizes.innerWidth / 2;
 			var startY = sizes.marginTop + sizes.innerHeight / 2;
@@ -110,32 +110,17 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 				this.colour = this.style.fill;
 				this.style.fill = options.overColour;
 
-				options.events.onmouseover({
-					id: this.getAttribute("id"),
-					serie: this.getAttribute("serie"),
-					pos: this.getAttribute("pos"),
-					value: this.getAttribute("value")
-				});
+				options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 			};
 
 			var onmouseout = function() {
 				this.style.fill = this.colour;
-				options.events.onmouseout({
-					id: this.getAttribute("id"),
-					serie: this.getAttribute("serie"),
-					pos: this.getAttribute("pos"),
-					value: this.getAttribute("value")
-				});
+				options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 			};
 
 			var onclick = function() {
 				this.style.fill = this.colour;
-				options.events.onclick({
-					id: this.getAttribute("id"),
-					serie: this.getAttribute("serie"),
-					pos: this.getAttribute("pos"),
-					value: this.getAttribute("value")
-				});
+				options.events.onclick(wesCountry.charts.getElementAttributes(this));
 			};
 
 			// Pie
@@ -170,31 +155,39 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 				angles[j] = value;
 		    }
 
-		    if (numberOfGreaterThanZero == 1) {
-		    	var colour = "";
+		    if (numberOfGreaterThanZero <= 1) {
+		    	var colour = options.backColour;
 		    	var serie = "";
 		    	var value = "";
 		    	var pos = "";
+					var element = {};
 
 		    	for(var j = 0; j < length; j++)
 		    		if (angles[j] != 0) {
-		    			colour = options.serieColours[j];
+							colour = options.getElementColour(options, options.series[j], j);
 		    			id = options.series[j].id;
 		    			serie = options.series[j].name;
 		    			value = Math.abs(options.series[0].values[j]).toFixed(2);
 		    			pos = options.xAxis.values[i];
+
+							element = options.series[j];
+
 			    		break;
 		    		}
 
-		    	g.circle({
-			    	cx: cx,
-			    	cy: cy,
-			    	r: radius,
-			    	id: id,
-			    	serie: serie,
+					var circleOptions = {
+						cx: cx,
+						cy: cy,
+						r: radius,
+						id: id,
+						serie: serie,
 						value: value,
 						pos: pos
-		    	}).event("onmouseover", onmouseover)
+					};
+
+					wesCountry.charts.setElementInfo(element, circleOptions);
+
+		    	g.circle(circleOptions).event("onmouseover", onmouseover)
 					.event("onmouseout", onmouseout)
 					.event("onclick", onclick)
 		    	.style(String.format("fill: {0}", colour));
@@ -219,6 +212,8 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 					var serie = options.series[j].name;
 					var url = options.series[j].urls ? options.series[j].urls[i] : "";
 					var pos = options.xAxis.values[i];
+
+					var element = options.series[j];
 
 			        // Compute the two points where our wedge intersects the circle
 			        // These formulas are chosen so that an angle of 0 is at 12 o'clock
@@ -257,11 +252,15 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 						pos: pos
 					};
 
+					wesCountry.charts.setElementInfo(element, pathOptions);
+
+					var colour = options.getElementColour(options, options.series[j], j);
+
 					var path = g.path(pathOptions)
 					.event("onmouseover", onmouseover)
 					.event("onmouseout", onmouseout)
 					.event("onclick", onclick)
-			    .style(String.format("fill: {0}", options.serieColours[j]));
+			    .style(String.format("fill: {0}", colour));
 
 					if (donut) {
 						g.circle({
@@ -320,7 +319,7 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 
 		var ticksY = (maxValue - minValue) / maxAndMinValues.inc;
 		var yTickHeight = ticksY != 0 ? (innerHeight - xAxisMargin) / ticksY : 0;
-		var xTickWidth = (innerWidth - yAxisMargin) / maxAndMinValues.valueLength;
+		var xTickWidth = maxAndMinValues.valueLength != 0 ? (innerWidth - yAxisMargin) / maxAndMinValues.valueLength : 0;
 
 		var groupMargin = options.groupMargin * xTickWidth / 100;
 		xTickWidth -= 2 * groupMargin;
