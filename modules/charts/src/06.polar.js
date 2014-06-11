@@ -184,34 +184,19 @@ wesCountry.charts.polarChart = function(options) {
 		var onmouseover = function() {
 			this.setAttribute("r", 8);
 			setLineWidth(this, 2);
-			options.events.onmouseover({
-				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"),
-				pos: this.getAttribute("pos"),
-				value: this.getAttribute("value")
-			});
+			options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 		};
 
 		var onmouseout = function() {
 			this.setAttribute("r", 5);
 			setLineWidth(this, 1);
-			options.events.onmouseout({
-				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"),
-				pos: this.getAttribute("pos"),
-				value: this.getAttribute("value")
-			});
+			options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 		};
 
 		var onclick = function() {
 			this.setAttribute("r", 5);
 			setLineWidth(this, 1);
-			options.events.onclick({
-				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"),
-				pos: this.getAttribute("pos"),
-				value: this.getAttribute("value")
-			});
+			options.events.onclick(wesCountry.charts.getElementAttributes(this));
 		};
 
 		// Polygon drawing
@@ -231,9 +216,10 @@ wesCountry.charts.polarChart = function(options) {
 			for (var j = 0; j < numberOfVertices; j++) {
 				var vertex = polygonVertices[i][j];
 
-				var value = options.series[i].values[j];
-				var id = options.series[i].id;
-				var serie = options.series[i].name;
+				var element = options.series[i];
+				var value = element.values[j];
+				var id = element.id;
+				var serie = element.name;
 				var pos = options.xAxis.values[j];
 
 				if (!vertex)
@@ -242,7 +228,8 @@ wesCountry.charts.polarChart = function(options) {
 				var colour = options.getElementColour(options, options.series[i], i);
 
 				if (options.vertex.show) {
-					g.circle({
+
+					var circleOptions = {
 						cx: vertex.x,
 						cy: vertex.y,
 						r: 5,
@@ -251,17 +238,25 @@ wesCountry.charts.polarChart = function(options) {
 						value: value,
 						pos: pos,
 						"class": lineId
-					}).style(String.format("fill: {0}", colour))
+					};
+
+					wesCountry.charts.setElementInfo(element, circleOptions);
+
+					g.circle(circleOptions).style(String.format("fill: {0}", colour))
 					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 				}
 
-				g.line({
-			  		x1: vertexPrev.x,
-			  		y1: vertexPrev.y,
-			  		x2: vertex.x,
-			  		y2: vertex.y,
-			  		"class": lineId
-			  	}).style(String.format("stroke: {0};", colour));
+				var lineOptions = {
+					x1: vertexPrev.x,
+					y1: vertexPrev.y,
+					x2: vertex.x,
+					y2: vertex.y,
+					"class": lineId
+				};
+
+				wesCountry.charts.setElementInfo(element, lineOptions);
+
+				g.line(lineOptions).style(String.format("stroke: {0};", colour));
 
         pathD += String.format("{0}{1} {2}", pathD == "" ? "M" : "L", vertex.x, vertex.y);
 

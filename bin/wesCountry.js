@@ -263,12 +263,14 @@ var wesCountry = new (function() {
 	this.clone = function(obj) {
 		// Not valid for copying objects that contain methods
 	    //return JSON.parse(JSON.stringify(obj));
+
 	    if (null == obj || "object" != typeof obj) return obj;
 
 	    var copy = obj.constructor();
 
 	    for (var attr in obj) {
-	        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+	        if (obj.hasOwnProperty(attr))
+						copy[attr] = this.clone(obj[attr]);
 	    }
 
 	    return copy;
@@ -715,8 +717,8 @@ wesCountry.charts = new (function() {
 		sizeByValueMinRadius: 1, // Scatter
 		mean: { // Bar
 			show: false,
-			stroke: 2,
-			colour: "#333",
+			stroke: 1,
+			colour: "#444",
 			margin: 3,
 			text: "mean: ",
 			"font-family": "Helvetica",
@@ -725,14 +727,15 @@ wesCountry.charts = new (function() {
 		},
 		median: { // Bar
 			show: false,
-			stroke: 2,
-			colour: "#333",
+			stroke: 1,
+			colour: "#888",
 			margin: 3,
 			text: "median: ",
 			"font-family": "Helvetica",
 			"font-colour": "#333",
 			"font-size": "12px",
 		},
+		maxBarWidth: 20, // Bar
 		maxRankingRows: 8, // Ranking
 		rankingElementShape: "circle", // Ranking
 		rankingDirection: "lowerToHigher", // Ranking
@@ -782,21 +785,12 @@ wesCountry.charts = new (function() {
 			"font-size": "16px"
     },
     tooltip: {
-	    show: true,
-	    style: {
-			  display: "none",
-			  padding: "0.8em 0.5em",
-			  "font-size": "12px",
-			  border: "0.1em solid #ccc",
-			  "background-color": "#fff",
-			  position: "absolute",
-			  color: "#000",
-	    }
+	    show: true
     },
     events: {
 	    "onmouseover": function(info) {
 		    var text = String.format("Series '{0}': ({1}, {2})", info.serie, info.pos, info.value);
-		    console.log(text);
+
 		    wesCountry.charts.showTooltip(text);
 	    },
 	    "onmouseout": function() {
@@ -1114,19 +1108,10 @@ wesCountry.charts = new (function() {
 			tooltip = document.getElementById("wesCountryTooltip");
 
 			if (!tooltip) {
-				tooltip = document.createElement("span");
+				tooltip = document.createElement("div");
 				tooltip.id = "wesCountryTooltip";
+				tooltip.className = "wesCountry-tooltip";
 				document.body.appendChild(tooltip);
-
-				var style = "";
-
-				for (var attr in options.tooltip.style) {
-					var element = options.tooltip.style[attr];
-
-					style += String.format("{0}:{1};", attr, element);
-				}
-
-				tooltip.setAttribute("style", style);
 			}
 		}
 		else
@@ -1163,6 +1148,33 @@ wesCountry.charts = new (function() {
     	tooltip.style.display = "none";
     }
 
+	////////////////////////////////////////////////////////////////////////////////
+	//                            TOOLTIP AUXILIARY
+	////////////////////////////////////////////////////////////////////////////////
+
+
+	this.getElementAttributes = function(element) {
+		var attributes = element.attributes;
+		var length = attributes.length;
+
+		var obj = {};
+
+		for (var i = 0; i < length; i++) {
+			var attribute = attributes[i];
+			var name = attribute.nodeName;
+			var value = attribute.nodeValue;
+
+			obj[name] = value;
+		}
+
+		return obj;
+	}
+
+	this.setElementInfo =  function(element, obs) {
+		for (var key in element) {
+			obs["data-" + key] = element[key];
+		}
+	}
 })();
 ////////////////////////////////////////////////////////////////////////////////
 //                                  BAR CHART
@@ -1211,16 +1223,22 @@ wesCountry.charts.barChart = function(options) {
 
 		var valueList = [];
 
+		var numColumnsDifferentFromZero = 0;
+
 		for (var i = 0; i < length; i++) {
 			for (var j = 0; j < numberOfSeries; j++) {
-				var serie = options.series[j].name;
-				var id = options.series[j].id;
-				var value = options.series[j].values[i];
-				var url = options.series[j].urls ? options.series[j].urls[i] : "";
+				var element = options.series[j];
+				var serie = element.name;
+				var id = element.id;
+				var value = element.values[i];
+				var url = element.urls ? element.urls[i] : "";
 				var pos = options.xAxis.values[j];
 
 				if (!value)
 					value = 0;
+
+				if (value != 0)
+					numColumnsDifferentFromZero++;
 
 				valueList.push(value);
 
@@ -1244,6 +1262,8 @@ wesCountry.charts.barChart = function(options) {
 					pos: pos
 				};
 
+				wesCountry.charts.setElementInfo(element, rectangleOptions);
+
 				var colour = options.getElementColour(options, options.series[j], j);
 				var rectangleStyle = String.format("fill: {0}", colour);
 
@@ -1263,12 +1283,7 @@ wesCountry.charts.barChart = function(options) {
 				var onmouseover = function() {
 					selectBar(this);
 
-					options.events.onmouseover({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var unselectBar = function(element) {
@@ -1277,22 +1292,12 @@ wesCountry.charts.barChart = function(options) {
 
 				var onmouseout = function() {
 					unselectBar(this);
-					options.events.onmouseout({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var onclick = function() {
 					this.style.fill = this.colour;
-					options.events.onclick({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onclick(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var r = null;
@@ -1333,14 +1338,14 @@ wesCountry.charts.barChart = function(options) {
 		var side = statistics.mean - statistics.median >= 0 ? 1 : -1
 
 		showStatistics(g, statistics.mean, options.mean,
-			side , sizes, minValuePos, maxHeight, options.series);
+			side , sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
 
 		// Show median
 		var side = statistics.mean - statistics.median >= 0 ? -1 : 1
 		side = statistics.mean == statistics.median ? -1 : side;
 
 		showStatistics(g, statistics.median, options.median,
-			side, sizes, minValuePos, maxHeight, options.series);
+			side, sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
 
 		// Legend
 		if (options.legend.show)
@@ -1365,8 +1370,8 @@ wesCountry.charts.barChart = function(options) {
 		}
 	}
 
-	function showStatistics(container, value, option, textSide, sizes, minValuePos, maxHeight, series) {
-		if (option.show !== true && series.length > 1)
+	function showStatistics(container, value, option, textSide, sizes, minValuePos, maxHeight, toShow) {
+		if (option.show !== true || !toShow)
 			return;
 
 		var posY = getYPos(value, sizes, minValuePos, maxHeight);
@@ -1441,6 +1446,7 @@ wesCountry.charts.barChart = function(options) {
 		var xAxisMargin = options.xAxis.margin * height / 100;
 		var innerWidth = width - marginLeft - marginRight;
 		var innerHeight = height - marginTop - marginBottom;
+		var maxBarWidth = options.maxBarWidth * innerWidth / 100;
 
 		// Max value & min value
 		var maxAndMinValues = wesCountry.charts.getMaxAndMinValuesAxisY(options);
@@ -1464,6 +1470,12 @@ wesCountry.charts.barChart = function(options) {
 		var barWidth = xTickWidth / options.series.length;
 		var barMargin = options.barMargin * barWidth / 100;
 		barWidth -= 2 * barMargin;
+
+		if (barWidth > maxBarWidth) {
+			var diff = barWidth - maxBarWidth;
+			barMargin += diff / 2;
+			barWidth = maxBarWidth;
+		}
 
 		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
 
@@ -1576,13 +1588,14 @@ wesCountry.charts.generateLineChart = function(options, area) {
 			var firstValue = -1;
 
 			for (var j = 0; j < valueLength; j++) {
-				var value = options.series[i].values[j];
-				var valuePrev = j > 0 ? options.series[i].values[j - 1] : 0;
+				var element = options.series[i];
+				var value = element.values[j];
+				var valuePrev = j > 0 ? element.values[j - 1] : 0;
 
-				var url = options.series[i].urls ? options.series[i].urls[j] : "";
+				var url = element.urls ? element.urls[j] : "";
 
-				var id = options.series[i].id;
-				var serie = options.series[i].name;
+				var id = element.id;
+				var serie = element.name;
 				var pos = options.xAxis.values[j];
 
 				if (!value)
@@ -1620,6 +1633,8 @@ wesCountry.charts.generateLineChart = function(options, area) {
 					pos: pos
 				};
 
+				wesCountry.charts.setElementInfo(element, pointOptions);
+
 				var colour = options.getElementColour(options, options.series[i], i);
 				var pointStyle = String.format("fill: {0}", colour);
 
@@ -1636,34 +1651,19 @@ wesCountry.charts.generateLineChart = function(options, area) {
 				var onmouseover = function() {
 					this.setAttribute("r", 8);
 					setLineWidth(this, 2);
-					options.events.onmouseover({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var onmouseout = function() {
 					this.setAttribute("r", 5);
 					setLineWidth(this, 1);
-					options.events.onmouseout({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var onclick = function() {
 					this.setAttribute("r", 5);
 					setLineWidth(this, 1);
-					options.events.onclick({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onclick(wesCountry.charts.getElementAttributes(this));
 				};
 
 				if (options.vertex.show) {
@@ -1928,32 +1928,17 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 				this.colour = this.style.fill;
 				this.style.fill = options.overColour;
 
-				options.events.onmouseover({
-					id: this.getAttribute("id"),
-					serie: this.getAttribute("serie"),
-					pos: this.getAttribute("pos"),
-					value: this.getAttribute("value")
-				});
+				options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 			};
 
 			var onmouseout = function() {
 				this.style.fill = this.colour;
-				options.events.onmouseout({
-					id: this.getAttribute("id"),
-					serie: this.getAttribute("serie"),
-					pos: this.getAttribute("pos"),
-					value: this.getAttribute("value")
-				});
+				options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 			};
 
 			var onclick = function() {
 				this.style.fill = this.colour;
-				options.events.onclick({
-					id: this.getAttribute("id"),
-					serie: this.getAttribute("serie"),
-					pos: this.getAttribute("pos"),
-					value: this.getAttribute("value")
-				});
+				options.events.onclick(wesCountry.charts.getElementAttributes(this));
 			};
 
 			// Pie
@@ -1993,6 +1978,7 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 		    	var serie = "";
 		    	var value = "";
 		    	var pos = "";
+					var element = {};
 
 		    	for(var j = 0; j < length; j++)
 		    		if (angles[j] != 0) {
@@ -2001,18 +1987,25 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 		    			serie = options.series[j].name;
 		    			value = Math.abs(options.series[0].values[j]).toFixed(2);
 		    			pos = options.xAxis.values[i];
+
+							element = options.series[j];
+
 			    		break;
 		    		}
 
-		    	g.circle({
-			    	cx: cx,
-			    	cy: cy,
-			    	r: radius,
-			    	id: id,
-			    	serie: serie,
+					var circleOptions = {
+						cx: cx,
+						cy: cy,
+						r: radius,
+						id: id,
+						serie: serie,
 						value: value,
 						pos: pos
-		    	}).event("onmouseover", onmouseover)
+					};
+
+					wesCountry.charts.setElementInfo(element, circleOptions);
+
+		    	g.circle(circleOptions).event("onmouseover", onmouseover)
 					.event("onmouseout", onmouseout)
 					.event("onclick", onclick)
 		    	.style(String.format("fill: {0}", colour));
@@ -2037,6 +2030,8 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 					var serie = options.series[j].name;
 					var url = options.series[j].urls ? options.series[j].urls[i] : "";
 					var pos = options.xAxis.values[i];
+
+					var element = options.series[j];
 
 			        // Compute the two points where our wedge intersects the circle
 			        // These formulas are chosen so that an angle of 0 is at 12 o'clock
@@ -2074,6 +2069,8 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 						value: value,
 						pos: pos
 					};
+
+					wesCountry.charts.setElementInfo(element, pathOptions);
 
 					var colour = options.getElementColour(options, options.series[j], j);
 
@@ -2370,34 +2367,19 @@ wesCountry.charts.polarChart = function(options) {
 		var onmouseover = function() {
 			this.setAttribute("r", 8);
 			setLineWidth(this, 2);
-			options.events.onmouseover({
-				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"),
-				pos: this.getAttribute("pos"),
-				value: this.getAttribute("value")
-			});
+			options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 		};
 
 		var onmouseout = function() {
 			this.setAttribute("r", 5);
 			setLineWidth(this, 1);
-			options.events.onmouseout({
-				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"),
-				pos: this.getAttribute("pos"),
-				value: this.getAttribute("value")
-			});
+			options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 		};
 
 		var onclick = function() {
 			this.setAttribute("r", 5);
 			setLineWidth(this, 1);
-			options.events.onclick({
-				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"),
-				pos: this.getAttribute("pos"),
-				value: this.getAttribute("value")
-			});
+			options.events.onclick(wesCountry.charts.getElementAttributes(this));
 		};
 
 		// Polygon drawing
@@ -2417,9 +2399,10 @@ wesCountry.charts.polarChart = function(options) {
 			for (var j = 0; j < numberOfVertices; j++) {
 				var vertex = polygonVertices[i][j];
 
-				var value = options.series[i].values[j];
-				var id = options.series[i].id;
-				var serie = options.series[i].name;
+				var element = options.series[i];
+				var value = element.values[j];
+				var id = element.id;
+				var serie = element.name;
 				var pos = options.xAxis.values[j];
 
 				if (!vertex)
@@ -2428,7 +2411,8 @@ wesCountry.charts.polarChart = function(options) {
 				var colour = options.getElementColour(options, options.series[i], i);
 
 				if (options.vertex.show) {
-					g.circle({
+
+					var circleOptions = {
 						cx: vertex.x,
 						cy: vertex.y,
 						r: 5,
@@ -2437,17 +2421,25 @@ wesCountry.charts.polarChart = function(options) {
 						value: value,
 						pos: pos,
 						"class": lineId
-					}).style(String.format("fill: {0}", colour))
+					};
+
+					wesCountry.charts.setElementInfo(element, circleOptions);
+
+					g.circle(circleOptions).style(String.format("fill: {0}", colour))
 					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 				}
 
-				g.line({
-			  		x1: vertexPrev.x,
-			  		y1: vertexPrev.y,
-			  		x2: vertex.x,
-			  		y2: vertex.y,
-			  		"class": lineId
-			  	}).style(String.format("stroke: {0};", colour));
+				var lineOptions = {
+					x1: vertexPrev.x,
+					y1: vertexPrev.y,
+					x2: vertex.x,
+					y2: vertex.y,
+					"class": lineId
+				};
+
+				wesCountry.charts.setElementInfo(element, lineOptions);
+
+				g.line(lineOptions).style(String.format("stroke: {0};", colour));
 
         pathD += String.format("{0}{1} {2}", pathD == "" ? "M" : "L", vertex.x, vertex.y);
 
@@ -2595,32 +2587,17 @@ wesCountry.charts.scatterPlot = function(options) {
 			this.colour = this.style.fill;
 			this.style.fill = options.overColour;
 
-			options.events.onmouseover({
-				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"),
-				pos: this.getAttribute("pos"),
-				value: this.getAttribute("value")
-			});
+			options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 		};
 
 		var onmouseout = function() {
 			this.style.fill = this.colour;
-			options.events.onmouseout({
-				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"),
-				pos: this.getAttribute("pos"),
-				value: this.getAttribute("value")
-			});
+			options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 		};
 
 		var onclick = function() {
 			this.style.fill = this.colour;
-			options.events.onclick({
-				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"),
-				pos: this.getAttribute("pos"),
-				value: this.getAttribute("value")
-			});
+			options.events.onclick(wesCountry.charts.getElementAttributes(this));
 		};
 
 		var maxRadius = options.sizeByValueMaxRadius * maxWidth / 100;
@@ -2660,9 +2637,10 @@ wesCountry.charts.scatterPlot = function(options) {
 			for (var j = 0; j < valueLength; j++) {
 				var valueX = values[j][0] ? values[j][0] : 0;
 
-				var value = options.series[i].values[j];
-				var id = options.series[i].id;
-				var serie = options.series[i].name;
+				var element = options.series[i];
+				var value = element.values[j];
+				var id = element.id;
+				var serie = element.name;
 				var pos = valueX;
 
 				if (!valueX)
@@ -2696,7 +2674,7 @@ wesCountry.charts.scatterPlot = function(options) {
 
 				var colour = options.getElementColour(options, options.series[i], i);
 
-				g.circle({
+				var circleOptions = {
 					cx: xPos,
 					cy: yPos,
 					r: radius,
@@ -2704,7 +2682,11 @@ wesCountry.charts.scatterPlot = function(options) {
 					serie: serie,
 					value: value,
 					pos: pos
-				}).style(String.format("fill: {0}", colour))
+				};
+
+				wesCountry.charts.setElementInfo(element, circleOptions);
+
+				g.circle(circleOptions).style(String.format("fill: {0}", colour))
 				.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 			}
 		}
@@ -3020,7 +3002,8 @@ wesCountry.charts.chart = function (options) {
 	if (!options.height && container.offsetHeight > 0 )
 		options.height = container.offsetHeight;
 
-	var dOptions = wesCountry.addOptions(wesCountry.charts.defaultOptions, defaultOptions);
+	var dOptions = wesCountry.clone(wesCountry.charts.defaultOptions);
+	dOptions = wesCountry.addOptions(dOptions, defaultOptions);
 	options = wesCountry.mergeOptionsAndDefaultOptions(options, dOptions);
 
 	// Height
@@ -3282,6 +3265,9 @@ function getChart(options, container) {
 		case 'stacked':
 			chart = wesCountry.charts.stackedChart(options);
 			break;
+		case 'ranking':
+			chart = wesCountry.charts.rankingChart(options);
+			break;
 		case 'map':
 			var innerContainer = document.createElement('div');
 			innerContainer.id = String.format("map-wrapper-{0}", wesCountry.guid());
@@ -3483,10 +3469,11 @@ wesCountry.charts.stackedChart = function(options) {
 			var auxNegativePos = minValuePos;
 
 			for (var j = 0; j < numberOfSeries; j++) {
-				var serie = options.series[j].name;
-				var id = options.series[j].id;
-				var value = options.series[j].values[i];
-				var url = options.series[j].urls ? options.series[j].urls[i] : "";
+				var element = options.series[j];
+				var serie = element.name;
+				var id = element.id;
+				var value = element.values[i];
+				var url = element.urls ? element.urls[i] : "";
 				var pos = options.xAxis.values[j];
 
 				if (!value)
@@ -3517,6 +3504,8 @@ wesCountry.charts.stackedChart = function(options) {
 					pos: pos
 				};
 
+				wesCountry.charts.setElementInfo(element, rectangleOptions);
+
 				var rectangleStyle = String.format("fill: {0}", options.serieColours[j]);
 
 				// Events
@@ -3527,74 +3516,78 @@ wesCountry.charts.stackedChart = function(options) {
 					for (var i = 0; i < selectedBars.length; i++)
 						unselectBar(selectedBars[i]);
 
-					element.colour = element.style.fill;
-					element.style.fill = options.overColour;
-					element.setAttribute("selected", "selected");
+					var rect = element.querySelector('rect');
+
+					rect.colour = rect.style.fill;
+					rect.style.fill = options.overColour;
+					rect.setAttribute("selected", "selected");
 				};
 
 				var onmouseover = function() {
 					selectBar(this);
 
-					options.events.onmouseover({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var unselectBar = function(element) {
-					element.style.fill = element.colour;
+					var rect = element.querySelector('rect');
+
+					if (rect)
+						rect.style.fill = rect.colour;
 				};
 
 				var onmouseout = function() {
 					unselectBar(this);
-					options.events.onmouseout({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var onclick = function() {
 					this.style.fill = this.colour;
-					options.events.onclick({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onclick(wesCountry.charts.getElementAttributes(this));
 				};
+
+				// Node for element and text
+				var nodeOptions = {
+					id: id,
+					serie: serie,
+					value: value,
+					pos: pos
+				};
+
+				wesCountry.charts.setElementInfo(element, nodeOptions);
+
+				var node = g.g(nodeOptions);
 
 				var r = null;
 
 				if (url && url != "") {
-					var a = g.a({}, url ? url : "")
+					var a = node.a({}, url ? url : "")
 					r = a.rectangle(rectangleOptions);
 				}
 				else {
-					r = g.rectangle(rectangleOptions);
+					r = node.rectangle(rectangleOptions);
 				}
 
-				r.style(rectangleStyle).className(serie)
-					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
-					.event("selectBar", function() {
-						selectBar(this);
-					}).event("unselectBar", function() {
-						unselectBar(this);
-					});
+				r.style(rectangleStyle).className(serie);
+
+				node.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
+				.event("selectBar", function() {
+					selectBar(this);
+				}).event("unselectBar", function() {
+					unselectBar(this);
+				});
 
 				// Value on bar
 				if (options.valueOnItem.show == true && value != 0) {
-					g.text({
+					node.text({
 						x: xPos + barWidth / 2,
 						y: yPos + height / 2,
 						value: value.toFixed(2)
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
-						options.valueOnItem["font-size"]));
+						options.valueOnItem["font-size"]))
+						.className("ranking-item-name");
 				}
 			}
 		}
@@ -3633,6 +3626,7 @@ wesCountry.charts.stackedChart = function(options) {
 		var xAxisMargin = options.xAxis.margin * height / 100;
 		var innerWidth = width - marginLeft - marginRight;
 		var innerHeight = height - marginTop - marginBottom;
+		var maxBarWidth = options.maxBarWidth * innerWidth / 100;
 
 		// Max value & min value
 		var maxAndMinValues = getMaxAndMinValuesAxisY(options);
@@ -3656,6 +3650,12 @@ wesCountry.charts.stackedChart = function(options) {
 		var barWidth = xTickWidth;
 		var barMargin = options.barMargin * barWidth / 100;
 		barWidth -= 2 * barMargin;
+
+		if (barWidth > maxBarWidth) {
+			var diff = barWidth - maxBarWidth;
+			barMargin += diff / 2;
+			barWidth = maxBarWidth;
+		}
 
 		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
 
@@ -3815,22 +3815,20 @@ wesCountry.charts.rankingChart = function(options) {
 			var groupLength = group.length;
 
 			for (var j = 0; j < groupLength; j++) {
-				var serie = group[j].name;
-				var id = group[j].id;
-				var value = group[j].value;
-				var url = group[j].url;
-				//var pos = options.xAxis.values[j];
-				var pos = "";
+				var element = group[j];
+				var serie = element.name;
+				var id = element.id;
+				var value = element.value;
+				var url = element.url;
 
-				if (!value)
-					value = 0;
+				var pos = "";
 
 				var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin * (2 * i + 1) + sizes.barMarginWidth
 						+ sizes.xTickWidth * i;
 
 				var height = barHeight;
 
-				var yPos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin - sizes.barMarginHeight
+				var yPos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin - 2 * sizes.barMarginHeight
 						- height
 						- (barHeight + 2 * sizes.barMarginHeight) * j;
 
@@ -3843,11 +3841,7 @@ wesCountry.charts.rankingChart = function(options) {
 					cy: yPos + radius,
 					width: barWidth,
 					height: height,
-					r: radius,
-					id: id,
-					serie: serie,
-					value: value,
-					pos: pos
+					r: radius
 				};
 
 				var colour = options.getElementColour(options, group[j], j);
@@ -3856,49 +3850,39 @@ wesCountry.charts.rankingChart = function(options) {
 				// Events
 
 				var selectBar = function(element) {
-					var selectedBars = document.querySelectorAll(options.container + ' rect[selected]');
+					var selectedBars = document.querySelectorAll(options.container + ' .inner-bar[selected]');
 
 					for (var i = 0; i < selectedBars.length; i++)
 						unselectBar(selectedBars[i]);
 
-					element.colour = element.style.fill;
-					element.style.fill = options.overColour;
-					element.setAttribute("selected", "selected");
+					var rect = element.querySelector('.inner-bar');
+
+					rect.colour = rect.style.fill;
+					rect.style.fill = options.overColour;
+					rect.setAttribute("selected", "selected");
 				};
 
 				var onmouseover = function() {
 					selectBar(this);
 
-					options.events.onmouseover({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var unselectBar = function(element) {
-					element.style.fill = element.colour;
+					var rect = element.querySelector('.inner-bar');
+
+					if (rect)
+						rect.style.fill = rect.colour;
 				};
 
 				var onmouseout = function() {
 					unselectBar(this);
-					options.events.onmouseout({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var onclick = function() {
 					this.style.fill = this.colour;
-					options.events.onclick({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onclick(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var r = null;
@@ -3911,29 +3895,43 @@ wesCountry.charts.rankingChart = function(options) {
 					r = g;
 				}
 
-				if (options.rankingElementShape == "circle")
-					r = r.circle(elementOptions);
-				else
-					r = r.rectangle(elementOptions);
+				// Node for element and text
+				var nodeOptions = {
+					id: id,
+					serie: serie,
+					value: value,
+					pos: pos,
+				};
 
-				r.style(rectangleStyle).className(serie)
-					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
-					.event("selectBar", function() {
+				wesCountry.charts.setElementInfo(element, nodeOptions);
+
+				var node = g.g(nodeOptions);
+
+				if (options.rankingElementShape == "circle")
+					r = node.circle(elementOptions);
+				else
+					r = node.rectangle(elementOptions);
+
+				r.style(rectangleStyle).className(String.format("{0} inner-bar", serie));
+
+				node.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
+				.event("selectBar", function() {
 						selectBar(this);
-					}).event("unselectBar", function() {
-						unselectBar(this);
-					});
+				}).event("unselectBar", function() {
+					unselectBar(this);
+				});
 
 				// Value on bar
 				if (options.valueOnItem.show == true) {
-					g.text({
+					node.text({
 						x: xPos + barWidth / 2,
 						y: yPos + height / 2,
 						value: serie
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
-						options.valueOnItem["font-size"]));
+						options.valueOnItem["font-size"]))
+					.className("ranking-item-name");
 				}
 			}
 		}
@@ -3988,15 +3986,17 @@ wesCountry.charts.rankingChart = function(options) {
 		barHeight -= 2 * barMarginHeight;
 
 		// Make size square
-		if (barWidth > barHeight) {
-			var diff = barWidth - barHeight;
-			barMarginWidth += diff / 2;
-			barWidth = barHeight;
-		}
-		else {
-			var diff = barHeight - barWidth;
-			barMarginHeight += diff / 2;
-			barHeight = barWidth;
+		if (options.rankingElementShape != "rectangle") {
+			if (barWidth > barHeight) {
+				var diff = barWidth - barHeight;
+				barMarginWidth += diff / 2;
+				barWidth = barHeight;
+			}
+			else {
+				var diff = barHeight - barWidth;
+				barMarginHeight += diff / 2;
+				barHeight = barWidth;
+			}
 		}
 
 		var legendItemSize = options.legend.itemSize * width / 100;
@@ -4082,6 +4082,8 @@ wesCountry.charts.rankingChart = function(options) {
 
 		var length = series.length;
 
+		var count = 1;
+
 		for (var i = 0; i < length; i++) {
 			var valueLength = series[i].values.length;
 
@@ -4094,12 +4096,28 @@ wesCountry.charts.rankingChart = function(options) {
 				element.value = value;
 
 				numbers.push(element);
+
+				count++;
 			}
 		}
 
 		numbers = numbers.sort(function(a, b) {
-			return a.value - b.value;
+			if (a.value != b.value)
+				return a.value - b.value;
+			else
+				return a.name.localeCompare(b.name);
 		});
+
+		var count = 1;
+
+		for (var i = 0; i < length; i++) {
+			var element = numbers[i];
+
+			if (element.value != null) {
+				element.ranking = count;
+				count++;
+			}
+		}
 
 		var factor = Math.min(
 			Math.ceil(Math.sqrt(numbers.length)),
@@ -7771,15 +7789,15 @@ wesCountry.stateful = new (function() {
   var selectors = {};
   var host = "";
   var options = null;
-  
+
   this.getParameters = function() {
   	return parameters;
   }
-  
+
   this.getSelectors = function() {
   	return selectors;
   }
-  
+
   // onChange is not invoked
   this.changeParameter = function(name, value) {
   	changeParameter(name, value);
@@ -7790,7 +7808,7 @@ wesCountry.stateful = new (function() {
     options = wesCountry.mergeOptionsAndDefaultOptions(opts, defaultOptions);
 
     var info = getUrlParameters();
-    parameters = info.parameters; console.log("parameters");console.log(parameters)
+    parameters = info.parameters;
     host = info.host;
 
     var urlDifferentFromInitial = processElements(options, parameters);
@@ -7800,7 +7818,7 @@ wesCountry.stateful = new (function() {
 
     if (options.init)
     	options.init.call(this, parameters, selectors);
-    	
+
     return this;
   }
 
@@ -7891,7 +7909,7 @@ wesCountry.stateful = new (function() {
     return changed;
   }
 
-  function changeParameter(name, value) {console.log("change: " + name + " " + value);console.log(parameters[name])
+  function changeParameter(name, value) {
     var changed = false;
 
     if (!parameters[name]) {
@@ -7926,7 +7944,7 @@ wesCountry.stateful = new (function() {
     selector.refresh = function() {
       var value = (this.options && this.options && this.options[this.selectedIndex]) ?
                     this.options[this.selectedIndex].value : "";
-                    
+
       changeParameter(this.element, value);
 
       if (onChange)
@@ -7955,14 +7973,14 @@ wesCountry.stateful = new (function() {
     var parameters = {};
 
     var url = document.URL;
-console.log(url)
+
     var queryString = url.split('?');
 
     var host = queryString[0];
 
     if (queryString.length > 1) {
       queryString = queryString[1];
-console.log(queryString)
+
       queryString = queryString.split('&');
 
       for (var i = 0; i < queryString.length; i++) {

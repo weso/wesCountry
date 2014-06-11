@@ -74,13 +74,14 @@ wesCountry.charts.generateLineChart = function(options, area) {
 			var firstValue = -1;
 
 			for (var j = 0; j < valueLength; j++) {
-				var value = options.series[i].values[j];
-				var valuePrev = j > 0 ? options.series[i].values[j - 1] : 0;
+				var element = options.series[i];
+				var value = element.values[j];
+				var valuePrev = j > 0 ? element.values[j - 1] : 0;
 
-				var url = options.series[i].urls ? options.series[i].urls[j] : "";
+				var url = element.urls ? element.urls[j] : "";
 
-				var id = options.series[i].id;
-				var serie = options.series[i].name;
+				var id = element.id;
+				var serie = element.name;
 				var pos = options.xAxis.values[j];
 
 				if (!value)
@@ -118,6 +119,8 @@ wesCountry.charts.generateLineChart = function(options, area) {
 					pos: pos
 				};
 
+				wesCountry.charts.setElementInfo(element, pointOptions);
+
 				var colour = options.getElementColour(options, options.series[i], i);
 				var pointStyle = String.format("fill: {0}", colour);
 
@@ -134,34 +137,19 @@ wesCountry.charts.generateLineChart = function(options, area) {
 				var onmouseover = function() {
 					this.setAttribute("r", 8);
 					setLineWidth(this, 2);
-					options.events.onmouseover({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var onmouseout = function() {
 					this.setAttribute("r", 5);
 					setLineWidth(this, 1);
-					options.events.onmouseout({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var onclick = function() {
 					this.setAttribute("r", 5);
 					setLineWidth(this, 1);
-					options.events.onclick({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onclick(wesCountry.charts.getElementAttributes(this));
 				};
 
 				if (options.vertex.show) {

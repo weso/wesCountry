@@ -28,15 +28,15 @@ wesCountry.stateful = new (function() {
   var selectors = {};
   var host = "";
   var options = null;
-  
+
   this.getParameters = function() {
   	return parameters;
   }
-  
+
   this.getSelectors = function() {
   	return selectors;
   }
-  
+
   // onChange is not invoked
   this.changeParameter = function(name, value) {
   	changeParameter(name, value);
@@ -47,7 +47,7 @@ wesCountry.stateful = new (function() {
     options = wesCountry.mergeOptionsAndDefaultOptions(opts, defaultOptions);
 
     var info = getUrlParameters();
-    parameters = info.parameters; console.log("parameters");console.log(parameters)
+    parameters = info.parameters;
     host = info.host;
 
     var urlDifferentFromInitial = processElements(options, parameters);
@@ -57,7 +57,7 @@ wesCountry.stateful = new (function() {
 
     if (options.init)
     	options.init.call(this, parameters, selectors);
-    	
+
     return this;
   }
 
@@ -148,7 +148,7 @@ wesCountry.stateful = new (function() {
     return changed;
   }
 
-  function changeParameter(name, value) {console.log("change: " + name + " " + value);console.log(parameters[name])
+  function changeParameter(name, value) {
     var changed = false;
 
     if (!parameters[name]) {
@@ -183,7 +183,7 @@ wesCountry.stateful = new (function() {
     selector.refresh = function() {
       var value = (this.options && this.options && this.options[this.selectedIndex]) ?
                     this.options[this.selectedIndex].value : "";
-                    
+
       changeParameter(this.element, value);
 
       if (onChange)
@@ -212,14 +212,14 @@ wesCountry.stateful = new (function() {
     var parameters = {};
 
     var url = document.URL;
-console.log(url)
+
     var queryString = url.split('?');
 
     var host = queryString[0];
 
     if (queryString.length > 1) {
       queryString = queryString[1];
-console.log(queryString)
+
       queryString = queryString.split('&');
 
       for (var i = 0; i < queryString.length; i++) {

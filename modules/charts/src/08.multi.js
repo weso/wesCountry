@@ -126,7 +126,8 @@ wesCountry.charts.chart = function (options) {
 	if (!options.height && container.offsetHeight > 0 )
 		options.height = container.offsetHeight;
 
-	var dOptions = wesCountry.addOptions(wesCountry.charts.defaultOptions, defaultOptions);
+	var dOptions = wesCountry.clone(wesCountry.charts.defaultOptions);
+	dOptions = wesCountry.addOptions(dOptions, defaultOptions);
 	options = wesCountry.mergeOptionsAndDefaultOptions(options, dOptions);
 
 	// Height
@@ -387,6 +388,9 @@ function getChart(options, container) {
 			break;
 		case 'stacked':
 			chart = wesCountry.charts.stackedChart(options);
+			break;
+		case 'ranking':
+			chart = wesCountry.charts.rankingChart(options);
 			break;
 		case 'map':
 			var innerContainer = document.createElement('div');

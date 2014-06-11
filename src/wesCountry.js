@@ -178,12 +178,14 @@ var wesCountry = new (function() {
 	this.clone = function(obj) {
 		// Not valid for copying objects that contain methods
 	    //return JSON.parse(JSON.stringify(obj));
+
 	    if (null == obj || "object" != typeof obj) return obj;
 
 	    var copy = obj.constructor();
 
 	    for (var attr in obj) {
-	        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+	        if (obj.hasOwnProperty(attr))
+						copy[attr] = this.clone(obj[attr]);
 	    }
 
 	    return copy;

@@ -110,32 +110,17 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 				this.colour = this.style.fill;
 				this.style.fill = options.overColour;
 
-				options.events.onmouseover({
-					id: this.getAttribute("id"),
-					serie: this.getAttribute("serie"),
-					pos: this.getAttribute("pos"),
-					value: this.getAttribute("value")
-				});
+				options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 			};
 
 			var onmouseout = function() {
 				this.style.fill = this.colour;
-				options.events.onmouseout({
-					id: this.getAttribute("id"),
-					serie: this.getAttribute("serie"),
-					pos: this.getAttribute("pos"),
-					value: this.getAttribute("value")
-				});
+				options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 			};
 
 			var onclick = function() {
 				this.style.fill = this.colour;
-				options.events.onclick({
-					id: this.getAttribute("id"),
-					serie: this.getAttribute("serie"),
-					pos: this.getAttribute("pos"),
-					value: this.getAttribute("value")
-				});
+				options.events.onclick(wesCountry.charts.getElementAttributes(this));
 			};
 
 			// Pie
@@ -175,6 +160,7 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 		    	var serie = "";
 		    	var value = "";
 		    	var pos = "";
+					var element = {};
 
 		    	for(var j = 0; j < length; j++)
 		    		if (angles[j] != 0) {
@@ -183,18 +169,25 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 		    			serie = options.series[j].name;
 		    			value = Math.abs(options.series[0].values[j]).toFixed(2);
 		    			pos = options.xAxis.values[i];
+
+							element = options.series[j];
+
 			    		break;
 		    		}
 
-		    	g.circle({
-			    	cx: cx,
-			    	cy: cy,
-			    	r: radius,
-			    	id: id,
-			    	serie: serie,
+					var circleOptions = {
+						cx: cx,
+						cy: cy,
+						r: radius,
+						id: id,
+						serie: serie,
 						value: value,
 						pos: pos
-		    	}).event("onmouseover", onmouseover)
+					};
+
+					wesCountry.charts.setElementInfo(element, circleOptions);
+
+		    	g.circle(circleOptions).event("onmouseover", onmouseover)
 					.event("onmouseout", onmouseout)
 					.event("onclick", onclick)
 		    	.style(String.format("fill: {0}", colour));
@@ -219,6 +212,8 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 					var serie = options.series[j].name;
 					var url = options.series[j].urls ? options.series[j].urls[i] : "";
 					var pos = options.xAxis.values[i];
+
+					var element = options.series[j];
 
 			        // Compute the two points where our wedge intersects the circle
 			        // These formulas are chosen so that an angle of 0 is at 12 o'clock
@@ -256,6 +251,8 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 						value: value,
 						pos: pos
 					};
+
+					wesCountry.charts.setElementInfo(element, pathOptions);
 
 					var colour = options.getElementColour(options, options.series[j], j);
 

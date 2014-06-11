@@ -70,22 +70,20 @@ wesCountry.charts.rankingChart = function(options) {
 			var groupLength = group.length;
 
 			for (var j = 0; j < groupLength; j++) {
-				var serie = group[j].name;
-				var id = group[j].id;
-				var value = group[j].value;
-				var url = group[j].url;
-				//var pos = options.xAxis.values[j];
-				var pos = "";
+				var element = group[j];
+				var serie = element.name;
+				var id = element.id;
+				var value = element.value;
+				var url = element.url;
 
-				if (!value)
-					value = 0;
+				var pos = "";
 
 				var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin * (2 * i + 1) + sizes.barMarginWidth
 						+ sizes.xTickWidth * i;
 
 				var height = barHeight;
 
-				var yPos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin - sizes.barMarginHeight
+				var yPos = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin - 2 * sizes.barMarginHeight
 						- height
 						- (barHeight + 2 * sizes.barMarginHeight) * j;
 
@@ -98,11 +96,7 @@ wesCountry.charts.rankingChart = function(options) {
 					cy: yPos + radius,
 					width: barWidth,
 					height: height,
-					r: radius,
-					id: id,
-					serie: serie,
-					value: value,
-					pos: pos
+					r: radius
 				};
 
 				var colour = options.getElementColour(options, group[j], j);
@@ -111,49 +105,39 @@ wesCountry.charts.rankingChart = function(options) {
 				// Events
 
 				var selectBar = function(element) {
-					var selectedBars = document.querySelectorAll(options.container + ' rect[selected]');
+					var selectedBars = document.querySelectorAll(options.container + ' .inner-bar[selected]');
 
 					for (var i = 0; i < selectedBars.length; i++)
 						unselectBar(selectedBars[i]);
 
-					element.colour = element.style.fill;
-					element.style.fill = options.overColour;
-					element.setAttribute("selected", "selected");
+					var rect = element.querySelector('.inner-bar');
+
+					rect.colour = rect.style.fill;
+					rect.style.fill = options.overColour;
+					rect.setAttribute("selected", "selected");
 				};
 
 				var onmouseover = function() {
 					selectBar(this);
 
-					options.events.onmouseover({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var unselectBar = function(element) {
-					element.style.fill = element.colour;
+					var rect = element.querySelector('.inner-bar');
+
+					if (rect)
+						rect.style.fill = rect.colour;
 				};
 
 				var onmouseout = function() {
 					unselectBar(this);
-					options.events.onmouseout({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var onclick = function() {
 					this.style.fill = this.colour;
-					options.events.onclick({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onclick(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var r = null;
@@ -166,29 +150,43 @@ wesCountry.charts.rankingChart = function(options) {
 					r = g;
 				}
 
-				if (options.rankingElementShape == "circle")
-					r = r.circle(elementOptions);
-				else
-					r = r.rectangle(elementOptions);
+				// Node for element and text
+				var nodeOptions = {
+					id: id,
+					serie: serie,
+					value: value,
+					pos: pos,
+				};
 
-				r.style(rectangleStyle).className(serie)
-					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
-					.event("selectBar", function() {
+				wesCountry.charts.setElementInfo(element, nodeOptions);
+
+				var node = g.g(nodeOptions);
+
+				if (options.rankingElementShape == "circle")
+					r = node.circle(elementOptions);
+				else
+					r = node.rectangle(elementOptions);
+
+				r.style(rectangleStyle).className(String.format("{0} inner-bar", serie));
+
+				node.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
+				.event("selectBar", function() {
 						selectBar(this);
-					}).event("unselectBar", function() {
-						unselectBar(this);
-					});
+				}).event("unselectBar", function() {
+					unselectBar(this);
+				});
 
 				// Value on bar
 				if (options.valueOnItem.show == true) {
-					g.text({
+					node.text({
 						x: xPos + barWidth / 2,
 						y: yPos + height / 2,
 						value: serie
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
-						options.valueOnItem["font-size"]));
+						options.valueOnItem["font-size"]))
+					.className("ranking-item-name");
 				}
 			}
 		}
@@ -243,15 +241,17 @@ wesCountry.charts.rankingChart = function(options) {
 		barHeight -= 2 * barMarginHeight;
 
 		// Make size square
-		if (barWidth > barHeight) {
-			var diff = barWidth - barHeight;
-			barMarginWidth += diff / 2;
-			barWidth = barHeight;
-		}
-		else {
-			var diff = barHeight - barWidth;
-			barMarginHeight += diff / 2;
-			barHeight = barWidth;
+		if (options.rankingElementShape != "rectangle") {
+			if (barWidth > barHeight) {
+				var diff = barWidth - barHeight;
+				barMarginWidth += diff / 2;
+				barWidth = barHeight;
+			}
+			else {
+				var diff = barHeight - barWidth;
+				barMarginHeight += diff / 2;
+				barHeight = barWidth;
+			}
 		}
 
 		var legendItemSize = options.legend.itemSize * width / 100;
@@ -337,6 +337,8 @@ wesCountry.charts.rankingChart = function(options) {
 
 		var length = series.length;
 
+		var count = 1;
+
 		for (var i = 0; i < length; i++) {
 			var valueLength = series[i].values.length;
 
@@ -349,12 +351,28 @@ wesCountry.charts.rankingChart = function(options) {
 				element.value = value;
 
 				numbers.push(element);
+
+				count++;
 			}
 		}
 
 		numbers = numbers.sort(function(a, b) {
-			return a.value - b.value;
+			if (a.value != b.value)
+				return a.value - b.value;
+			else
+				return a.name.localeCompare(b.name);
 		});
+
+		var count = 1;
+
+		for (var i = 0; i < length; i++) {
+			var element = numbers[i];
+
+			if (element.value != null) {
+				element.ranking = count;
+				count++;
+			}
+		}
 
 		var factor = Math.min(
 			Math.ceil(Math.sqrt(numbers.length)),

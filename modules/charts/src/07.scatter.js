@@ -47,32 +47,17 @@ wesCountry.charts.scatterPlot = function(options) {
 			this.colour = this.style.fill;
 			this.style.fill = options.overColour;
 
-			options.events.onmouseover({
-				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"),
-				pos: this.getAttribute("pos"),
-				value: this.getAttribute("value")
-			});
+			options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 		};
 
 		var onmouseout = function() {
 			this.style.fill = this.colour;
-			options.events.onmouseout({
-				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"),
-				pos: this.getAttribute("pos"),
-				value: this.getAttribute("value")
-			});
+			options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 		};
 
 		var onclick = function() {
 			this.style.fill = this.colour;
-			options.events.onclick({
-				id: this.getAttribute("id"),
-				serie: this.getAttribute("serie"),
-				pos: this.getAttribute("pos"),
-				value: this.getAttribute("value")
-			});
+			options.events.onclick(wesCountry.charts.getElementAttributes(this));
 		};
 
 		var maxRadius = options.sizeByValueMaxRadius * maxWidth / 100;
@@ -112,9 +97,10 @@ wesCountry.charts.scatterPlot = function(options) {
 			for (var j = 0; j < valueLength; j++) {
 				var valueX = values[j][0] ? values[j][0] : 0;
 
-				var value = options.series[i].values[j];
-				var id = options.series[i].id;
-				var serie = options.series[i].name;
+				var element = options.series[i];
+				var value = element.values[j];
+				var id = element.id;
+				var serie = element.name;
 				var pos = valueX;
 
 				if (!valueX)
@@ -148,7 +134,7 @@ wesCountry.charts.scatterPlot = function(options) {
 
 				var colour = options.getElementColour(options, options.series[i], i);
 
-				g.circle({
+				var circleOptions = {
 					cx: xPos,
 					cy: yPos,
 					r: radius,
@@ -156,7 +142,11 @@ wesCountry.charts.scatterPlot = function(options) {
 					serie: serie,
 					value: value,
 					pos: pos
-				}).style(String.format("fill: {0}", colour))
+				};
+
+				wesCountry.charts.setElementInfo(element, circleOptions);
+
+				g.circle(circleOptions).style(String.format("fill: {0}", colour))
 				.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 			}
 		}

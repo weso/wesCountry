@@ -58,8 +58,8 @@ wesCountry.charts = new (function() {
 		sizeByValueMinRadius: 1, // Scatter
 		mean: { // Bar
 			show: false,
-			stroke: 2,
-			colour: "#333",
+			stroke: 1,
+			colour: "#444",
 			margin: 3,
 			text: "mean: ",
 			"font-family": "Helvetica",
@@ -68,14 +68,15 @@ wesCountry.charts = new (function() {
 		},
 		median: { // Bar
 			show: false,
-			stroke: 2,
-			colour: "#333",
+			stroke: 1,
+			colour: "#888",
 			margin: 3,
 			text: "median: ",
 			"font-family": "Helvetica",
 			"font-colour": "#333",
 			"font-size": "12px",
 		},
+		maxBarWidth: 20, // Bar
 		maxRankingRows: 8, // Ranking
 		rankingElementShape: "circle", // Ranking
 		rankingDirection: "lowerToHigher", // Ranking
@@ -125,21 +126,12 @@ wesCountry.charts = new (function() {
 			"font-size": "16px"
     },
     tooltip: {
-	    show: true,
-	    style: {
-			  display: "none",
-			  padding: "0.8em 0.5em",
-			  "font-size": "12px",
-			  border: "0.1em solid #ccc",
-			  "background-color": "#fff",
-			  position: "absolute",
-			  color: "#000",
-	    }
+	    show: true
     },
     events: {
 	    "onmouseover": function(info) {
 		    var text = String.format("Series '{0}': ({1}, {2})", info.serie, info.pos, info.value);
-		    console.log(text);
+
 		    wesCountry.charts.showTooltip(text);
 	    },
 	    "onmouseout": function() {
@@ -457,19 +449,10 @@ wesCountry.charts = new (function() {
 			tooltip = document.getElementById("wesCountryTooltip");
 
 			if (!tooltip) {
-				tooltip = document.createElement("span");
+				tooltip = document.createElement("div");
 				tooltip.id = "wesCountryTooltip";
+				tooltip.className = "wesCountry-tooltip";
 				document.body.appendChild(tooltip);
-
-				var style = "";
-
-				for (var attr in options.tooltip.style) {
-					var element = options.tooltip.style[attr];
-
-					style += String.format("{0}:{1};", attr, element);
-				}
-
-				tooltip.setAttribute("style", style);
 			}
 		}
 		else
@@ -506,4 +489,31 @@ wesCountry.charts = new (function() {
     	tooltip.style.display = "none";
     }
 
+	////////////////////////////////////////////////////////////////////////////////
+	//                            TOOLTIP AUXILIARY
+	////////////////////////////////////////////////////////////////////////////////
+
+
+	this.getElementAttributes = function(element) {
+		var attributes = element.attributes;
+		var length = attributes.length;
+
+		var obj = {};
+
+		for (var i = 0; i < length; i++) {
+			var attribute = attributes[i];
+			var name = attribute.nodeName;
+			var value = attribute.nodeValue;
+
+			obj[name] = value;
+		}
+
+		return obj;
+	}
+
+	this.setElementInfo =  function(element, obs) {
+		for (var key in element) {
+			obs["data-" + key] = element[key];
+		}
+	}
 })();

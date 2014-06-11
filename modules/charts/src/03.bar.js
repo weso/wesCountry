@@ -45,16 +45,22 @@ wesCountry.charts.barChart = function(options) {
 
 		var valueList = [];
 
+		var numColumnsDifferentFromZero = 0;
+
 		for (var i = 0; i < length; i++) {
 			for (var j = 0; j < numberOfSeries; j++) {
-				var serie = options.series[j].name;
-				var id = options.series[j].id;
-				var value = options.series[j].values[i];
-				var url = options.series[j].urls ? options.series[j].urls[i] : "";
+				var element = options.series[j];
+				var serie = element.name;
+				var id = element.id;
+				var value = element.values[i];
+				var url = element.urls ? element.urls[i] : "";
 				var pos = options.xAxis.values[j];
 
 				if (!value)
 					value = 0;
+
+				if (value != 0)
+					numColumnsDifferentFromZero++;
 
 				valueList.push(value);
 
@@ -78,6 +84,8 @@ wesCountry.charts.barChart = function(options) {
 					pos: pos
 				};
 
+				wesCountry.charts.setElementInfo(element, rectangleOptions);
+
 				var colour = options.getElementColour(options, options.series[j], j);
 				var rectangleStyle = String.format("fill: {0}", colour);
 
@@ -97,12 +105,7 @@ wesCountry.charts.barChart = function(options) {
 				var onmouseover = function() {
 					selectBar(this);
 
-					options.events.onmouseover({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var unselectBar = function(element) {
@@ -111,22 +114,12 @@ wesCountry.charts.barChart = function(options) {
 
 				var onmouseout = function() {
 					unselectBar(this);
-					options.events.onmouseout({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var onclick = function() {
 					this.style.fill = this.colour;
-					options.events.onclick({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onclick(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var r = null;
@@ -167,14 +160,14 @@ wesCountry.charts.barChart = function(options) {
 		var side = statistics.mean - statistics.median >= 0 ? 1 : -1
 
 		showStatistics(g, statistics.mean, options.mean,
-			side , sizes, minValuePos, maxHeight, options.series);
+			side , sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
 
 		// Show median
 		var side = statistics.mean - statistics.median >= 0 ? -1 : 1
 		side = statistics.mean == statistics.median ? -1 : side;
 
 		showStatistics(g, statistics.median, options.median,
-			side, sizes, minValuePos, maxHeight, options.series);
+			side, sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
 
 		// Legend
 		if (options.legend.show)
@@ -199,8 +192,8 @@ wesCountry.charts.barChart = function(options) {
 		}
 	}
 
-	function showStatistics(container, value, option, textSide, sizes, minValuePos, maxHeight, series) {
-		if (option.show !== true && series.length > 1)
+	function showStatistics(container, value, option, textSide, sizes, minValuePos, maxHeight, toShow) {
+		if (option.show !== true || !toShow)
 			return;
 
 		var posY = getYPos(value, sizes, minValuePos, maxHeight);
@@ -275,6 +268,7 @@ wesCountry.charts.barChart = function(options) {
 		var xAxisMargin = options.xAxis.margin * height / 100;
 		var innerWidth = width - marginLeft - marginRight;
 		var innerHeight = height - marginTop - marginBottom;
+		var maxBarWidth = options.maxBarWidth * innerWidth / 100;
 
 		// Max value & min value
 		var maxAndMinValues = wesCountry.charts.getMaxAndMinValuesAxisY(options);
@@ -298,6 +292,12 @@ wesCountry.charts.barChart = function(options) {
 		var barWidth = xTickWidth / options.series.length;
 		var barMargin = options.barMargin * barWidth / 100;
 		barWidth -= 2 * barMargin;
+
+		if (barWidth > maxBarWidth) {
+			var diff = barWidth - maxBarWidth;
+			barMargin += diff / 2;
+			barWidth = maxBarWidth;
+		}
 
 		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
 

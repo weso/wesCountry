@@ -49,10 +49,11 @@ wesCountry.charts.stackedChart = function(options) {
 			var auxNegativePos = minValuePos;
 
 			for (var j = 0; j < numberOfSeries; j++) {
-				var serie = options.series[j].name;
-				var id = options.series[j].id;
-				var value = options.series[j].values[i];
-				var url = options.series[j].urls ? options.series[j].urls[i] : "";
+				var element = options.series[j];
+				var serie = element.name;
+				var id = element.id;
+				var value = element.values[i];
+				var url = element.urls ? element.urls[i] : "";
 				var pos = options.xAxis.values[j];
 
 				if (!value)
@@ -83,6 +84,8 @@ wesCountry.charts.stackedChart = function(options) {
 					pos: pos
 				};
 
+				wesCountry.charts.setElementInfo(element, rectangleOptions);
+
 				var rectangleStyle = String.format("fill: {0}", options.serieColours[j]);
 
 				// Events
@@ -93,74 +96,78 @@ wesCountry.charts.stackedChart = function(options) {
 					for (var i = 0; i < selectedBars.length; i++)
 						unselectBar(selectedBars[i]);
 
-					element.colour = element.style.fill;
-					element.style.fill = options.overColour;
-					element.setAttribute("selected", "selected");
+					var rect = element.querySelector('rect');
+
+					rect.colour = rect.style.fill;
+					rect.style.fill = options.overColour;
+					rect.setAttribute("selected", "selected");
 				};
 
 				var onmouseover = function() {
 					selectBar(this);
 
-					options.events.onmouseover({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var unselectBar = function(element) {
-					element.style.fill = element.colour;
+					var rect = element.querySelector('rect');
+
+					if (rect)
+						rect.style.fill = rect.colour;
 				};
 
 				var onmouseout = function() {
 					unselectBar(this);
-					options.events.onmouseout({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
 				};
 
 				var onclick = function() {
 					this.style.fill = this.colour;
-					options.events.onclick({
-						id: this.getAttribute("id"),
-						serie: this.getAttribute("serie"),
-						pos: this.getAttribute("pos"),
-						value: this.getAttribute("value")
-					});
+					options.events.onclick(wesCountry.charts.getElementAttributes(this));
 				};
+
+				// Node for element and text
+				var nodeOptions = {
+					id: id,
+					serie: serie,
+					value: value,
+					pos: pos
+				};
+
+				wesCountry.charts.setElementInfo(element, nodeOptions);
+
+				var node = g.g(nodeOptions);
 
 				var r = null;
 
 				if (url && url != "") {
-					var a = g.a({}, url ? url : "")
+					var a = node.a({}, url ? url : "")
 					r = a.rectangle(rectangleOptions);
 				}
 				else {
-					r = g.rectangle(rectangleOptions);
+					r = node.rectangle(rectangleOptions);
 				}
 
-				r.style(rectangleStyle).className(serie)
-					.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
-					.event("selectBar", function() {
-						selectBar(this);
-					}).event("unselectBar", function() {
-						unselectBar(this);
-					});
+				r.style(rectangleStyle).className(serie);
+
+				node.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick)
+				.event("selectBar", function() {
+					selectBar(this);
+				}).event("unselectBar", function() {
+					unselectBar(this);
+				});
 
 				// Value on bar
 				if (options.valueOnItem.show == true && value != 0) {
-					g.text({
+					node.text({
 						x: xPos + barWidth / 2,
 						y: yPos + height / 2,
 						value: value.toFixed(2)
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
-						options.valueOnItem["font-size"]));
+						options.valueOnItem["font-size"]))
+						.className("ranking-item-name");
 				}
 			}
 		}
@@ -199,6 +206,7 @@ wesCountry.charts.stackedChart = function(options) {
 		var xAxisMargin = options.xAxis.margin * height / 100;
 		var innerWidth = width - marginLeft - marginRight;
 		var innerHeight = height - marginTop - marginBottom;
+		var maxBarWidth = options.maxBarWidth * innerWidth / 100;
 
 		// Max value & min value
 		var maxAndMinValues = getMaxAndMinValuesAxisY(options);
@@ -222,6 +230,12 @@ wesCountry.charts.stackedChart = function(options) {
 		var barWidth = xTickWidth;
 		var barMargin = options.barMargin * barWidth / 100;
 		barWidth -= 2 * barMargin;
+
+		if (barWidth > maxBarWidth) {
+			var diff = barWidth - maxBarWidth;
+			barMargin += diff / 2;
+			barWidth = maxBarWidth;
+		}
 
 		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
 
