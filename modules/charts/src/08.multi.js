@@ -111,6 +111,9 @@ wesCountry.charts.chart = function (options) {
 	}
 
 	var container;
+	var body;
+	var chart;
+	
 	container = typeof options.container !== "string" ? options.container : undefined;
 	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container;
 
@@ -119,90 +122,121 @@ wesCountry.charts.chart = function (options) {
 
 	if (!container)
 		container = document.body;
+	
+	return render(container);
+	
+	function render(container) {
+		if (!options.width && container.offsetWidth > 0 )
+			options.width = container.offsetWidth;
 
-	if (!options.width && container.offsetWidth > 0 )
-		options.width = container.offsetWidth;
+		if (!options.height && container.offsetHeight > 0 )
+			options.height = container.offsetHeight;
 
-	if (!options.height && container.offsetHeight > 0 )
-		options.height = container.offsetHeight;
+		var dOptions = wesCountry.clone(wesCountry.charts.defaultOptions);
+		dOptions = wesCountry.addOptions(dOptions, defaultOptions);
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, dOptions);
 
-	var dOptions = wesCountry.clone(wesCountry.charts.defaultOptions);
-	dOptions = wesCountry.addOptions(dOptions, defaultOptions);
-	options = wesCountry.mergeOptionsAndDefaultOptions(options, dOptions);
+		// Height
 
-	// Height
+		//var height = options.height;
+		var height = wesCountry.getFullHeight(container);
 
-	//var height = options.height;
-	var height = wesCountry.getFullHeight(container);
+		// Title
 
-	// Title
+		if (options.title != '') {
+			var title = document.createElement('p');
+			title.className = 'wesCountry-title';
+			title.innerHTML = options.title;
+			container.appendChild(title);
 
-	if (options.title != '') {
-		var title = document.createElement('p');
-		title.className = 'wesCountry-title';
-		title.innerHTML = options.title;
-		container.appendChild(title);
+			height -= wesCountry.getFullHeight(title);
+		}
 
-		height -= wesCountry.getFullHeight(title);
-	}
+		// Body (graph)
 
-	// Body (graph)
+		body = document.createElement('div');
+		body.className = 'wesCountry-body';
+		container.appendChild(body);
 
-	var body = document.createElement('div');
-	body.className = 'wesCountry-body';
-	container.appendChild(body);
+		var footer = document.createElement('div');
+		footer.className = 'wesCountry-footer';
 
-	var footer = document.createElement('div');
-	footer.className = 'wesCountry-footer';
+		var isFooted = false;
 
-	var isFooted = false;
+		// Foot
 
-	// Foot
-
-	if (options.foot != '') {
-		container.appendChild(footer);
-
-		var foot = document.createElement('p');
-		foot.className = 'wesCountry-foot';
-		foot.innerHTML = options.foot;
-		footer.appendChild(foot);
-
-		isFooted = true;
-	}
-
-	// Download
-
-	var downloadButtons = null;
-
-	if (options.download) {
-		if (!options.foot)
+		if (options.foot != '') {
 			container.appendChild(footer);
 
-		downloadButtons = createDownload(footer, options, downloadFormats);
+			var foot = document.createElement('p');
+			foot.className = 'wesCountry-foot';
+			foot.innerHTML = options.foot;
+			footer.appendChild(foot);
 
-		isFooted = true;
+			isFooted = true;
+		}
+
+		// Download
+
+		var downloadButtons = null;
+
+		if (options.download) {
+			if (!options.foot)
+				container.appendChild(footer);
+
+			downloadButtons = createDownload(footer, options, downloadFormats);
+
+			isFooted = true;
+		}
+
+		if  (isFooted)
+			height -= wesCountry.getFullHeight(footer);
+
+		// Chart
+
+		options.height = height;
+
+		body.style.height = height + 'px';
+
+		//chart = getChart(options, body);
+
+		if (downloadButtons)
+			linkDownloadButtons(downloadButtons, chart, options)
+
+		// Append chart
+
+		renderChart(chart);
+		
+		// Resize
+		if (window.attachEvent)
+			window.attachEvent('resize', resize);
+		else
+			window.addEventListener('resize', resize, false);
+		
+		return chart;
 	}
-
-	if  (isFooted)
-		height -= wesCountry.getFullHeight(footer);
-
-	// Chart
-
-	options.height = height;
-
-	body.style.height = height + 'px';
-
-	var chart = getChart(options, body);
-
-	if (downloadButtons)
-		linkDownloadButtons(downloadButtons, chart, options)
-
-	// Append chart
-
-	if (chart && chart.render)
-		body.appendChild(chart.render());
-
-	return chart;
+	
+	function resize() {
+		renderChart();
+	}
+	
+	function renderChart() {
+		body.innerHTML = '';
+		
+		options.width = container.offsetWidth;
+		
+		if (container.offsetWidth == 0 && options.parentContainer) {
+			parentContainer = document.getElementById(options.parentContainer);
+			
+			if (parentContainer && parentContainer.offsetWidth)
+				options.width = parentContainer.offsetWidth;	
+		}
+	
+		chart = getChart(options, body);
+		
+		if (chart && chart.render)
+			body.appendChild(chart.render());
+	}
 }
 
 function linkDownloadButtons(downloadButtons, chart, options) {
@@ -526,7 +560,9 @@ wesCountry.charts.multiChart = function (options) {
 			container.appendChild(chartContainer);
 
 			buttons[i].chart = chartContainer;
-
+			
+			options.parentContainer = id;
+			
 			var chartOptions = wesCountry.clone(options);
 			chartOptions.chartType = type;
 			chartOptions.container = String.format("#{0}", id);
