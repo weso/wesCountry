@@ -24,7 +24,7 @@ wesCountry.loader = new (function() {
       options.container = '#' + panel.id;
       options = options.getChartData ? options.getChartData(options, data) : options;
       var charts = wesCountry.charts.multiChart(options);
-  
+
       if (options.afterRenderCharts)
       	options.afterRenderCharts.call(null, charts);
     }
@@ -45,26 +45,39 @@ wesCountry.loader = new (function() {
 			this.options.width = this.options.width > 0 ? this.options.width : 500;
 			this.options.height = this.options.height > 0 ? this.options.height : 400;
 
-			this.panel = panel ? panel : document.createElement('div');
+			var panelContainer = panel ? panel : document.createElement('div');
+      this.panel = panelContainer;
 
 			this.panel.className = 'wesCountry-panel';
 			this.panel.setAttribute("style", String.format("width: {0}px; min-height: {1}px;",
 										  this.options.width, wesCountry.getFullHeight(container)));
 
 		  container.appendChild(this.panel);
+      container.panel = this.panel;
+
+      // Resize
+      if (window.attachEvent)
+        window.attachEvent('resize', resize);
+      else
+        window.addEventListener('resize', resize, false);
 
 		  this.load = load;
 
 		  this.load(this.options);
 
+      function resize() {
+        panelContainer.setAttribute("style", String.format("width: {0}px; min-height: {1}px;",
+                        container.offsetWidth, wesCountry.getFullHeight(container)));
+      }
+
 		  this.getData = function() {
   			return lastData;
   		  }
-  		  
+
   		  this.show = function() {
   		  	container.style.display = 'block';
   		  }
-  		  
+
   		  this.hide = function() {
   		  	container.style.display = 'none';
   		  }

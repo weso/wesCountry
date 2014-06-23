@@ -47,6 +47,9 @@ wesCountry.maps = new (function() {
 
     var container = document.querySelector(options.container);
 
+    if (!container)
+      return;
+
     var mapContainer = document.createElement('div');
     mapContainer.className = 'map-container';
     container.appendChild(mapContainer);
@@ -79,16 +82,16 @@ wesCountry.maps = new (function() {
         onChange: function(element, index) {
           if (options.onChange)
           	options.onChange.call(this, element, index);
-          	
+
           if (selectedMap === maps[index])
           	return;
-          
+
           selectedMap.hideMap();
-         
+
           // On demand map creation
           if (!maps[index])
           	maps[index] = new createOneMap(mapContainer, options, mapData[index], true);
-          
+
           selectedMap = maps[index];
           selectedMap.showMap();
         }
@@ -108,9 +111,9 @@ wesCountry.maps = new (function() {
     for (var i = 0; i < times.length; i++) {
       var time = times[i];
       var list = countryList[time];
-      
+
       mapData.push(list);
-      
+
       // Only visible map is created, the rest is created on demand
       if (i < last) {
       	maps.push(null);
@@ -135,7 +138,7 @@ wesCountry.maps = new (function() {
       for (var i = 0; i < maps.length; i++)
         maps[i].zoomToCountry(countryCode);
     }
-    
+
     this.visor = function() {
     	return selectedMap.visor();
     }
@@ -145,13 +148,13 @@ wesCountry.maps = new (function() {
 
   function groupCountriesByTime(options) {
     var countries = options.countries;
-	
+
 	if (countries.length == 0)
 		return {
 			times: ["-"],
 			countries: { "-": [] }
 		};
-	
+
     var times = [];
     var groupedCountries = {};
 

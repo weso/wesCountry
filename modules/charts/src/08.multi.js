@@ -113,7 +113,7 @@ wesCountry.charts.chart = function (options) {
 	var container;
 	var body;
 	var chart;
-	
+
 	container = typeof options.container !== "string" ? options.container : undefined;
 	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container;
 
@@ -122,9 +122,9 @@ wesCountry.charts.chart = function (options) {
 
 	if (!container)
 		container = document.body;
-	
+
 	return render(container);
-	
+
 	function render(container) {
 		if (!options.width && container.offsetWidth > 0 )
 			options.width = container.offsetWidth;
@@ -200,42 +200,44 @@ wesCountry.charts.chart = function (options) {
 
 		//chart = getChart(options, body);
 
+		// Append chart
+
+		renderChart();
+
 		if (downloadButtons)
 			linkDownloadButtons(downloadButtons, chart, options)
 
-		// Append chart
-
-		renderChart(chart);
-		
 		// Resize
 		if (window.attachEvent)
 			window.attachEvent('resize', resize);
 		else
 			window.addEventListener('resize', resize, false);
-		
+
 		return chart;
 	}
-	
+
 	function resize() {
 		renderChart();
 	}
-	
+
 	function renderChart() {
 		body.innerHTML = '';
-		
+
 		options.width = container.offsetWidth;
-		
+
 		if (container.offsetWidth == 0 && options.parentContainer) {
 			parentContainer = document.getElementById(options.parentContainer);
-			
+
 			if (parentContainer && parentContainer.offsetWidth)
-				options.width = parentContainer.offsetWidth;	
+				options.width = parentContainer.offsetWidth;
 		}
-	
+
 		chart = getChart(options, body);
-		
+
 		if (chart && chart.render)
 			body.appendChild(chart.render());
+
+		return chart;
 	}
 }
 
@@ -438,9 +440,14 @@ function getChart(options, container) {
 			options.countries = options.countries ? options.countries : getCountriesForMap(options);
 
 			chart = wesCountry.maps.createMap(options);
-			break;
+
+			if (chart)
+				chart.container = innerContainer;
+
+			return chart;
 	}
 
+	chart.container = container;
 	return chart;
 }
 
@@ -482,6 +489,7 @@ wesCountry.charts.multiChart = function (options) {
 	var buttons = createChartSelector(chartSelector);
 
 	var chartContainer = document.createElement('div');
+	chartContainer.id = String.format("chart-container-{0}", wesCountry.guid());
 	chartContainer.className = 'chart-container';
 	chartContainer.style.height = (container.offsetHeight - chartSelector.offsetHeight) + 'px';
 	container.appendChild(chartContainer);
@@ -560,9 +568,9 @@ wesCountry.charts.multiChart = function (options) {
 			container.appendChild(chartContainer);
 
 			buttons[i].chart = chartContainer;
-			
-			options.parentContainer = id;
-			
+
+			options.parentContainer = container.id;
+
 			var chartOptions = wesCountry.clone(options);
 			chartOptions.chartType = type;
 			chartOptions.container = String.format("#{0}", id);
