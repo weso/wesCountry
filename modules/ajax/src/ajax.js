@@ -35,6 +35,7 @@ wesCountry.ajax = new (function() {
 		var callback = options.callback;
 		var content_type = options.content_type;
 		var cache_enabled = options.cache_enabled
+		var content_type = options.content_type;
 		
 		if (method == 'GET')
 			url += '?' + parameters;
@@ -48,8 +49,10 @@ wesCountry.ajax = new (function() {
 
 			if (method != 'GET' && content_type != false)
 			{
+				if (content_type === true)
+					content_type = "application/x-www-form-urlencoded"
 				// Header is sent with the request
-				http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				http.setRequestHeader("Content-type", content_type);
 			}
 
 			http.send(method == 'GET' ? null : parameters);

@@ -132,7 +132,7 @@ wesCountry.charts = new (function() {
 	    "onmouseover": function(info) {
 		    var text = String.format("Series '{0}': ({1}, {2})", info.serie, info.pos, info.value);
 
-		    wesCountry.charts.showTooltip(text);
+		    wesCountry.charts.showTooltip(text, info.event);
 	    },
 	    "onmouseout": function() {
 	      wesCountry.charts.hideTooltip();
@@ -459,21 +459,21 @@ wesCountry.charts = new (function() {
 			tooltip = null;
 	}
 
-	this.showTooltip = function(text) {
+	this.showTooltip = function(text, event) {
 		if (!tooltip)
 			return;
 
-    	updateTooltipPos();
+    	updateTooltipPos(event);
     	tooltip.innerHTML = text;
     	tooltip.style.display = "block";
     	window.onscroll = updateTooltipPos;
     }
 
-    function updateTooltipPos() {
-		if (!tooltip)
-			return;
+    function updateTooltipPos(event) {
+			if (!tooltip)
+				return;
 
-    	var ev = arguments[0]?arguments[0]:event;
+    	var ev = arguments[0] ? arguments[0] : event;
     	var x = ev.clientX;
     	var y = ev.clientY;
     	diffX = 24;
@@ -494,7 +494,7 @@ wesCountry.charts = new (function() {
 	////////////////////////////////////////////////////////////////////////////////
 
 
-	this.getElementAttributes = function(element) {
+	this.getElementAttributes = function(element, event) {
 		var attributes = element.attributes;
 		var length = attributes.length;
 
@@ -503,10 +503,12 @@ wesCountry.charts = new (function() {
 		for (var i = 0; i < length; i++) {
 			var attribute = attributes[i];
 			var name = attribute.nodeName;
-			var value = attribute.nodeValue;
+			var value = attribute.value;
 
 			obj[name] = value;
 		}
+
+		obj.event = event;
 
 		return obj;
 	}

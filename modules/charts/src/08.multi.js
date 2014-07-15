@@ -13,7 +13,7 @@ wesCountry.charts.table = function(options) {
 	options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 
 	var table = document.createElement('table');
-	table.className = 'wesCountry';
+	table.className = 'wesCountry pages';
 
 	var thead = document.createElement('thead');
 	table.appendChild(thead);
@@ -234,9 +234,12 @@ wesCountry.charts.chart = function (options) {
 
 		chart = getChart(options, body);
 
-		if (chart && chart.render)
+		if (chart && chart.render) {
 			body.appendChild(chart.render());
-
+			// table pagination
+			wesCountry.table.pages.apply(15);
+		}
+		
 		return chart;
 	}
 }

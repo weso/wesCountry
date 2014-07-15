@@ -11,7 +11,7 @@ wesCountry.table.pages = new (function() {
 	var firstShownRow = 0;
 	var numberFooterAnchors = 5; // Must be odd
 
-	this.apply = function() {
+	this.apply = function(rowsPerPage) {
 		var tables = document.querySelectorAll("table.pages");
 		var length = tables.length;
 		
@@ -27,15 +27,30 @@ wesCountry.table.pages = new (function() {
 			var tBodies = table.tBodies;
 			var length = tBodies.length;
 			var rowNumber = 0;
+			var columnNumber = 0;
 			
-			for (var j = 0; j < length; j++)
-				rowNumber += tBodies[j].rows.length;				
-
+			for (var j = 0; j < length; j++) {
+				var tBodyLength = tBodies[j].rows.length;
+				rowNumber += tBodyLength;
+				
+				if (tBodyLength > 0) {
+					var cNumber = tBodies[j].rows[0].cells.length;
+					
+					if (cNumber > columnNumber)
+						columnNumber = cNumber;
+				}		
+			}
+			
 			table.numberOfRows = rowNumber;
+			table.numberOfColumns = columnNumber;
 			
-			var pageLength = (table.numberOfRows == 0) ? 1 : Math.floor(log10(table.numberOfRows)) + 1;
-			table.rowsPerPage = Math.pow(10, pageLength - 1);
-		
+			if (!rowsPerPage) {
+				var pageLength = (table.numberOfRows == 0) ? 1 : Math.floor(log10(table.numberOfRows)) + 1;
+				table.rowsPerPage = Math.pow(10, pageLength - 1);
+			}
+			else
+				table.rowsPerPage = rowsPerPage;
+				
 			prepareTable(table);
 			
 			// Header select
@@ -60,7 +75,7 @@ wesCountry.table.pages = new (function() {
 		var total = table.numberOfPages * table.rowsPerPage;
 		var length = table.numberOfColumns > 0 ? table.numberOfColumns : 1;
 		var tBodies = table.tBodies;
-		
+	
 		if (table.numberOfPages > 1 && total > table.numberOfRows && tBodies.length > 0) {
 			var rowNumber = table.numberOfRows;
 		
@@ -133,7 +148,7 @@ wesCountry.table.pages = new (function() {
 				count++;
 			}
 		}
-		
+	
 		// Set footer link as selected
 		updateFooter(table);
 		

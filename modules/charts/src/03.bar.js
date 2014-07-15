@@ -102,24 +102,24 @@ wesCountry.charts.barChart = function(options) {
 					element.setAttribute("selected", "selected");
 				};
 
-				var onmouseover = function() {
+				var onmouseover = function(event) {
 					selectBar(this);
 
-					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 				};
 
 				var unselectBar = function(element) {
 					element.style.fill = element.colour;
 				};
 
-				var onmouseout = function() {
+				var onmouseout = function(event) {
 					unselectBar(this);
-					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 				};
 
-				var onclick = function() {
+				var onclick = function(event) {
 					this.style.fill = this.colour;
-					options.events.onclick(wesCountry.charts.getElementAttributes(this));
+					options.events.onclick(wesCountry.charts.getElementAttributes(this, event));
 				};
 
 				var r = null;

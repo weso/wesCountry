@@ -387,6 +387,7 @@ wesCountry.ajax = new (function() {
 		var callback = options.callback;
 		var content_type = options.content_type;
 		var cache_enabled = options.cache_enabled
+		var content_type = options.content_type;
 		
 		if (method == 'GET')
 			url += '?' + parameters;
@@ -400,8 +401,10 @@ wesCountry.ajax = new (function() {
 
 			if (method != 'GET' && content_type != false)
 			{
+				if (content_type === true)
+					content_type = "application/x-www-form-urlencoded"
 				// Header is sent with the request
-				http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				http.setRequestHeader("Content-type", content_type);
 			}
 
 			http.send(method == 'GET' ? null : parameters);
@@ -2889,7 +2892,7 @@ wesCountry.charts.table = function(options) {
 	options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 
 	var table = document.createElement('table');
-	table.className = 'wesCountry';
+	table.className = 'wesCountry pages';
 
 	var thead = document.createElement('thead');
 	table.appendChild(thead);
@@ -3110,9 +3113,12 @@ wesCountry.charts.chart = function (options) {
 
 		chart = getChart(options, body);
 
-		if (chart && chart.render)
+		if (chart && chart.render) {
 			body.appendChild(chart.render());
-
+			// table pagination
+			wesCountry.table.pages.apply(15);
+		}
+		
 		return chart;
 	}
 }
@@ -4242,85 +4248,85 @@ wesCountry.data = new (function() {
     var times = [];
     var indicators = [];
     var regions = [];
-    
+
     this.getObservationFromTable = function(options) {
     	var container = document.querySelector(options.container);
-    	
+
     	var table = container.querySelector('table');
-    	
+
     	if (!table)
     		return null;
-    	
+
     	var thead = table.querySelector('thead');
     	var tbody = table.querySelector('tbody');
-    	
+
     	if (!thead || !tbody)
     		return null;
-    	
+
     	// Columns
     	var ths = thead.querySelectorAll('th');
-    	
+
     	var columns = {};
-    	
+
     	var length = ths.length;
-    	
+
     	for (var i = 0; i < length; i++) {
     		var column = ths[i];
     		var className = column.className;
-    		
+
     		if (!className)
     			continue;
-    			
+
     		columns[className] = i;
     	}
-    	
+
     	// Rows
     	var trs = tbody.querySelectorAll('tr');
-    	
+
     	var length = trs.length;
-    	
+
     	var observations = [];
-    	
+
     	for (var i = 0; i < length; i++) {
     		var tr = trs[i];
-    		
+
     		var tds = tr.querySelectorAll('td');
-    		
+
     		// regionName
-    		var regionPos = columns["regionName"];	
-    		
+    		var regionPos = columns["regionName"];
+
     		if (regionPos === undefined || regionPos > tds.length - 1)
     			continue;
-    			
+
     		var region = tds[regionPos].innerHTML;
-    			
+
     		// time
-    		var timePos = columns["time"];	
-    		
+    		var timePos = columns["time"];
+
     		if (timePos === undefined || timePos > tds.length - 1)
     			continue;
-    			
+
     		var time = tds[timePos].innerHTML;
-    		
+
     		// indicatorCode
-     		var indicatorPos = columns["indicatorCode"];	
-    		
+     		var indicatorPos = columns["indicatorCode"];
+
     		if (indicatorPos === undefined || indicatorPos > tds.length - 1)
     			continue;
-    			
-    		var indicator = tds[indicatorPos].innerHTML;   		
-    		
+
+    		var indicator = tds[indicatorPos].innerHTML;
+
     		// value
-     		var valuePos = columns["value"];	
-    		
+     		var valuePos = columns["value"];
+
     		if (valuePos === undefined || valuePos > tds.length - 1)
     			continue;
-    			
-    		var value = tds[valuePos].innerHTML; 
-    		
+
+    		var value = tds[valuePos].innerHTML;
+
     		if (!value || value == "" || value == "null")
     			value = null;
-    		
+
     		observations.push({
     			region: region,
     			time: time,
@@ -4328,175 +4334,175 @@ wesCountry.data = new (function() {
     			value: value
     		});
     	}
-    	
+
     	observations = this.getChartSeriesFromObservations(observations);
-    	
+
     	return observations;
     }
-    
+
     this.getChartSeriesFromObservations = function(observations) {
     	var times = [];
     	var regions = [];
     	var indicators = [];
-    	
+
     	var byTime = {};
     	var byRegion = {};
     	var byIndicator = {};
-    	
+
     	var length = observations.length;
-    	
+
     	for (var i = 0; i < length; i++) {
     		var observation = observations[i];
     		var time = observation.time;
     		var region = observation.region;
     		var indicator = observation.indicator;
-    		
+
     		// Time
     		if (times.indexOf(time) == -1)
     			times.push(time);
-    			
+
     		// Region
     		if (regions.indexOf(region) == -1)
     			regions.push(region);
-    			
+
     		// 	Indicator
     		if (indicators.indexOf(indicator) == -1)
     			indicators.push(indicator);
-    			
+
     		// By Time
     		if (!byTime[time])
     			byTime[time] = {
     				regions: {},
     				indicators: {}
     			};
-    			
+
     		if (!byTime[time].regions[region])
     			byTime[time].regions[region] = [];
-    		
+
     		byTime[time].regions[region].push(observation);
-    		
+
     		if (!byTime[time].indicators[indicator])
     			byTime[time].indicators[indicator] = {};
-    		
+
     		byTime[time].indicators[indicator][region] = observation;
-    		
+
     		// By Region
     		if (!byRegion[region])
     			byRegion[region] = {
     				times: {},
     				indicators: {}
     			};
-    			
+
     		if (!byRegion[region].times[time])
     			byRegion[region].times[time] = [];
-    		
+
     		byRegion[region].times[time].push(observation);
-    		
+
     		if (!byRegion[region].indicators[indicator])
     			byRegion[region].indicators[indicator] = {};
-    		
+
     		byRegion[region].indicators[indicator][time] = observation;
-    		
+
     		// By Indicator
     		if (!byIndicator[indicator])
     			byIndicator[indicator] = {
     				times: {},
     				regions: {}
     			};
-    			
+
     		if (!byIndicator[indicator].times[time])
     			byIndicator[indicator].times[time] = [];
-    		
+
     		byIndicator[indicator].times[time].push(observation);
-    		
+
     		if (!byIndicator[indicator].regions[region])
     			byIndicator[indicator].regions[region] = {};
-    		
+
     		byIndicator[indicator].regions[region][time] = observation;
     	}
-    	
+
     	times.sort();
-    	regions.sort();
+    	//regions.sort();
     	indicators.sort();
-    	
+
     	// Series By Region
-    	
+
     	var seriesByRegion = [];
-    	
+
     	var rLength = regions.length;
     	var tLength = times.length;
     	var iLength = indicators.length;
-    	
+
     	for (var i = 0; i < rLength; i++) {
     		var regionName = regions[i];
-    		
+
     		var series = [];
-    		
+
     		var obsIndicators = byRegion[regionName].indicators;
-    		
+
     		for (var j = 0; j < iLength; j++) {
     			var indicator = indicators[j];
-    				
+
     			var obsTimes = obsIndicators[indicator];
-    			
+
     			var values = [];
-    			
+
     			for (var k = 0; k < tLength; k++) {
     				var time = times[k];
-    				
+
     				var value = obsTimes[time] ? obsTimes[time].value : null;
     				values.push(value);
     			}
-    			
+
     			series.push({
     				name: indicator,
     				values: values
     			});
     		}
-    		
+
     		seriesByRegion.push({
     			name: regionName,
     			series: series
     		});
     	}
-    	
+
 		// Series By Indicator
-    	
+
     	var seriesByIndicator = [];
-    	
+
     	for (var i = 0; i < iLength; i++) {
     		var indicatorName = indicators[i];
-    		
+
     		var series = [];
-    	
+
     		var obsRegions = byIndicator[indicatorName].regions;
-    		
+
     		for (var j = 0; j < rLength; j++) {
     			var region = regions[j];
-    			
+
     			var obsTimes = obsRegions[region];
 
     			var values = [];
-    			
+
     			for (var k = 0; k < tLength; k++) {
     				var time = times[k];
-    				
+
     				var value = obsTimes[time] ? obsTimes[time].value : null;
     				values.push(value);
     			}
-    			
+
     			series.push({
     				name: region,
     				values: values
     			});
     		}
-    		
+
     		seriesByIndicator.push({
     			name: indicatorName,
     			series: series
     		});
-    	}    	
-    	
+    	}
+
     	return {
     		byRegion: seriesByRegion,
     		byIndicator: seriesByIndicator,
@@ -4557,7 +4563,7 @@ wesCountry.data = new (function() {
 
         this.parseByTime = function() {
             var sortByIndicator = undefined;
-            
+
             var returned = getHashTable(sortByIndicator, "year", "countryName", "value", "indicatorCode");
             myData.time = returned[0];
             return returned[1];
@@ -4651,8 +4657,8 @@ wesCountry.data = new (function() {
         this.selectBy = function(selector, graphicFunctionNames) {
             var select = document.createElement('select');
             select.className = "globalSelect";
-            var container = typeof options.container === "string" ? 
-                    document.querySelector(options.container) : 
+            var container = typeof options.container === "string" ?
+                    document.querySelector(options.container) :
                     options.container;
             container.appendChild(select);
             var optionsValues;
@@ -4670,7 +4676,7 @@ wesCountry.data = new (function() {
                 var option = document.createElement('option');
                 option.innerHTML = optionsValues[i];
                 select.appendChild(option);
-            } 
+            }
             drawFilteredGraphics.bind(this)();
             select.onchange = drawFilteredGraphics.bind(this);
 
@@ -4854,7 +4860,7 @@ wesCountry.data = new (function() {
                 for(var i=0;i<indicators.length;i++) {
                     var option = document.createElement("option");
                     option.innerHTML = indicators[i];
-                    select.appendChild(option);    
+                    select.appendChild(option);
                 }
             };
 
@@ -4933,7 +4939,7 @@ wesCountry.data = new (function() {
                 for(var i=0;i<indicators.length;i++) {
                     var option = document.createElement("option");
                     option.innerHTML = indicators[i];
-                    select.appendChild(option);    
+                    select.appendChild(option);
                 }
                 for(var i=0;i<secondIndicators.length;i++) {
                     var option = document.createElement("option");
@@ -5233,8 +5239,8 @@ wesCountry.data = new (function() {
                         td.innerHTML = statitics[a];
                         tr.appendChild(td);
                     }
-                    var container = typeof options.container === "string" ? 
-                            document.querySelector(options.container) : 
+                    var container = typeof options.container === "string" ?
+                            document.querySelector(options.container) :
                             options.container;
                     container.appendChild(table);
                 }
@@ -5280,7 +5286,7 @@ wesCountry.data = new (function() {
 
             function putLimitsIfNofDefined() {
                 if(limits===undefined)
-                    limits = []; 
+                    limits = [];
                 limits[0] = limits[0]===undefined ? 10 : limits[0];
                 limits[1] = limits[1]===undefined ? 100 : limits[1];
             }
@@ -5305,7 +5311,7 @@ wesCountry.data = new (function() {
                 for(var i=0;i<indicators.length;i++) {
                     var option = document.createElement("option");
                     option.innerHTML = indicators[i];
-                    select.appendChild(option);    
+                    select.appendChild(option);
                 }
                 for(var i=0;i<secondIndicators.length;i++) {
                     var option = document.createElement("option");
@@ -5350,7 +5356,7 @@ wesCountry.data = new (function() {
                         td.innerHTML = xAxisValues.timeAndRegion[i];
                         tr.appendChild(td);
                         td = document.createElement("td");
-                        if(series[i] <= limits[0]) 
+                        if(series[i] <= limits[0])
                             td.style.backgroundColor = colors[0];
                         else if(series[i] > limits[0] && series[i] < limits[1])
                             td.style.backgroundColor = colors[1];
@@ -5359,8 +5365,8 @@ wesCountry.data = new (function() {
                         td.innerHTML = series[i].toFixed(2);
                         tr.appendChild(td);
                     }
-                    var container = typeof options.container === "string" ? 
-                            document.querySelector(options.container) : 
+                    var container = typeof options.container === "string" ?
+                            document.querySelector(options.container) :
                             options.container;
                     semaphoreDiv = document.createElement("div");
                     semaphoreDiv.className = "semaphoreDiv";
@@ -5437,8 +5443,8 @@ wesCountry.data = new (function() {
 
                 function setTablePosition() {
                     if (!tablePosition) {
-                        var container = typeof options.container === "string" ? 
-                            document.querySelector(options.container) : 
+                        var container = typeof options.container === "string" ?
+                            document.querySelector(options.container) :
                             options.container;
                         container.appendChild(wrapperDiv);
                     }
@@ -5448,11 +5454,12 @@ wesCountry.data = new (function() {
                         else
                             tableElement.insertAfter(wrapperDiv);
                     }
-                }   
+                }
             };
         }
     }
-})();if (typeof(wesCountry) === "undefined")
+})();
+if (typeof(wesCountry) === "undefined")
 	var wesCountry = {};
 
 wesCountry.table = new Object();
@@ -5465,7 +5472,7 @@ wesCountry.table.pages = new (function() {
 	var firstShownRow = 0;
 	var numberFooterAnchors = 5; // Must be odd
 
-	this.apply = function() {
+	this.apply = function(rowsPerPage) {
 		var tables = document.querySelectorAll("table.pages");
 		var length = tables.length;
 		
@@ -5481,15 +5488,30 @@ wesCountry.table.pages = new (function() {
 			var tBodies = table.tBodies;
 			var length = tBodies.length;
 			var rowNumber = 0;
+			var columnNumber = 0;
 			
-			for (var j = 0; j < length; j++)
-				rowNumber += tBodies[j].rows.length;				
-
+			for (var j = 0; j < length; j++) {
+				var tBodyLength = tBodies[j].rows.length;
+				rowNumber += tBodyLength;
+				
+				if (tBodyLength > 0) {
+					var cNumber = tBodies[j].rows[0].cells.length;
+					
+					if (cNumber > columnNumber)
+						columnNumber = cNumber;
+				}		
+			}
+			
 			table.numberOfRows = rowNumber;
+			table.numberOfColumns = columnNumber;
 			
-			var pageLength = (table.numberOfRows == 0) ? 1 : Math.floor(log10(table.numberOfRows)) + 1;
-			table.rowsPerPage = Math.pow(10, pageLength - 1);
-		
+			if (!rowsPerPage) {
+				var pageLength = (table.numberOfRows == 0) ? 1 : Math.floor(log10(table.numberOfRows)) + 1;
+				table.rowsPerPage = Math.pow(10, pageLength - 1);
+			}
+			else
+				table.rowsPerPage = rowsPerPage;
+				
 			prepareTable(table);
 			
 			// Header select
@@ -5514,7 +5536,7 @@ wesCountry.table.pages = new (function() {
 		var total = table.numberOfPages * table.rowsPerPage;
 		var length = table.numberOfColumns > 0 ? table.numberOfColumns : 1;
 		var tBodies = table.tBodies;
-		
+	
 		if (table.numberOfPages > 1 && total > table.numberOfRows && tBodies.length > 0) {
 			var rowNumber = table.numberOfRows;
 		
@@ -5587,7 +5609,7 @@ wesCountry.table.pages = new (function() {
 				count++;
 			}
 		}
-		
+	
 		// Set footer link as selected
 		updateFooter(table);
 		
