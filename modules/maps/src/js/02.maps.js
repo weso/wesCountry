@@ -196,6 +196,9 @@ wesCountry.maps = new (function() {
 		var factor = 1;
 		var initialFactor = 1;
 
+    var _svgWidth = null;
+    var _svgHeight = null;
+
 		// Translate position
 		var translate = {
 			x: 0,
@@ -237,6 +240,9 @@ wesCountry.maps = new (function() {
       // Height
       var height = containerParent.offsetHeight > 0 ? containerParent.offsetHeight : 300;
 
+      _svgWidth = containerParent.offsetWidth;
+      _svgHeight = height;
+
       // Zoom buttons
       if (options.zoom)
         createZoomButtons(container);
@@ -246,10 +252,11 @@ wesCountry.maps = new (function() {
       svg = document.createElementNS(namespace, "svg");
       var svgClassName = String.format('wesCountry-map-time-{0}', wesCountry.guid());
       svg.setAttributeNS(null, 'class', String.format("wesCountry {0}", svgClassName));
-      svg.setAttributeNS(null, 'width', containerParent.offsetWidth);
+      svg.setAttributeNS(null, 'width', _svgWidth);
       svg.setAttributeNS(null, 'height', height);
 
-      //svg.setAttributeNS(null, 'viewBox', '0 -500 2752.766 2537.631');
+      svg.setAttributeNS(null, 'viewBox',
+          String.format('0 0 {0} {1}', _svgWidth, height));
 
       container.appendChild(svg);
 
@@ -480,7 +487,13 @@ wesCountry.maps = new (function() {
 				return;
 
 			var countrySize = country.getBoundingClientRect();
-			var svgSize = svg.getBoundingClientRect();
+			//var svgSize = svg.getBoundingClientRect();
+      var svgSize = {
+        width: _svgWidth,
+        height: _svgHeight,
+        left: svg.getBoundingClientRect().left,
+        top: svg.getBoundingClientRect().top
+      };
 
 			widthFactor = svgSize.width / countrySize.width;
 			heightFactor = svgSize.height / countrySize.height;

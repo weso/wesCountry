@@ -53,6 +53,13 @@ wesCountry.charts = new (function() {
 			"font-colour": "#555",
 			"font-size": "11px",
 		},
+		nameUnderItem: {
+			show: false,
+			margin: 2.5,
+			"font-family": "Helvetica",
+			"font-colour": "#555",
+			"font-size": "11px",
+		},
 		sizeByValue: false, // Scatter
 		sizeByValueMaxRadius: 5, // Scatter
 		sizeByValueMinRadius: 1, // Scatter

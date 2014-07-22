@@ -65,6 +65,9 @@ function generateCharts(options) {
 		legend: {
 			"font-family": "'Kite One', sans-serif",
 			"font-size": "14px"
+		},
+		nameUnderItem: {
+			show: true
 		}
 	};
 

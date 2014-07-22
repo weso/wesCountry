@@ -794,7 +794,7 @@ wesCountry.charts = new (function() {
 	    "onmouseover": function(info) {
 		    var text = String.format("Series '{0}': ({1}, {2})", info.serie, info.pos, info.value);
 
-		    wesCountry.charts.showTooltip(text);
+		    wesCountry.charts.showTooltip(text, info.event);
 	    },
 	    "onmouseout": function() {
 	      wesCountry.charts.hideTooltip();
@@ -1121,21 +1121,21 @@ wesCountry.charts = new (function() {
 			tooltip = null;
 	}
 
-	this.showTooltip = function(text) {
+	this.showTooltip = function(text, event) {
 		if (!tooltip)
 			return;
 
-    	updateTooltipPos();
+    	updateTooltipPos(event);
     	tooltip.innerHTML = text;
     	tooltip.style.display = "block";
     	window.onscroll = updateTooltipPos;
     }
 
-    function updateTooltipPos() {
-		if (!tooltip)
-			return;
+    function updateTooltipPos(event) {
+			if (!tooltip)
+				return;
 
-    	var ev = arguments[0]?arguments[0]:event;
+    	var ev = arguments[0] ? arguments[0] : event;
     	var x = ev.clientX;
     	var y = ev.clientY;
     	diffX = 24;
@@ -1156,7 +1156,7 @@ wesCountry.charts = new (function() {
 	////////////////////////////////////////////////////////////////////////////////
 
 
-	this.getElementAttributes = function(element) {
+	this.getElementAttributes = function(element, event) {
 		var attributes = element.attributes;
 		var length = attributes.length;
 
@@ -1165,10 +1165,12 @@ wesCountry.charts = new (function() {
 		for (var i = 0; i < length; i++) {
 			var attribute = attributes[i];
 			var name = attribute.nodeName;
-			var value = attribute.nodeValue;
+			var value = attribute.value;
 
 			obj[name] = value;
 		}
+
+		obj.event = event;
 
 		return obj;
 	}
@@ -1283,24 +1285,24 @@ wesCountry.charts.barChart = function(options) {
 					element.setAttribute("selected", "selected");
 				};
 
-				var onmouseover = function() {
+				var onmouseover = function(event) {
 					selectBar(this);
 
-					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 				};
 
 				var unselectBar = function(element) {
 					element.style.fill = element.colour;
 				};
 
-				var onmouseout = function() {
+				var onmouseout = function(event) {
 					unselectBar(this);
-					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 				};
 
-				var onclick = function() {
+				var onclick = function(event) {
 					this.style.fill = this.colour;
-					options.events.onclick(wesCountry.charts.getElementAttributes(this));
+					options.events.onclick(wesCountry.charts.getElementAttributes(this, event));
 				};
 
 				var r = null;
@@ -1651,22 +1653,22 @@ wesCountry.charts.generateLineChart = function(options, area) {
 					}
 				};
 
-				var onmouseover = function() {
+				var onmouseover = function(event) {
 					this.setAttribute("r", 8);
 					setLineWidth(this, 2);
-					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 				};
 
-				var onmouseout = function() {
+				var onmouseout = function(event) {
 					this.setAttribute("r", 5);
 					setLineWidth(this, 1);
-					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 				};
 
-				var onclick = function() {
+				var onclick = function(event) {
 					this.setAttribute("r", 5);
 					setLineWidth(this, 1);
-					options.events.onclick(wesCountry.charts.getElementAttributes(this));
+					options.events.onclick(wesCountry.charts.getElementAttributes(this, event));
 				};
 
 				if (options.vertex.show) {
@@ -1927,21 +1929,21 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 
 			// Events
 
-			var onmouseover = function() {
+			var onmouseover = function(event) {
 				this.colour = this.style.fill;
 				this.style.fill = options.overColour;
 
-				options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
+				options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 			};
 
-			var onmouseout = function() {
+			var onmouseout = function(event) {
 				this.style.fill = this.colour;
-				options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
+				options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 			};
 
-			var onclick = function() {
+			var onclick = function(event) {
 				this.style.fill = this.colour;
-				options.events.onclick(wesCountry.charts.getElementAttributes(this));
+				options.events.onclick(wesCountry.charts.getElementAttributes(this, event));
 			};
 
 			// Pie
@@ -2367,22 +2369,22 @@ wesCountry.charts.polarChart = function(options) {
 			}
 		};
 
-		var onmouseover = function() {
+		var onmouseover = function(event) {
 			this.setAttribute("r", 8);
 			setLineWidth(this, 2);
-			options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
+			options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 		};
 
-		var onmouseout = function() {
+		var onmouseout = function(event) {
 			this.setAttribute("r", 5);
 			setLineWidth(this, 1);
-			options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
+			options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 		};
 
-		var onclick = function() {
+		var onclick = function(event) {
 			this.setAttribute("r", 5);
 			setLineWidth(this, 1);
-			options.events.onclick(wesCountry.charts.getElementAttributes(this));
+			options.events.onclick(wesCountry.charts.getElementAttributes(this, event));
 		};
 
 		// Polygon drawing
@@ -2586,21 +2588,21 @@ wesCountry.charts.scatterPlot = function(options) {
 
 		// Events
 
-		var onmouseover = function() {
+		var onmouseover = function(event) {
 			this.colour = this.style.fill;
 			this.style.fill = options.overColour;
 
-			options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
+			options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 		};
 
-		var onmouseout = function() {
+		var onmouseout = function(event) {
 			this.style.fill = this.colour;
-			options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
+			options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 		};
 
-		var onclick = function() {
+		var onclick = function(event) {
 			this.style.fill = this.colour;
-			options.events.onclick(wesCountry.charts.getElementAttributes(this));
+			options.events.onclick(wesCountry.charts.getElementAttributes(this, event));
 		};
 
 		var maxRadius = options.sizeByValueMaxRadius * maxWidth / 100;
@@ -3393,13 +3395,13 @@ wesCountry.charts.multiChart = function (options) {
 			var type = chartTypes[i];
 
 			var li = document.createElement('li');
-			li.type = type;
-			li.chart = null;
+			li.setAttribute('type', type);
+			//li.chart = null;
 			li.className = i == 0 ? 'button-active' : 'button-inactive';
 			ul.appendChild(li);
 
 			var a = document.createElement('a');
-			a.type = type;
+			a.setAttribute('type', type);
 			a.innerHTML = type;
 			li.appendChild(a);
 
@@ -3573,10 +3575,10 @@ wesCountry.charts.stackedChart = function(options) {
 					rect.setAttribute("selected", "selected");
 				};
 
-				var onmouseover = function() {
+				var onmouseover = function(event) {
 					selectBar(this);
 
-					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 				};
 
 				var unselectBar = function(element) {
@@ -3586,14 +3588,14 @@ wesCountry.charts.stackedChart = function(options) {
 						rect.style.fill = rect.colour;
 				};
 
-				var onmouseout = function() {
+				var onmouseout = function(event) {
 					unselectBar(this);
-					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 				};
 
-				var onclick = function() {
+				var onclick = function(event) {
 					this.style.fill = this.colour;
-					options.events.onclick(wesCountry.charts.getElementAttributes(this));
+					options.events.onclick(wesCountry.charts.getElementAttributes(this, event));
 				};
 
 				// Node for element and text
@@ -3912,10 +3914,10 @@ wesCountry.charts.rankingChart = function(options) {
 					rect.setAttribute("selected", "selected");
 				};
 
-				var onmouseover = function() {
+				var onmouseover = function(event) {
 					selectBar(this);
 
-					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 				};
 
 				var unselectBar = function(element) {
@@ -3925,14 +3927,14 @@ wesCountry.charts.rankingChart = function(options) {
 						rect.style.fill = rect.colour;
 				};
 
-				var onmouseout = function() {
+				var onmouseout = function(event) {
 					unselectBar(this);
-					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 				};
 
-				var onclick = function() {
+				var onclick = function(event) {
 					this.style.fill = this.colour;
-					options.events.onclick(wesCountry.charts.getElementAttributes(this));
+					options.events.onclick(wesCountry.charts.getElementAttributes(this, event));
 				};
 
 				var r = null;
@@ -7125,6 +7127,9 @@ wesCountry.maps = new (function() {
 		var factor = 1;
 		var initialFactor = 1;
 
+    var _svgWidth = null;
+    var _svgHeight = null;
+
 		// Translate position
 		var translate = {
 			x: 0,
@@ -7166,6 +7171,9 @@ wesCountry.maps = new (function() {
       // Height
       var height = containerParent.offsetHeight > 0 ? containerParent.offsetHeight : 300;
 
+      _svgWidth = containerParent.offsetWidth;
+      _svgHeight = height;
+
       // Zoom buttons
       if (options.zoom)
         createZoomButtons(container);
@@ -7175,10 +7183,11 @@ wesCountry.maps = new (function() {
       svg = document.createElementNS(namespace, "svg");
       var svgClassName = String.format('wesCountry-map-time-{0}', wesCountry.guid());
       svg.setAttributeNS(null, 'class', String.format("wesCountry {0}", svgClassName));
-      svg.setAttributeNS(null, 'width', containerParent.offsetWidth);
+      svg.setAttributeNS(null, 'width', _svgWidth);
       svg.setAttributeNS(null, 'height', height);
 
-      //svg.setAttributeNS(null, 'viewBox', '0 -500 2752.766 2537.631');
+      svg.setAttributeNS(null, 'viewBox',
+          String.format('0 0 {0} {1}', _svgWidth, height));
 
       container.appendChild(svg);
 
@@ -7409,7 +7418,13 @@ wesCountry.maps = new (function() {
 				return;
 
 			var countrySize = country.getBoundingClientRect();
-			var svgSize = svg.getBoundingClientRect();
+			//var svgSize = svg.getBoundingClientRect();
+      var svgSize = {
+        width: _svgWidth,
+        height: _svgHeight,
+        left: svg.getBoundingClientRect().left,
+        top: svg.getBoundingClientRect().top
+      };
 
 			widthFactor = svgSize.width / countrySize.width;
 			heightFactor = svgSize.height / countrySize.height;

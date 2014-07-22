@@ -514,13 +514,13 @@ wesCountry.charts.multiChart = function (options) {
 			var type = chartTypes[i];
 
 			var li = document.createElement('li');
-			li.type = type;
-			li.chart = null;
+			li.setAttribute('type', type);
+			//li.chart = null;
 			li.className = i == 0 ? 'button-active' : 'button-inactive';
 			ul.appendChild(li);
 
 			var a = document.createElement('a');
-			a.type = type;
+			a.setAttribute('type', type);
 			a.innerHTML = type;
 			li.appendChild(a);
 
