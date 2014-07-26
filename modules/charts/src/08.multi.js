@@ -239,7 +239,7 @@ wesCountry.charts.chart = function (options) {
 			// table pagination
 			wesCountry.table.pages.apply(15);
 		}
-		
+
 		return chart;
 	}
 }
@@ -521,7 +521,7 @@ wesCountry.charts.multiChart = function (options) {
 
 			var a = document.createElement('a');
 			a.setAttribute('type', type);
-			a.innerHTML = type;
+			a.innerHTML = String.format("<span>{0}</span>", type);
 			li.appendChild(a);
 
 			a.onclick = function() {

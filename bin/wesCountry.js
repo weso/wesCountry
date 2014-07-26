@@ -715,6 +715,13 @@ wesCountry.charts = new (function() {
 			"font-colour": "#555",
 			"font-size": "11px",
 		},
+		nameUnderItem: {
+			show: false,
+			margin: 2.5,
+			"font-family": "Helvetica",
+			"font-colour": "#555",
+			"font-size": "11px",
+		},
 		sizeByValue: false, // Scatter
 		sizeByValueMaxRadius: 5, // Scatter
 		sizeByValueMinRadius: 1, // Scatter
@@ -1327,12 +1334,24 @@ wesCountry.charts.barChart = function(options) {
 				if (options.valueOnItem.show == true) {
 					g.text({
 						x: xPos + barWidth / 2,
-						y: yPos - (options.height / 100) * options.valueOnItem.margin,
-						value: value.toFixed(2)
+						y: yPos + height + (options.height / 100) * options.valueOnItem.margin,
+						value: serie
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
 						options.valueOnItem["font-size"]));
+				}
+
+				// Name under item
+				if (options.nameUnderItem.show == true) {
+					g.text({
+						x: xPos + barWidth / 2,
+						y: yPos - (options.height / 100) * options.nameUnderItem.margin,
+						value: value.toFixed(2)
+					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
+						options.nameUnderItem["font-colour"],
+						options.nameUnderItem["font-family"],
+						options.nameUnderItem["font-size"]));
 				}
 			}
 		}
@@ -3120,7 +3139,7 @@ wesCountry.charts.chart = function (options) {
 			// table pagination
 			wesCountry.table.pages.apply(15);
 		}
-		
+
 		return chart;
 	}
 }
@@ -3402,7 +3421,7 @@ wesCountry.charts.multiChart = function (options) {
 
 			var a = document.createElement('a');
 			a.setAttribute('type', type);
-			a.innerHTML = type;
+			a.innerHTML = String.format("<span>{0}</span>", type);
 			li.appendChild(a);
 
 			a.onclick = function() {
