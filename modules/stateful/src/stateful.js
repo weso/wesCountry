@@ -64,7 +64,8 @@ wesCountry.stateful = new (function() {
   function changeUrl() {
     var queryString = getQueryString();
 
-    history.pushState({}, document.title, String.format("{0}?{1}", host, queryString));
+    if (history && history.pushState)
+      history.pushState({}, document.title, String.format("{0}?{1}", host, queryString));
 
     if (options.urlChanged)
     	options.urlChanged.call(this, parameters, selectors);
