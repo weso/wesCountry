@@ -3093,7 +3093,11 @@ wesCountry.charts.chart = function (options) {
 			height -= wesCountry.getFullHeight(footer);
 
 		// Chart
-
+		
+		if (isNaN(height)) {
+			height = 400;
+		}
+		
 		options.height = height;
 
 		body.style.height = height + 'px';
