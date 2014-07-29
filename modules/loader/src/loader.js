@@ -9,7 +9,7 @@ wesCountry.loader = new (function() {
 		},
     cache: false,
 		getChartData: function(options, data) {
-			console.log(data);
+			return defaultOptions;
 		}
 	};
 
@@ -19,9 +19,13 @@ wesCountry.loader = new (function() {
     var panel = document.createElement('div');
     panel.id = 'c' + wesCountry.guid();
 
+    var container = document.querySelector(options.container);
+    container.appendChild(panel);
+
     options.callback = function(data, options) {
       lastData = data;
       options.container = '#' + panel.id;
+
       options = options.getChartData ? options.getChartData(options, data) : options;
       var charts = wesCountry.charts.multiChart(options);
 
@@ -29,7 +33,7 @@ wesCountry.loader = new (function() {
       	options.afterRenderCharts.call(null, charts);
     }
 
-    return this.render(options, panel);
+    return this.render(options, panel);;
   }
 
 	this.render = function(options, panel)
@@ -45,14 +49,23 @@ wesCountry.loader = new (function() {
 			this.options.width = this.options.width > 0 ? this.options.width : 500;
 			this.options.height = this.options.height > 0 ? this.options.height : 400;
 
-			var panelContainer = panel ? panel : document.createElement('div');
+      var panelContainer = panel;
+
+      if (!panel) {
+        panelContainer = document.createElement('div');
+        container.appendChild(panelContainer);
+      }
+
       this.panel = panelContainer;
 
 			this.panel.className = 'wesCountry-panel';
-			this.panel.setAttribute("style", String.format("width: {0}px; min-height: {1}px;",
-										  this.options.width, wesCountry.getFullHeight(container)));
+      var height = wesCountry.getFullHeight(container);
+      height = isNaN(height) ? this.options.height : height;
 
-		  container.appendChild(this.panel);
+			this.panel.setAttribute("style", String.format("width: {0}px; min-height: {1}px;",
+										  this.options.width, height));
+
+		  //container.appendChild(this.panel);
       container.panel = this.panel;
 
       // Resize
@@ -66,8 +79,11 @@ wesCountry.loader = new (function() {
 		  this.load(this.options);
 
       function resize() {
+        var height = wesCountry.getFullHeight(container);
+        height = isNaN(height) ? this.options.height : height;
+
         panelContainer.setAttribute("style", String.format("width: {0}px; min-height: {1}px;",
-                        container.offsetWidth, wesCountry.getFullHeight(container)));
+                        container.offsetWidth, height));
       }
 
 		  this.getData = function() {

@@ -193,11 +193,11 @@ wesCountry.charts.chart = function (options) {
 			height -= wesCountry.getFullHeight(footer);
 
 		// Chart
-		
+
 		if (isNaN(height)) {
-			height = 400;
+			height = options.height;
 		}
-		
+
 		options.height = height;
 
 		body.style.height = height + 'px';
@@ -489,6 +489,8 @@ wesCountry.charts.multiChart = function (options) {
 	var chartTypes = options.chartType;
 	var container = document.querySelector(options.container);
 
+	var containerHeight = container.offsetHeight;
+
 	var chartSelector = document.createElement('div');
 	chartSelector.className = "chart-selector";
 	container.appendChild(chartSelector);
@@ -498,7 +500,10 @@ wesCountry.charts.multiChart = function (options) {
 	var chartContainer = document.createElement('div');
 	chartContainer.id = String.format("chart-container-{0}", wesCountry.guid());
 	chartContainer.className = 'chart-container';
-	chartContainer.style.height = (container.offsetHeight - chartSelector.offsetHeight) + 'px';
+
+	containerHeight = containerHeight > 0 ? containerHeight : 500;
+
+	chartContainer.style.height = (containerHeight - chartSelector.offsetHeight) + 'px';
 	container.appendChild(chartContainer);
 
 	return createCharts(chartContainer, buttons);
@@ -571,7 +576,9 @@ wesCountry.charts.multiChart = function (options) {
 
 			var chartContainer = document.createElement('div');
 			chartContainer.id = id;
-			chartContainer.style.height = wesCountry.getFullHeight(container) + 'px';
+			var height = wesCountry.getFullHeight(container);
+			height = isNaN(height) ? options.height : height;
+			chartContainer.style.height = height + 'px';
 			container.appendChild(chartContainer);
 
 			buttons[i].chart = chartContainer;

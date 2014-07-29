@@ -121,7 +121,7 @@ table.sortable img.down {
 }	/* Chart selector */
 
 div.chart-selector {
-	overflow: auto;
+	overflow: hidden;
 	position: relative;
 	margin-top: 0;
 	margin-bottom: 0.5em;

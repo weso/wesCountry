@@ -140,7 +140,11 @@ var wesCountry = new (function() {
 
     if (document.all) { // IE
       elmHeight = elm.currentStyle.height;
-      elmMargin = parseInt(elm.currentStyle.marginTop, 10) + parseInt(elm.currentStyle.marginBottom, 10);
+
+			var marginTop = parseInt(elm.currentStyle.marginTop, 10);
+			var marginBottom = parseInt(elm.currentStyle.marginBottom, 10);
+
+      elmMargin = marginTop + marginBottom;
     } else if (document.defaultView && document.defaultView.getComputedStyle) { // Mozilla
       elmHeight = document.defaultView.getComputedStyle(elm, '').getPropertyValue('height');
       elmMargin = parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('margin-top')) + parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('margin-bottom'));
@@ -166,7 +170,7 @@ var wesCountry = new (function() {
 
 	this.registerEvent = function(element, event, handler) {
 		if (element.attachEvent)
-			element.attachEvent(event, handler);
+			element.attachEvent("on" + event, function() { handler.call(element); });
 		else
 			element.addEventListener(event, handler, false);
 	}
@@ -3093,11 +3097,11 @@ wesCountry.charts.chart = function (options) {
 			height -= wesCountry.getFullHeight(footer);
 
 		// Chart
-		
+
 		if (isNaN(height)) {
-			height = 400;
+			height = options.height;
 		}
-		
+
 		options.height = height;
 
 		body.style.height = height + 'px';
@@ -3389,6 +3393,8 @@ wesCountry.charts.multiChart = function (options) {
 	var chartTypes = options.chartType;
 	var container = document.querySelector(options.container);
 
+	var containerHeight = container.offsetHeight;
+
 	var chartSelector = document.createElement('div');
 	chartSelector.className = "chart-selector";
 	container.appendChild(chartSelector);
@@ -3398,7 +3404,10 @@ wesCountry.charts.multiChart = function (options) {
 	var chartContainer = document.createElement('div');
 	chartContainer.id = String.format("chart-container-{0}", wesCountry.guid());
 	chartContainer.className = 'chart-container';
-	chartContainer.style.height = (container.offsetHeight - chartSelector.offsetHeight) + 'px';
+
+	containerHeight = containerHeight > 0 ? containerHeight : 500;
+
+	chartContainer.style.height = (containerHeight - chartSelector.offsetHeight) + 'px';
 	container.appendChild(chartContainer);
 
 	return createCharts(chartContainer, buttons);
@@ -3471,7 +3480,9 @@ wesCountry.charts.multiChart = function (options) {
 
 			var chartContainer = document.createElement('div');
 			chartContainer.id = id;
-			chartContainer.style.height = wesCountry.getFullHeight(container) + 'px';
+			var height = wesCountry.getFullHeight(container);
+			height = isNaN(height) ? options.height : height;
+			chartContainer.style.height = height + 'px';
 			container.appendChild(chartContainer);
 
 			buttons[i].chart = chartContainer;
@@ -7008,7 +7019,7 @@ wesCountry.maps = new (function() {
     mapContainer.className = 'map-container';
     container.appendChild(mapContainer);
 
-    var mapContainerHeight = container.offsetHeight > 0 ? container.offsetHeight : 300;
+    var mapContainerHeight = container.offsetHeight > 0 ? container.offsetHeight : options.height;
 
     // Group by time
 
@@ -7052,6 +7063,8 @@ wesCountry.maps = new (function() {
       });
 
       var timelineHeight = wesCountry.getFullHeight(timelineContainer);
+      timelineHeight = isNaN(timelineHeight) ? 30 : timelineHeight;
+
       mapContainerHeight -= timelineHeight;
     }
     else if (options.onChange)
@@ -7728,7 +7741,7 @@ wesCountry.loader = new (function() {
 		},
     cache: false,
 		getChartData: function(options, data) {
-			console.log(data);
+			return defaultOptions;
 		}
 	};
 
@@ -7738,9 +7751,13 @@ wesCountry.loader = new (function() {
     var panel = document.createElement('div');
     panel.id = 'c' + wesCountry.guid();
 
+    var container = document.querySelector(options.container);
+    container.appendChild(panel);
+
     options.callback = function(data, options) {
       lastData = data;
       options.container = '#' + panel.id;
+
       options = options.getChartData ? options.getChartData(options, data) : options;
       var charts = wesCountry.charts.multiChart(options);
 
@@ -7748,7 +7765,7 @@ wesCountry.loader = new (function() {
       	options.afterRenderCharts.call(null, charts);
     }
 
-    return this.render(options, panel);
+    return this.render(options, panel);;
   }
 
 	this.render = function(options, panel)
@@ -7764,14 +7781,23 @@ wesCountry.loader = new (function() {
 			this.options.width = this.options.width > 0 ? this.options.width : 500;
 			this.options.height = this.options.height > 0 ? this.options.height : 400;
 
-			var panelContainer = panel ? panel : document.createElement('div');
+      var panelContainer = panel;
+
+      if (!panel) {
+        panelContainer = document.createElement('div');
+        container.appendChild(panelContainer);
+      }
+
       this.panel = panelContainer;
 
 			this.panel.className = 'wesCountry-panel';
-			this.panel.setAttribute("style", String.format("width: {0}px; min-height: {1}px;",
-										  this.options.width, wesCountry.getFullHeight(container)));
+      var height = wesCountry.getFullHeight(container);
+      height = isNaN(height) ? this.options.height : height;
 
-		  container.appendChild(this.panel);
+			this.panel.setAttribute("style", String.format("width: {0}px; min-height: {1}px;",
+										  this.options.width, height));
+
+		  //container.appendChild(this.panel);
       container.panel = this.panel;
 
       // Resize
@@ -7785,8 +7811,11 @@ wesCountry.loader = new (function() {
 		  this.load(this.options);
 
       function resize() {
+        var height = wesCountry.getFullHeight(container);
+        height = isNaN(height) ? this.options.height : height;
+
         panelContainer.setAttribute("style", String.format("width: {0}px; min-height: {1}px;",
-                        container.offsetWidth, wesCountry.getFullHeight(container)));
+                        container.offsetWidth, height));
       }
 
 		  this.getData = function() {

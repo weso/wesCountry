@@ -1,3 +1,5 @@
+var selection = document.getElementById('selection');
+
 wesCountry.stateful.start({
   elements: [
     {
@@ -5,6 +7,7 @@ wesCountry.stateful.start({
       selector: "#select1",
       onChange: function() {
         console.log(this);
+        selection.innerHTML = 'SELECT 1: ' + this.value;
       }
     },
     {
@@ -12,6 +15,7 @@ wesCountry.stateful.start({
       selector: "#select2",
       onChange: function() {
         console.log(this);
+        selection.innerHTML = 'SELECT 2: ' + this.value;
       }
     }
   ]

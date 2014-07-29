@@ -54,7 +54,7 @@ wesCountry.maps = new (function() {
     mapContainer.className = 'map-container';
     container.appendChild(mapContainer);
 
-    var mapContainerHeight = container.offsetHeight > 0 ? container.offsetHeight : 300;
+    var mapContainerHeight = container.offsetHeight > 0 ? container.offsetHeight : options.height;
 
     // Group by time
 
@@ -98,6 +98,8 @@ wesCountry.maps = new (function() {
       });
 
       var timelineHeight = wesCountry.getFullHeight(timelineContainer);
+      timelineHeight = isNaN(timelineHeight) ? 30 : timelineHeight;
+
       mapContainerHeight -= timelineHeight;
     }
     else if (options.onChange)
