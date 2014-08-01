@@ -7950,6 +7950,11 @@ wesCountry.stateful = new (function() {
   	return parameters;
   }
 
+  /* IE9 compatibility */
+  this.getFullURL = function() {
+    return getFullURL();
+  }
+
   this.getSelectors = function() {
   	return selectors;
   }
@@ -7979,13 +7984,17 @@ wesCountry.stateful = new (function() {
   }
 
   function changeUrl() {
-    var queryString = getQueryString();
-
     if (history && history.pushState)
-      history.pushState({}, document.title, String.format("{0}?{1}", host, queryString));
+      history.pushState({}, document.title, getFullURL());
 
     if (options.urlChanged)
     	options.urlChanged.call(this, parameters, selectors);
+  }
+
+  function getFullURL() {
+    var queryString = getQueryString();
+
+    return String.format("{0}?{1}", host, queryString);
   }
 
   function getQueryString() {
