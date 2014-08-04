@@ -211,7 +211,10 @@ wesCountry.charts = new (function() {
 		var length = elements.length;
 
 		var xPos = sizes.width - sizes.marginRight * 0.2;
-
+		
+		var legend = container.g();
+		legend.className("wesCountry-legend");
+		
 		for (var i = 0; i < length; i++) {
 			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
 
@@ -220,13 +223,13 @@ wesCountry.charts = new (function() {
 			var name = element.name ? element.name : "";
 			var colour = options.getElementColour(options, element, i);
 
-			container.circle({
+			legend.circle({
 				cx: xPos,
 				cy: yPos,
 				r: sizes.legendItemSize
 			}).style(String.format("fill: {0}", colour));
 
-			container.text({
+			legend.text({
 				x: xPos - 2 * sizes.legendItemSize,
 				y: yPos,
 				value: name
