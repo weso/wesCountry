@@ -387,7 +387,7 @@ wesCountry.table.sort = new (function() {
 
 		var length = headers.length;
 
-		var images = document.querySelectorAll('img[data-type=sorter]');
+		var images = document.querySelectorAll('a[data-type=sorter]');
 
 		for (var i = 0; i < images.length; i++)
 			images[i].parentNode.removeChild(images[i]);
@@ -517,7 +517,7 @@ wesCountry.table.sort = new (function() {
 	}
 
 	function emptyHeaderSorter(header) {
-		var img = header.querySelectorAll("img");
+		var img = header.querySelectorAll("a");
 
 		if (img && img.length && img.length > 0)
 			img[0].className = "empty";
