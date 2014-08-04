@@ -414,7 +414,7 @@ wesCountry.table.sort = new (function() {
 				var a = document.createElement('a');
 				a.className = "empty";
 				a.setAttribute('data-type', 'sorter');
-				headers[i].cells[j].appendChild(a);
+				headers[i].cells[j].insertBefore(a, headers[i].cells[j].firstChild);
 
 				headers[i].cells[j].onclick = function() {
 					sortRows(this.table, this.index, this);
