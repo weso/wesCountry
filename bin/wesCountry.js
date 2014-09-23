@@ -437,7 +437,8 @@ wesCountry.ajax = new (function() {
 		var defaultSVGOptions = {
 			width: 500,
 			height: 500,
-			version: version
+			version: version,
+			xlink: xlink
 		};
 		
 		var defaultElementOptions = {
@@ -657,8 +658,8 @@ wesCountry.ajax = new (function() {
 			for (var i = 0; i < myChildNodes.length; i++)
 				childNodes += myChildNodes[i].toString();
 		
-			return String.format('<{0} xmlns="{1}" {2} class="{3}" style="{4}">{5}{6}</{0}>', 
-					myTag, namespace, attributes, myClass, myStyle, childNodes, myValue ? myValue : "");
+			return String.format('<{0} xmlns="{1}" xmlns:xlink="{2}" {3} class="{4}" style="{5}">{6}{7}</{0}>', 
+					myTag, namespace, xlink, attributes, myClass, myStyle, childNodes, myValue ? myValue : "");
 		}
 	}
 	
