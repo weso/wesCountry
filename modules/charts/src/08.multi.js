@@ -256,8 +256,43 @@ function linkDownloadButtons(downloadButtons, chart, options) {
 		var format = button.format;
 		var datum = data[format];
 
-		button.button.href = String.format("data:text/{0};charset=utf-8,{1}", format, encodeURIComponent(datum));
+		var dataURL = generateDownloadLinkData(datum, format);
+		button.button.href = dataURL;
 	}
+}
+
+function generateDownloadLinkData(data, format) {
+  var href = "";
+
+  try{
+    var blob = new Blob( [data], {type : format});
+    href = URL.createObjectURL(blob);
+  }
+  catch(e){
+      // TypeError old chrome and FF
+      window.BlobBuilder = window.BlobBuilder ||
+                           window.WebKitBlobBuilder ||
+                           window.MozBlobBuilder ||
+                           window.MSBlobBuilder;
+      if(e.name == 'TypeError' && window.BlobBuilder){
+          var bb = new BlobBuilder();
+          bb.append([data]);
+          var blob = bb.getBlob(format);
+          href = URL.createObjectURL(blob);
+      }
+      else if(e.name == "InvalidStateError"){
+          // InvalidStateError (tested on FF13 WinXP)
+          var blob = new Blob( [data], {type : format});
+          href = URL.createObjectURL(blob);
+      }
+      else {
+          // We're screwed, blob constructor unsupported entirely
+          data = encodeURIComponent(data)
+          href = String.format("data:text/{0};charset=utf-8,{1}", format, data);
+      }
+  }
+
+  return href;
 }
 
 function createDownload(container, options, downloadFormats) {
