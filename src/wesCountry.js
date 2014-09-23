@@ -55,7 +55,11 @@ var wesCountry = new (function() {
 
     if (document.all) { // IE
       elmHeight = elm.currentStyle.height;
-      elmMargin = parseInt(elm.currentStyle.marginTop, 10) + parseInt(elm.currentStyle.marginBottom, 10);
+
+			var marginTop = parseInt(elm.currentStyle.marginTop, 10);
+			var marginBottom = parseInt(elm.currentStyle.marginBottom, 10);
+
+      elmMargin = marginTop + marginBottom;
     } else if (document.defaultView && document.defaultView.getComputedStyle) { // Mozilla
       elmHeight = document.defaultView.getComputedStyle(elm, '').getPropertyValue('height');
       elmMargin = parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('margin-top')) + parseInt(document.defaultView.getComputedStyle(elm, '').getPropertyValue('margin-bottom'));
@@ -81,7 +85,7 @@ var wesCountry = new (function() {
 
 	this.registerEvent = function(element, event, handler) {
 		if (element.attachEvent)
-			element.attachEvent(event, handler);
+			element.attachEvent("on" + event, function() { handler.call(element); });
 		else
 			element.addEventListener(event, handler, false);
 	}

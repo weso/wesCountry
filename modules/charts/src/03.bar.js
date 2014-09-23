@@ -102,24 +102,24 @@ wesCountry.charts.barChart = function(options) {
 					element.setAttribute("selected", "selected");
 				};
 
-				var onmouseover = function() {
+				var onmouseover = function(event) {
 					selectBar(this);
 
-					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 				};
 
 				var unselectBar = function(element) {
 					element.style.fill = element.colour;
 				};
 
-				var onmouseout = function() {
+				var onmouseout = function(event) {
 					unselectBar(this);
-					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 				};
 
-				var onclick = function() {
+				var onclick = function(event) {
 					this.style.fill = this.colour;
-					options.events.onclick(wesCountry.charts.getElementAttributes(this));
+					options.events.onclick(wesCountry.charts.getElementAttributes(this, event));
 				};
 
 				var r = null;
@@ -144,12 +144,24 @@ wesCountry.charts.barChart = function(options) {
 				if (options.valueOnItem.show == true) {
 					g.text({
 						x: xPos + barWidth / 2,
-						y: yPos - (options.height / 100) * options.valueOnItem.margin,
-						value: value.toFixed(2)
+						y: yPos + height + (options.height / 100) * options.valueOnItem.margin,
+						value: serie
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
 						options.valueOnItem["font-size"]));
+				}
+
+				// Name under item
+				if (options.nameUnderItem.show == true) {
+					g.text({
+						x: xPos + barWidth / 2,
+						y: yPos - (options.height / 100) * options.nameUnderItem.margin,
+						value: value.toFixed(2)
+					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
+						options.nameUnderItem["font-colour"],
+						options.nameUnderItem["font-family"],
+						options.nameUnderItem["font-size"]));
 				}
 			}
 		}

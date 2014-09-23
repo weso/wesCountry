@@ -13,7 +13,7 @@ wesCountry.charts.table = function(options) {
 	options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 
 	var table = document.createElement('table');
-	table.className = 'wesCountry';
+	table.className = 'wesCountry pages';
 
 	var thead = document.createElement('thead');
 	table.appendChild(thead);
@@ -111,6 +111,9 @@ wesCountry.charts.chart = function (options) {
 	}
 
 	var container;
+	var body;
+	var chart;
+
 	container = typeof options.container !== "string" ? options.container : undefined;
 	options.container = typeof options.container === "string" ? options.container : wesCountry.charts.defaultOptions.container;
 
@@ -120,89 +123,129 @@ wesCountry.charts.chart = function (options) {
 	if (!container)
 		container = document.body;
 
-	if (!options.width && container.offsetWidth > 0 )
-		options.width = container.offsetWidth;
+	return render(container);
 
-	if (!options.height && container.offsetHeight > 0 )
-		options.height = container.offsetHeight;
+	function render(container) {
+		if (!options.width && container.offsetWidth > 0 )
+			options.width = container.offsetWidth;
 
-	var dOptions = wesCountry.clone(wesCountry.charts.defaultOptions);
-	dOptions = wesCountry.addOptions(dOptions, defaultOptions);
-	options = wesCountry.mergeOptionsAndDefaultOptions(options, dOptions);
+		if (!options.height && container.offsetHeight > 0 )
+			options.height = container.offsetHeight;
 
-	// Height
+		var dOptions = wesCountry.clone(wesCountry.charts.defaultOptions);
+		dOptions = wesCountry.addOptions(dOptions, defaultOptions);
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, dOptions);
 
-	//var height = options.height;
-	var height = wesCountry.getFullHeight(container);
+		// Height
 
-	// Title
+		//var height = options.height;
+		var height = wesCountry.getFullHeight(container);
 
-	if (options.title != '') {
-		var title = document.createElement('p');
-		title.className = 'wesCountry-title';
-		title.innerHTML = options.title;
-		container.appendChild(title);
+		// Title
 
-		height -= wesCountry.getFullHeight(title);
-	}
+		if (options.title != '') {
+			var title = document.createElement('p');
+			title.className = 'wesCountry-title';
+			title.innerHTML = options.title;
+			container.appendChild(title);
 
-	// Body (graph)
+			height -= wesCountry.getFullHeight(title);
+		}
 
-	var body = document.createElement('div');
-	body.className = 'wesCountry-body';
-	container.appendChild(body);
+		// Body (graph)
 
-	var footer = document.createElement('div');
-	footer.className = 'wesCountry-footer';
+		body = document.createElement('div');
+		body.className = 'wesCountry-body';
+		container.appendChild(body);
 
-	var isFooted = false;
+		var footer = document.createElement('div');
+		footer.className = 'wesCountry-footer';
 
-	// Foot
+		var isFooted = false;
 
-	if (options.foot != '') {
-		container.appendChild(footer);
+		// Foot
 
-		var foot = document.createElement('p');
-		foot.className = 'wesCountry-foot';
-		foot.innerHTML = options.foot;
-		footer.appendChild(foot);
-
-		isFooted = true;
-	}
-
-	// Download
-
-	var downloadButtons = null;
-
-	if (options.download) {
-		if (!options.foot)
+		if (options.foot != '') {
 			container.appendChild(footer);
 
-		downloadButtons = createDownload(footer, options, downloadFormats);
+			var foot = document.createElement('p');
+			foot.className = 'wesCountry-foot';
+			foot.innerHTML = options.foot;
+			footer.appendChild(foot);
 
-		isFooted = true;
+			isFooted = true;
+		}
+
+		// Download
+
+		var downloadButtons = null;
+
+		if (options.download) {
+			if (!options.foot)
+				container.appendChild(footer);
+
+			downloadButtons = createDownload(footer, options, downloadFormats);
+
+			isFooted = true;
+		}
+
+		if  (isFooted)
+			height -= wesCountry.getFullHeight(footer);
+
+		// Chart
+
+		if (isNaN(height)) {
+			height = options.height;
+		}
+
+		options.height = height;
+
+		body.style.height = height + 'px';
+
+		//chart = getChart(options, body);
+
+		// Append chart
+
+		renderChart();
+
+		if (downloadButtons)
+			linkDownloadButtons(downloadButtons, chart, options)
+
+		// Resize
+		if (window.attachEvent)
+			window.attachEvent('resize', resize);
+		else
+			window.addEventListener('resize', resize, false);
+
+		return chart;
 	}
 
-	if  (isFooted)
-		height -= wesCountry.getFullHeight(footer);
+	function resize() {
+		renderChart();
+	}
 
-	// Chart
+	function renderChart() {
+		body.innerHTML = '';
 
-	options.height = height;
+		options.width = container.offsetWidth;
 
-	body.style.height = height + 'px';
+		if (container.offsetWidth == 0 && options.parentContainer) {
+			parentContainer = document.getElementById(options.parentContainer);
 
-	var chart = getChart(options, body);
+			if (parentContainer && parentContainer.offsetWidth)
+				options.width = parentContainer.offsetWidth;
+		}
 
-	if (downloadButtons)
-		linkDownloadButtons(downloadButtons, chart, options)
+		chart = getChart(options, body);
 
-	// Append chart
+		if (chart && chart.render) {
+			body.appendChild(chart.render());
+			// table pagination
+			wesCountry.table.pages.apply(15);
+		}
 
-	if (chart && chart.render)
-		body.appendChild(chart.render());
-
-	return chart;
+		return chart;
+	}
 }
 
 function linkDownloadButtons(downloadButtons, chart, options) {
@@ -213,8 +256,43 @@ function linkDownloadButtons(downloadButtons, chart, options) {
 		var format = button.format;
 		var datum = data[format];
 
-		button.button.href = String.format("data:text/{0};charset=utf-8,{1}", format, encodeURIComponent(datum));
+		var dataURL = generateDownloadLinkData(datum, format);
+		button.button.href = dataURL;
 	}
+}
+
+function generateDownloadLinkData(data, format) {
+  var href = "";
+
+  try{
+    var blob = new Blob( [data], {type : format});
+    href = URL.createObjectURL(blob);
+  }
+  catch(e){
+      // TypeError old chrome and FF
+      window.BlobBuilder = window.BlobBuilder ||
+                           window.WebKitBlobBuilder ||
+                           window.MozBlobBuilder ||
+                           window.MSBlobBuilder;
+      if(e.name == 'TypeError' && window.BlobBuilder){
+          var bb = new BlobBuilder();
+          bb.append([data]);
+          var blob = bb.getBlob(format);
+          href = URL.createObjectURL(blob);
+      }
+      else if(e.name == "InvalidStateError"){
+          // InvalidStateError (tested on FF13 WinXP)
+          var blob = new Blob( [data], {type : format});
+          href = URL.createObjectURL(blob);
+      }
+      else {
+          // We're screwed, blob constructor unsupported entirely
+          data = encodeURIComponent(data)
+          href = String.format("data:text/{0};charset=utf-8,{1}", format, data);
+      }
+  }
+
+  return href;
 }
 
 function createDownload(container, options, downloadFormats) {
@@ -404,9 +482,14 @@ function getChart(options, container) {
 			options.countries = options.countries ? options.countries : getCountriesForMap(options);
 
 			chart = wesCountry.maps.createMap(options);
-			break;
+
+			if (chart)
+				chart.container = innerContainer;
+
+			return chart;
 	}
 
+	chart.container = container;
 	return chart;
 }
 
@@ -441,6 +524,8 @@ wesCountry.charts.multiChart = function (options) {
 	var chartTypes = options.chartType;
 	var container = document.querySelector(options.container);
 
+	var containerHeight = container.offsetHeight;
+
 	var chartSelector = document.createElement('div');
 	chartSelector.className = "chart-selector";
 	container.appendChild(chartSelector);
@@ -448,8 +533,12 @@ wesCountry.charts.multiChart = function (options) {
 	var buttons = createChartSelector(chartSelector);
 
 	var chartContainer = document.createElement('div');
+	chartContainer.id = String.format("chart-container-{0}", wesCountry.guid());
 	chartContainer.className = 'chart-container';
-	chartContainer.style.height = (container.offsetHeight - chartSelector.offsetHeight) + 'px';
+
+	containerHeight = containerHeight > 0 ? containerHeight : 500;
+
+	chartContainer.style.height = (containerHeight - chartSelector.offsetHeight) + 'px';
 	container.appendChild(chartContainer);
 
 	return createCharts(chartContainer, buttons);
@@ -469,14 +558,14 @@ wesCountry.charts.multiChart = function (options) {
 			var type = chartTypes[i];
 
 			var li = document.createElement('li');
-			li.type = type;
-			li.chart = null;
+			li.setAttribute('type', type);
+			//li.chart = null;
 			li.className = i == 0 ? 'button-active' : 'button-inactive';
 			ul.appendChild(li);
 
 			var a = document.createElement('a');
-			a.type = type;
-			a.innerHTML = type;
+			a.setAttribute('type', type);
+			a.innerHTML = String.format("<span>{0}</span>", type);
 			li.appendChild(a);
 
 			a.onclick = function() {
@@ -522,10 +611,14 @@ wesCountry.charts.multiChart = function (options) {
 
 			var chartContainer = document.createElement('div');
 			chartContainer.id = id;
-			chartContainer.style.height = wesCountry.getFullHeight(container) + 'px';
+			var height = wesCountry.getFullHeight(container);
+			height = isNaN(height) ? options.height : height;
+			chartContainer.style.height = height + 'px';
 			container.appendChild(chartContainer);
 
 			buttons[i].chart = chartContainer;
+
+			options.parentContainer = container.id;
 
 			var chartOptions = wesCountry.clone(options);
 			chartOptions.chartType = type;

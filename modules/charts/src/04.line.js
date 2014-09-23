@@ -134,22 +134,22 @@ wesCountry.charts.generateLineChart = function(options, area) {
 					}
 				};
 
-				var onmouseover = function() {
+				var onmouseover = function(event) {
 					this.setAttribute("r", 8);
 					setLineWidth(this, 2);
-					options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 				};
 
-				var onmouseout = function() {
+				var onmouseout = function(event) {
 					this.setAttribute("r", 5);
 					setLineWidth(this, 1);
-					options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 				};
 
-				var onclick = function() {
+				var onclick = function(event) {
 					this.setAttribute("r", 5);
 					setLineWidth(this, 1);
-					options.events.onclick(wesCountry.charts.getElementAttributes(this));
+					options.events.onclick(wesCountry.charts.getElementAttributes(this, event));
 				};
 
 				if (options.vertex.show) {

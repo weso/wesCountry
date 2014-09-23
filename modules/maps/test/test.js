@@ -89,7 +89,8 @@ var countries = [
 var map = wesCountry.maps.createMap({
 	container: '#map',
 	"borderWidth": 1.5,
-	countries: countries
+	countries: countries,
+	download: true
 });
 
 var countries = [
@@ -102,7 +103,8 @@ var countries = [
 var map2 = wesCountry.maps.createMap({
 	container: '#map2',
 	"borderWidth": 1.5,
-	countries: countries
+	countries: countries,
+	download: true
 });
 
 map2.zoomToCountry('ESP');

@@ -106,21 +106,21 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 
 			// Events
 
-			var onmouseover = function() {
+			var onmouseover = function(event) {
 				this.colour = this.style.fill;
 				this.style.fill = options.overColour;
 
-				options.events.onmouseover(wesCountry.charts.getElementAttributes(this));
+				options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 			};
 
-			var onmouseout = function() {
+			var onmouseout = function(event) {
 				this.style.fill = this.colour;
-				options.events.onmouseout(wesCountry.charts.getElementAttributes(this));
+				options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 			};
 
-			var onclick = function() {
+			var onclick = function(event) {
 				this.style.fill = this.colour;
-				options.events.onclick(wesCountry.charts.getElementAttributes(this));
+				options.events.onclick(wesCountry.charts.getElementAttributes(this, event));
 			};
 
 			// Pie

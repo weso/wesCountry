@@ -9,7 +9,7 @@
 	<script src="../src/08.multi.js"></script>
 	<style>
 		#chartDiv, #chartDiv2 {
-			width: 600px;
+			width: 100%;
 			height: 400px;
 		}
 	</style>
@@ -21,7 +21,7 @@
 		var options = {
 			container: "#chartDiv",
 			download: true,
-			chartType: ["table", "line", "bar", "pie", "area", "polar", "stacked", "donut"]
+			chartType: ["map", "table", "line", "bar", "pie", "area", "polar", "stacked", "donut"]
 		};
 		var chart = wesCountry.charts.multiChart(options);
 		console.log(chart)

@@ -53,6 +53,13 @@ wesCountry.charts = new (function() {
 			"font-colour": "#555",
 			"font-size": "11px",
 		},
+		nameUnderItem: {
+			show: false,
+			margin: 2.5,
+			"font-family": "Helvetica",
+			"font-colour": "#555",
+			"font-size": "11px",
+		},
 		sizeByValue: false, // Scatter
 		sizeByValueMaxRadius: 5, // Scatter
 		sizeByValueMinRadius: 1, // Scatter
@@ -132,7 +139,7 @@ wesCountry.charts = new (function() {
 	    "onmouseover": function(info) {
 		    var text = String.format("Series '{0}': ({1}, {2})", info.serie, info.pos, info.value);
 
-		    wesCountry.charts.showTooltip(text);
+		    wesCountry.charts.showTooltip(text, info.event);
 	    },
 	    "onmouseout": function() {
 	      wesCountry.charts.hideTooltip();
@@ -204,7 +211,10 @@ wesCountry.charts = new (function() {
 		var length = elements.length;
 
 		var xPos = sizes.width - sizes.marginRight * 0.2;
-
+		
+		var legend = container.g();
+		legend.className("wesCountry-legend");
+		
 		for (var i = 0; i < length; i++) {
 			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
 
@@ -213,13 +223,13 @@ wesCountry.charts = new (function() {
 			var name = element.name ? element.name : "";
 			var colour = options.getElementColour(options, element, i);
 
-			container.circle({
+			legend.circle({
 				cx: xPos,
 				cy: yPos,
 				r: sizes.legendItemSize
 			}).style(String.format("fill: {0}", colour));
 
-			container.text({
+			legend.text({
 				x: xPos - 2 * sizes.legendItemSize,
 				y: yPos,
 				value: name
@@ -459,21 +469,21 @@ wesCountry.charts = new (function() {
 			tooltip = null;
 	}
 
-	this.showTooltip = function(text) {
+	this.showTooltip = function(text, event) {
 		if (!tooltip)
 			return;
 
-    	updateTooltipPos();
+    	updateTooltipPos(event);
     	tooltip.innerHTML = text;
     	tooltip.style.display = "block";
     	window.onscroll = updateTooltipPos;
     }
 
-    function updateTooltipPos() {
-		if (!tooltip)
-			return;
+    function updateTooltipPos(event) {
+			if (!tooltip)
+				return;
 
-    	var ev = arguments[0]?arguments[0]:event;
+    	var ev = arguments[0] ? arguments[0] : event;
     	var x = ev.clientX;
     	var y = ev.clientY;
     	diffX = 24;
@@ -494,7 +504,7 @@ wesCountry.charts = new (function() {
 	////////////////////////////////////////////////////////////////////////////////
 
 
-	this.getElementAttributes = function(element) {
+	this.getElementAttributes = function(element, event) {
 		var attributes = element.attributes;
 		var length = attributes.length;
 
@@ -503,10 +513,12 @@ wesCountry.charts = new (function() {
 		for (var i = 0; i < length; i++) {
 			var attribute = attributes[i];
 			var name = attribute.nodeName;
-			var value = attribute.nodeValue;
+			var value = attribute.value;
 
 			obj[name] = value;
 		}
+
+		obj.event = event;
 
 		return obj;
 	}

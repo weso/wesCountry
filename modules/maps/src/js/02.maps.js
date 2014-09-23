@@ -47,11 +47,14 @@ wesCountry.maps = new (function() {
 
     var container = document.querySelector(options.container);
 
+    if (!container)
+      return;
+
     var mapContainer = document.createElement('div');
     mapContainer.className = 'map-container';
     container.appendChild(mapContainer);
 
-    var mapContainerHeight = container.offsetHeight > 0 ? container.offsetHeight : 300;
+    var mapContainerHeight = container.offsetHeight > 0 ? container.offsetHeight : options.height;
 
     // Group by time
 
@@ -79,22 +82,24 @@ wesCountry.maps = new (function() {
         onChange: function(element, index) {
           if (options.onChange)
           	options.onChange.call(this, element, index);
-          	
+
           if (selectedMap === maps[index])
           	return;
-          
+
           selectedMap.hideMap();
-         
+
           // On demand map creation
           if (!maps[index])
           	maps[index] = new createOneMap(mapContainer, options, mapData[index], true);
-          
+
           selectedMap = maps[index];
           selectedMap.showMap();
         }
       });
 
       var timelineHeight = wesCountry.getFullHeight(timelineContainer);
+      timelineHeight = isNaN(timelineHeight) ? 30 : timelineHeight;
+
       mapContainerHeight -= timelineHeight;
     }
     else if (options.onChange)
@@ -108,9 +113,9 @@ wesCountry.maps = new (function() {
     for (var i = 0; i < times.length; i++) {
       var time = times[i];
       var list = countryList[time];
-      
+
       mapData.push(list);
-      
+
       // Only visible map is created, the rest is created on demand
       if (i < last) {
       	maps.push(null);
@@ -135,7 +140,7 @@ wesCountry.maps = new (function() {
       for (var i = 0; i < maps.length; i++)
         maps[i].zoomToCountry(countryCode);
     }
-    
+
     this.visor = function() {
     	return selectedMap.visor();
     }
@@ -145,13 +150,13 @@ wesCountry.maps = new (function() {
 
   function groupCountriesByTime(options) {
     var countries = options.countries;
-	
+
 	if (countries.length == 0)
 		return {
 			times: ["-"],
 			countries: { "-": [] }
 		};
-	
+
     var times = [];
     var groupedCountries = {};
 
@@ -192,6 +197,9 @@ wesCountry.maps = new (function() {
 		// Zoom factor
 		var factor = 1;
 		var initialFactor = 1;
+
+    var _svgWidth = null;
+    var _svgHeight = null;
 
 		// Translate position
 		var translate = {
@@ -234,6 +242,9 @@ wesCountry.maps = new (function() {
       // Height
       var height = containerParent.offsetHeight > 0 ? containerParent.offsetHeight : 300;
 
+      _svgWidth = containerParent.offsetWidth;
+      _svgHeight = height;
+
       // Zoom buttons
       if (options.zoom)
         createZoomButtons(container);
@@ -243,10 +254,11 @@ wesCountry.maps = new (function() {
       svg = document.createElementNS(namespace, "svg");
       var svgClassName = String.format('wesCountry-map-time-{0}', wesCountry.guid());
       svg.setAttributeNS(null, 'class', String.format("wesCountry {0}", svgClassName));
-      svg.setAttributeNS(null, 'width', containerParent.offsetWidth);
+      svg.setAttributeNS(null, 'width', _svgWidth);
       svg.setAttributeNS(null, 'height', height);
 
-      //svg.setAttributeNS(null, 'viewBox', '0 -500 2752.766 2537.631');
+      svg.setAttributeNS(null, 'viewBox',
+          String.format('0 0 {0} {1}', _svgWidth, height));
 
       container.appendChild(svg);
 
@@ -477,7 +489,13 @@ wesCountry.maps = new (function() {
 				return;
 
 			var countrySize = country.getBoundingClientRect();
-			var svgSize = svg.getBoundingClientRect();
+			//var svgSize = svg.getBoundingClientRect();
+      var svgSize = {
+        width: _svgWidth,
+        height: _svgHeight,
+        left: svg.getBoundingClientRect().left,
+        top: svg.getBoundingClientRect().top
+      };
 
 			widthFactor = svgSize.width / countrySize.width;
 			heightFactor = svgSize.height / countrySize.height;
