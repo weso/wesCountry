@@ -3102,7 +3102,7 @@ wesCountry.charts.chart = function (options) {
 
 		// Chart
 
-		if (isNaN(height)) {
+		if (isNaN(height) || height <= 0) {
 			height = options.height;
 		}
 
