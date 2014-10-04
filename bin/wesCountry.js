@@ -6176,6 +6176,10 @@ wesCountry.selector.basic = function(data, options) {
 		for (var i = 0; i < length; i++)
 			updateElementStatus(root.children[i], null, false);
 	}
+	
+	this.selected = function() {
+		return selectedItems.getArray();
+	}
 
 	// List generation
 	function generateList(element, parent, level, previousLink, parentLink) {
@@ -6563,8 +6567,10 @@ wesCountry.selector.timeline = function(options) {
 	var selectedElement = options.selected ? options.selected : null;
 
 	return new (function() {
+		var selected = options.selected;
 		options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
-
+		options.selected = selected;
+		
 		var container = document.querySelector(options.container);
 
 		var timeline = document.createElement('div');
