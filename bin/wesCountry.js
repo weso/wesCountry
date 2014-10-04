@@ -7989,6 +7989,7 @@ wesCountry.stateful = new (function() {
   var queryParameters = [];
   var selectors = {};
   var host = "";
+  var hash = "";
   var options = null;
 
   this.getParameters = function() {
@@ -8016,6 +8017,7 @@ wesCountry.stateful = new (function() {
     var info = getUrlParameters();
     parameters = info.parameters;
     host = info.host;
+    hash = info.hash;
 
     var urlDifferentFromInitial = processElements(options, parameters);
 
@@ -8039,7 +8041,7 @@ wesCountry.stateful = new (function() {
   function getFullURL() {
     var queryString = getQueryString();
 
-    return String.format("{0}?{1}", host, queryString);
+    return String.format("{0}?{1}#{2}", host, queryString, hash);
   }
 
   function getQueryString() {
@@ -8184,8 +8186,12 @@ wesCountry.stateful = new (function() {
     var parameters = {};
 
     var url = document.URL;
-
-    var queryString = url.split('?');
+	
+	var hash = url.split('#');
+	
+    var queryString = hash[0].split('?');
+    
+    hash = hash.length > 1 ? hash[1] : "";
 
     var host = queryString[0];
 
@@ -8206,7 +8212,8 @@ wesCountry.stateful = new (function() {
 
     return {
       host: host,
-      parameters: parameters
+      parameters: parameters,
+      hash: hash
     };
   }
 })();
