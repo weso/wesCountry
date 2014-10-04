@@ -97,6 +97,8 @@ document.getElementById("first").appendChild(yearSelector.render());
 var countrySelector = new wesCountry.selector.basic(dataCountries, { callback: countryCallback, selectedItems: ["ESP"], maxSelectedItems: 3 });
 document.getElementById("second").appendChild(countrySelector.render());
 
+console.log(countrySelector.selected())
+
 wesCountry.selector.timeline({
 	container: '#third',
 	maxShownElements: 5,
@@ -126,7 +128,7 @@ wesCountry.selector.timeline({
 	]
 });
 
-wesCountry.selector.timeline({
+var timeline = wesCountry.selector.timeline({
 	container: '#third',
 	maxShownElements: 5,
 	elements: [
@@ -134,8 +136,12 @@ wesCountry.selector.timeline({
 		2009,
 		2010,
 		2011,
-		2012
-	]
+		2012,
+		2013
+	],
+	onChange: function() {
+		console.log(timeline.selected())
+	}
 });
 
 function clearYearSelector() {
