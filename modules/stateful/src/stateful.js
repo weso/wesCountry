@@ -184,7 +184,10 @@ wesCountry.stateful = new (function() {
     //selector.element = selector.name ? selector.name : selector.id;
 
     wesCountry.registerEvent(selector, 'change', function() {
-      var value = this.options[this.selectedIndex].value;
+      //var value = this.options[this.selectedIndex].value;
+
+      var value = this.selected ? this.selected() : this.value;
+
       changeParameter(this.element, value);
 
       if (onChange)
@@ -193,7 +196,12 @@ wesCountry.stateful = new (function() {
 
     // Refresh function
     selector.refresh = function() {
-      var value = (this.options && this.options && this.options[this.selectedIndex]) ?
+    	var value = "";
+    	
+    	if (this.selected)
+    		value = this.selected();
+    	else
+      		value = (this.options && this.options && this.options[this.selectedIndex]) ?
                     this.options[this.selectedIndex].value : "";
 
       changeParameter(this.element, value);
@@ -204,14 +212,17 @@ wesCountry.stateful = new (function() {
 
     // Set initial value
     var options = selector.options;
+	
+	if (selector.select)
+		selector.select(initialValue);
+	else {
+		for (var i = 0; i < options.length; i++)
+		  if (options[i].value == initialValue) {
+			selector.selectedIndex = i;
 
-    for (var i = 0; i < options.length; i++)
-      if (options[i].value == initialValue) {
-        selector.selectedIndex = i;
-
-        break;
-      }
-
+			break;
+		  }
+	}
     // Set selected index
 
     return {
