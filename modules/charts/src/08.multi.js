@@ -126,6 +126,7 @@ wesCountry.charts.chart = function (options) {
 	return render(container);
 
 	function render(container) {
+
 		if (!options.width && container.offsetWidth > 0 )
 			options.width = container.offsetWidth;
 
@@ -227,7 +228,7 @@ wesCountry.charts.chart = function (options) {
 	function renderChart() {
 		body.innerHTML = '';
 
-		options.width = container.offsetWidth;
+		options.width = options.width ? options.width : container.offsetWidth;
 
 		if (container.offsetWidth == 0 && options.parentContainer) {
 			parentContainer = document.getElementById(options.parentContainer);
