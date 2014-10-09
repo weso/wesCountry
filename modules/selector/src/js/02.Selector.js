@@ -10,6 +10,9 @@ wesCountry.selector.basic = function(options) {
 		onChange: function(element, index) {
 			console.log(String.format("{0} {1}", index, element));
 		},
+		beforeChange: function(element, index) {
+			console.log(String.format("{0} {1}", index, element));
+		},
 		maxSelectedItems: -1,
 		selectedItems: [],
 		labelName: "label",
@@ -75,6 +78,14 @@ wesCountry.selector.basic = function(options) {
 	this.select = function(objects) {
 		self.clear();
 		
+		changeElementsStatus(objects, true);
+	}
+	
+	this.unselect = function(objects) {
+		changeElementsStatus(objects, false);
+	}
+	
+	function changeElementsStatus(objects, status) {
 		objects = objects.split(",");
 		var length = objects.length;
 
@@ -82,7 +93,7 @@ wesCountry.selector.basic = function(options) {
 			var element = objects[i];
 
 			if (element in elements)
-				updateElementStatus(elements[element], null, true);
+				updateElementStatus(elements[element], null, status);
 		}
 	}
 
@@ -373,8 +384,16 @@ wesCountry.selector.basic = function(options) {
 			updateElementCounter(element, selected ? element.childNumber : 0);
 
 		// onChange invocation
-		if (onChange)
+		if (onChange) {
+			if (options.beforeChange)
+				options.beforeChange.call(self, selectedItems, {
+					code: element.code,
+					selected: selected,
+					element: element
+				});
+			
 			onChange.call(self, selectedItems);
+		}
 	}
 
 	function setElementStatus(element, status) {

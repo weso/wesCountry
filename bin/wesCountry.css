@@ -446,7 +446,7 @@ ul.default-selector li {
 }
 
 ul.default-selector li div {
-	overflow: auto;
+	overflow: hidden;
 }
 
 /* Plus and minus sign to show / hide children */
