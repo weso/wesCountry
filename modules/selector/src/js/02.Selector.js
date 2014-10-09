@@ -46,6 +46,8 @@ wesCountry.selector.basic = function(options) {
 	}
 
 	this.clear = function() {
+		selectedItems = new SortedArray();
+		
 		var length = root.children.length;
 		for (var i = 0; i < length; i++)
 			updateElementStatus(root.children[i], null, false);
