@@ -6235,9 +6235,18 @@ wesCountry.selector.basic = function(options) {
 	this.clear = function() {
 		selectedItems = new SortedArray();
 		
-		var length = root.children.length;
-		for (var i = 0; i < length; i++)
-			updateElementStatus(root.children[i], null, false);
+		clearElements(root);
+	}
+	
+	function clearElements(element) {
+		var length = element && element.children && element.children.length ? element.children.length : 0;
+		
+		for (var i = 0; i < length; i++) {
+			var child = element.children[i];
+				
+			updateElementStatus(child, null, false);
+			clearElements(child.querySelector("ul"));	
+		}
 	}
 	
 	this.selected = function() {
@@ -6507,15 +6516,24 @@ wesCountry.selector.basic = function(options) {
 	}
 
 	function updateElementStatus(element, onChange, selected) {
+		var oldClass = element.className;
 		setElementStatus(element, selected);
 
 		// Add element in its parent's counter
 		if (element.liParent) {
-			var oldParentCounter = element.liParent.counter.value;
-			var parentCounter = selected ? oldParentCounter + 1 : oldParentCounter - 1;
+			if (element.liParent.counter != undefined && element.liParent.counter.value != undefined) {
+				var oldParentCounter = element.liParent.counter.value;
 
-			updateElementCounter(element.liParent, parentCounter);
+				if (oldClass == "" || oldClass == "not-selected")
+					var parentCounter = selected ? oldParentCounter + 1 : oldParentCounter;
+				else
+					var parentCounter = selected ? oldParentCounter : oldParentCounter - 1;
+					
+				if (parentCounter < 0)
+					parentCounter = 0;
 
+				updateElementCounter(element.liParent, parentCounter);
+			}
 			// An element is selected when all its children are selected
 			// If an element is unselected then its parent must be unselected
 			if (!selected) {
