@@ -18,7 +18,9 @@ wesCountry.selector.basic = function(options) {
 		labelName: "label",
 		valueName: "code",
 		childrenName: "children",
-		sort: true
+		sort: true,
+		autoClose: false,
+		selectParentNodes: true
 	};
 
 	var firstLevelItems = [];
@@ -180,8 +182,9 @@ wesCountry.selector.basic = function(options) {
 
 			// Plus or minus sign to show / hide children
 			var plusOrMinus = document.createElement("div");
-			plusOrMinus.className = childrenLength > 0 ? "plusOrMinus" : "hidden-plusOrMinus";
+			plusOrMinus.className = childrenLength > 0 ? "plus-element plusOrMinus" : "hidden-plusOrMinus";
 			plusOrMinus.innerHTML = "+";
+			plusOrMinus.parentUl = ul;
 			currentLink.appendChild(plusOrMinus);
 
 			if (childrenLength > 0) {
@@ -303,6 +306,17 @@ wesCountry.selector.basic = function(options) {
 
 	function plusMinusClick (element) {
 		if (element.innerHTML == "+") {
+			if (options.autoClose) {
+				// Close siblings
+				
+				var children = element.parentUl.querySelectorAll(".plus-element");
+
+				for (var i = 0; i < children.length; i++) {
+					var child = children[i];
+					closeElement(child);
+				}
+			}
+			
 			element.innerHTML = "&#8212;";
 
 			if (element.childrenUl)
@@ -311,13 +325,17 @@ wesCountry.selector.basic = function(options) {
 			element.opened = true;
 		}
 		else {
-			element.innerHTML = "+";
-
-			if (element.childrenUl)
-				element.childrenUl.style.display = "none";
-
-			element.opened = false;
+			closeElement(element);
 		}
+	}
+	
+	function closeElement(element) {
+		element.innerHTML = "+";
+
+		if (element.childrenUl)
+			element.childrenUl.style.display = "none";
+
+		element.opened = false;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -331,6 +349,9 @@ wesCountry.selector.basic = function(options) {
 	}
 
 	function elementClick(element, onChange) {
+		if (element.childNumber > 0 && !options.selectParentNodes)
+			return;
+		
 		var selected = !element.isSelected;
 
 		if (selected && options.maxSelectedItems > 0 && selectedItems.length >= options.maxSelectedItems)

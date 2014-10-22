@@ -58,6 +58,7 @@ wesCountry.maps = new (function() {
     container.appendChild(mapContainer);
 
     var mapContainerHeight = container.offsetHeight > 0 ? container.offsetHeight : options.height;
+    var mapContainerWidth = container.offsetWidth > 0 ? container.offsetWidth : options.width;
 
     // Group by time
 
@@ -109,7 +110,8 @@ wesCountry.maps = new (function() {
     	options.onChange.call(this, times.length == 1 ? times[0] : null, 0);
 
     mapContainer.style.minHeight = mapContainerHeight + 'px';
-
+    mapContainer.style.minWidth = mapContainerWidth + 'px';
+    
     var last = times.length - 1;
     var mapData = [];
 
@@ -244,8 +246,11 @@ wesCountry.maps = new (function() {
 
       // Height
       var height = containerParent.offsetHeight > 0 ? containerParent.offsetHeight : 300;
+      
+      // Width
+      var width = containerParent.offsetWidth > 0 ? containerParent.offsetWidth : 300;
 
-      _svgWidth = containerParent.offsetWidth;
+      _svgWidth = width;
       _svgHeight = height;
 
       // Zoom buttons

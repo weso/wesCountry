@@ -17,7 +17,7 @@ wesCountry.stateful = new (function() {
         ignoreValue: true,
         ignore: true,
         selectedIndex: 0,
-        electedIndex: function() { return 0; },
+        selectedIndex: function() { return 0; },
         onChange: function(index, value, parameters) {}
       } */
     ]
