@@ -871,6 +871,12 @@ wesCountry.charts = new (function() {
     },
     stroke: {
       width: 1
+    },
+    getName: function(element) {
+    	return element.name ? element.name : "";
+    },
+    getValue: function(element) {
+    	return element.value;
     }
 	};
 
@@ -937,8 +943,9 @@ wesCountry.charts = new (function() {
 			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
 
 			var element = elements[i];
-
-			var name = element.name ? element.name : "";
+			
+			var name = options.getName(element);
+				
 			var colour = options.getElementColour(options, element, i);
 
 			legend.circle({
@@ -1299,7 +1306,7 @@ wesCountry.charts.barChart = function(options) {
 		for (var i = 0; i < length; i++) {
 			for (var j = 0; j < numberOfSeries; j++) {
 				var element = options.series[j];
-				var serie = element.name;
+				var serie = options.getName(element);
 				var id = element.id;
 				var value = element.values[i];
 				var url = element.urls ? element.urls[i] : "";
@@ -3993,7 +4000,7 @@ wesCountry.charts.rankingChart = function(options) {
 
 			for (var j = 0; j < groupLength; j++) {
 				var element = group[j];
-				var serie = element.name;
+				var serie = options.getName(element);
 				var id = element.id;
 				var value = element.value;
 				var url = element.url;
@@ -4279,10 +4286,13 @@ wesCountry.charts.rankingChart = function(options) {
 		}
 
 		numbers = numbers.sort(function(a, b) {
+			var a_name = options.getName(a);
+			var b_name = options.getName(b);
+			
 			if (a.value != b.value)
 				return a.value - b.value;
 			else
-				return a.name.localeCompare(b.name);
+				return a_name.localeCompare(b_name);
 		});
 
 		var count = 1;

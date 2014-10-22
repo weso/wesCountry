@@ -153,6 +153,12 @@ wesCountry.charts = new (function() {
     },
     stroke: {
       width: 1
+    },
+    getName: function(element) {
+    	return element.name ? element.name : "";
+    },
+    getValue: function(element) {
+    	return element.value;
     }
 	};
 
@@ -219,8 +225,9 @@ wesCountry.charts = new (function() {
 			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
 
 			var element = elements[i];
-
-			var name = element.name ? element.name : "";
+			
+			var name = options.getName(element);
+				
 			var colour = options.getElementColour(options, element, i);
 
 			legend.circle({
