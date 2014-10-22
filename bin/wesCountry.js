@@ -7148,7 +7148,7 @@ wesCountry.maps = new (function() {
         visor.innerHTML = '';
 
         var name = document.createElement('span');
-        name.innerHTML = info.nombre;
+        name.innerHTML = info.name;
         name.className = 'name';
         visor.appendChild(name);
 
@@ -7161,6 +7161,9 @@ wesCountry.maps = new (function() {
     "onCountryOut": function(info, visor) {
       if (visor)
         visor.innerHTML = '';
+    },
+    "getValue": function(country) {
+    	return country.value;
     }
   };
 
@@ -7285,7 +7288,7 @@ wesCountry.maps = new (function() {
     for (var i = 0; i < countries.length; i++) {
       var country = countries[i];
       var code = country.code;
-      var value = country.value;
+      var value = options.getValue(country);
       var time = country.time ? country.time : "-";
 
       if (times.indexOf(time) == -1) {
@@ -7468,7 +7471,7 @@ wesCountry.maps = new (function() {
           if (element) {
             element.info = country;
 
-            var value = countryList[element.id] ? countryList[element.id].value : null;
+            var value = countryList[element.id] ? options.getValue(countryList[element.id]) : null;
 
             element.info.value = value;
 
@@ -7771,7 +7774,7 @@ wesCountry.maps = new (function() {
 			var valueList = [];
 
 			for (var i = 0; i < countries.length; i++) {
-				var value = countries[i].value;
+				var value = options.getValue(countries[i]);
 
 				if (valueList.indexOf(value) == -1)
 					valueList.push(value);
@@ -7792,7 +7795,7 @@ wesCountry.maps = new (function() {
 
 			for (var i = 0; i < countries.length; i++) {
 				var country = countries[i];
-				var value = country.value;
+				var value = options.getValue(country);
 
 				var colour = valueColours[value];
 
