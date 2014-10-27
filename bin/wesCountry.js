@@ -8184,8 +8184,10 @@ wesCountry.stateful = new (function() {
 
   function getFullURL() {
     var queryString = getQueryString();
-
-    return String.format("{0}?{1}#{2}", host, queryString, hash);
+	
+	var hash = hash && hash != "" ? "#" + hash : "";
+	
+    return String.format("{0}?{1}{2}", host, queryString, hash);
   }
 
   function getQueryString() {
