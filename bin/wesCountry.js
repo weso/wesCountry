@@ -1398,7 +1398,7 @@ wesCountry.charts.barChart = function(options) {
 
 				// Value on bar
 				if (options.valueOnItem.show == true) {
-					g.text({
+					var t = g.text({
 						x: xPos + barWidth / 2,
 						y: yPos + height + (options.height / 100) * options.valueOnItem.margin,
 						value: serie
@@ -1406,6 +1406,7 @@ wesCountry.charts.barChart = function(options) {
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
 						options.valueOnItem["font-size"]));
+					t.className("item-name");
 				}
 
 				// Name under item
@@ -1487,7 +1488,7 @@ wesCountry.charts.barChart = function(options) {
 		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor:end;dominant-baseline: middle",
 			option["font-colour"],
 			option["font-family"],
-			option["font-size"]));
+			option["font-size"])).className("statistics");
 	}
 
 	function getStatistics(values) {
@@ -7411,7 +7412,11 @@ wesCountry.maps = new (function() {
         createZoomButtons(container);
 
       getProjection();
-
+		
+	var wrapper = document.createElement("div");
+	wrapper.className = "notranslate";
+	container.appendChild(wrapper);	
+		
       svg = document.createElementNS(namespace, "svg");
       var svgClassName = String.format('wesCountry-map-time-{0}', wesCountry.guid());
       svg.setAttributeNS(null, 'class', String.format("wesCountry {0}", svgClassName));
@@ -7421,7 +7426,7 @@ wesCountry.maps = new (function() {
       svg.setAttributeNS(null, 'viewBox',
           String.format('0 0 {0} {1}', _svgWidth, height));
 
-      container.appendChild(svg);
+      wrapper.appendChild(svg);
 
       // Water
 
@@ -7510,6 +7515,12 @@ wesCountry.maps = new (function() {
             var value = countryList[element.id] ? options.getValue(countryList[element.id]) : null;
 
             element.info.value = value;
+            
+            // Extra info
+            for (var key in countryList[element.id]) {
+            	value = countryList[element.id][key]
+            	element.info["data-" + key] = value;
+            }
 
             fullCountryList[element.id] = element.info;
           }

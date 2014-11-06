@@ -142,7 +142,7 @@ wesCountry.charts.barChart = function(options) {
 
 				// Value on bar
 				if (options.valueOnItem.show == true) {
-					g.text({
+					var t = g.text({
 						x: xPos + barWidth / 2,
 						y: yPos + height + (options.height / 100) * options.valueOnItem.margin,
 						value: serie
@@ -150,6 +150,7 @@ wesCountry.charts.barChart = function(options) {
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
 						options.valueOnItem["font-size"]));
+					t.className("item-name");
 				}
 
 				// Name under item
@@ -231,7 +232,7 @@ wesCountry.charts.barChart = function(options) {
 		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor:end;dominant-baseline: middle",
 			option["font-colour"],
 			option["font-family"],
-			option["font-size"]));
+			option["font-size"])).className("statistics");
 	}
 
 	function getStatistics(values) {

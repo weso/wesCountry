@@ -258,7 +258,11 @@ wesCountry.maps = new (function() {
         createZoomButtons(container);
 
       getProjection();
-
+		
+	var wrapper = document.createElement("div");
+	wrapper.className = "notranslate";
+	container.appendChild(wrapper);	
+		
       svg = document.createElementNS(namespace, "svg");
       var svgClassName = String.format('wesCountry-map-time-{0}', wesCountry.guid());
       svg.setAttributeNS(null, 'class', String.format("wesCountry {0}", svgClassName));
@@ -268,7 +272,7 @@ wesCountry.maps = new (function() {
       svg.setAttributeNS(null, 'viewBox',
           String.format('0 0 {0} {1}', _svgWidth, height));
 
-      container.appendChild(svg);
+      wrapper.appendChild(svg);
 
       // Water
 
@@ -357,6 +361,12 @@ wesCountry.maps = new (function() {
             var value = countryList[element.id] ? options.getValue(countryList[element.id]) : null;
 
             element.info.value = value;
+            
+            // Extra info
+            for (var key in countryList[element.id]) {
+            	value = countryList[element.id][key]
+            	element.info["data-" + key] = value;
+            }
 
             fullCountryList[element.id] = element.info;
           }
