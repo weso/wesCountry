@@ -6682,6 +6682,7 @@ wesCountry.selector.timeline = function(options) {
 	};
 
 	var selectedElement = options.selected ? options.selected : null;
+	var elementsStatus = {};
 
 	return new (function() {
 		var self = this;
@@ -6712,11 +6713,13 @@ wesCountry.selector.timeline = function(options) {
 		var elements = [];
     var texts = [];
     var anchors = {};
+    var textAnchors = {};
 
     // Left arrow
     if (options.elements.length > options.maxShownElements) {
       var element = document.createElement('div');
       element.className = 'element';
+      
       //element.title = options.elements[i];
       element.style.width = elementWidth;
       line.appendChild(element);
@@ -6753,7 +6756,14 @@ wesCountry.selector.timeline = function(options) {
       space.className = 'element'
       years.appendChild(space);
     }
-
+	
+	// Elements status
+	
+	for (var i = 0; i < options.elements.length; i++) {
+		var element = options.elements[i];
+		elementsStatus[element] = true;
+	}
+	
     // Elements
 
     var start = options.elements.length <= options.maxShownElements ? 0 :
@@ -6781,6 +6791,9 @@ wesCountry.selector.timeline = function(options) {
 			anchors[options.elements[i]] = a;
 
 			a.onclick = function() {
+				if (!elementsStatus[this.title])
+					return;
+					
 				for (var j = 0; j < elements.length; j++)
 					elements[j].className = "element";
 
@@ -6804,6 +6817,7 @@ wesCountry.selector.timeline = function(options) {
         element.style.display = 'none';
 
       texts.push(element);
+      textAnchors[options.elements[i]] = element;
 
 			var a = document.createElement('a');
 			a.title = options.elements[i];
@@ -6812,6 +6826,9 @@ wesCountry.selector.timeline = function(options) {
 			element.appendChild(a);
 
 			a.onclick = function() {
+				if (!elementsStatus[this.title])
+					return;
+					
 				for (var j = 0; j < elements.length; j++)
 					elements[j].className = "element";
 
@@ -6893,6 +6910,56 @@ wesCountry.selector.timeline = function(options) {
 			if (a) {
 				a.click();
 			}
+		}
+		
+		this.getElements = function() {
+			return options.elements;
+		}
+		
+		this.enable = function(element) {
+			if (elementsStatus[element] !== undefined) {
+				elementsStatus[element] = true;
+				
+				if (anchors[element])
+					anchors[element].className = anchors[element].className.replace(" enabled", "").replace(" disabled", "") + " enabled";
+					
+				if (textAnchors[element])
+					textAnchors[element].className = textAnchors[element].className.replace(" enabled", "").replace(" disabled", "") + " enabled";
+			}
+		}
+		
+		this.disable = function(element) {
+			if (elementsStatus[element] !== undefined) {
+				elementsStatus[element] = false;
+				
+				if (anchors[element])
+					anchors[element].className = anchors[element].className.replace(" enabled", "").replace(" disabled", "") + " disabled";
+					
+				if (textAnchors[element])
+					textAnchors[element].className = textAnchors[element].className.replace(" enabled", "").replace(" disabled", "") + " disabled";
+					
+				if (element == selectedElement) {
+					selectedElement = null;
+					
+					// Select first selectable item (from the end)
+					for (var i = options.elements.length - 1; i >= 0; i--) {
+						var e = options.elements[i];
+						
+						if (elementsStatus[e])
+							this.select(e);
+					}
+				}	
+			}
+		}
+		
+		this.enableAll = function() {
+			for (var element in elementsStatus)
+				this.enable(element);
+		}
+		
+		this.disableAll = function() {
+			for (var element in elementsStatus)
+				this.disable(element);
 		}
 	})();
 };
