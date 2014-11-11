@@ -1,3 +1,175 @@
+
+    
+function renderTitle(title) {
+	var h2 = document.createElement("h2");
+	document.getElementById("charts").appendChild(h2);
+	
+	var span = document.createElement("span");
+	h2.appendChild(span);
+	span.innerHTML = title;
+}    
+        
+function renderChart(chart, options, title) {
+	renderTitle(title);
+	var div = document.createElement("div");
+	div.id = "c" + wesCountry.guid();
+	document.getElementById("charts").appendChild(div);	
+	
+	options.chartType = chart;
+	options.container = "#" + div.id;
+	
+	wesCountry.charts.chart(options);
+}
+
+function renderCharts() {
+	var countries = [
+	{
+		"code": "ESP",
+		"value": 1,
+		"time": "2010"
+	},
+	{
+		"code": "FRA",
+		"value": 2,
+		"time": "2011"
+	},
+	{
+		"code": "GBR",
+		"value": 3,
+		"time": "2011"
+	},
+	{
+		"code": "ITA",
+		"value": 4,
+		"time": "2010"
+	},
+	{
+		"code": "IRL",
+		"value": 5,
+		"time": "2011"
+	},
+	{
+		"code": "USA",
+		"value": 6,
+		"time": "2011"
+	},
+	{
+		"code": "PRT",
+		"value": 7,
+		"time": "2011"
+	},
+	{
+		"code": "FIN",
+		"value": 8,
+		"time": "2011"
+	},
+	{
+		"code": "DEU",
+		"value": 9,
+		"time": "2011"
+	},
+	{
+		"code": "CHE",
+		"value": 10,
+		"time": "2011"
+	},
+	{
+		"code": "RUS",
+		"value": 7.5,
+		"time": "2011"
+	},
+	{
+		"code": "SWE",
+		"value": 8,
+		"time": "2011"
+	},
+	{
+		"code": "NOR",
+		"value": 8,
+		"time": "2011"
+	},
+	{
+		"code": "CAN",
+		"value": 8,
+		"time": "2011"
+	},
+	{
+		"code": "UKR",
+		"value": 2,
+		"time": "2011"
+	},
+	{
+		"code": "KAZ",
+		"value": 0,
+		"time": "2011"
+	},
+	{
+		"code": "BLR",
+		"value": 1,
+		"time": "2011"
+	},
+	{
+		"code": "MNG",
+		"value": 2,
+		"time": "2011"
+	},
+	{
+		"code": "CHN",
+		"value": 1.5,
+		"time": "2011"
+	},
+	{
+		"code": "ISL",
+		"value": 1,
+		"time": "2011"
+	},
+	{
+		"code": "AUS",
+		"value": 1,
+		"time": "2011"
+	},
+	{
+		"code": "BRA",
+		"value": 1,
+		"time": "2011"
+	},
+	{
+		"code": "ARG",
+		"value": 1,
+		"time": "2011"
+	},
+	{
+		"code": "ESP",
+		"value": 1,
+		"time": "2011"
+	},
+	{
+		"code": "MAR",
+		"value": 1,
+		"time": "2011"
+	},
+	{
+		"code": "ETH",
+		"value": 1,
+		"time": "2011"
+	},
+	{
+		"code": "GAB",
+		"value": 1,
+		"time": "2011"
+	},
+	{
+		"code": "MDG",
+		"value": 1,
+		"time": "2011"
+	},
+	{
+		"code": "AGO",
+		"value": 1,
+		"time": "2011"
+	}
+];
+
 var options = {
 		sortSeries: true,
 		mean: {
@@ -160,24 +332,243 @@ var options = {
                     [180.3, 83.2], [180.3, 83.2]]
         }]
     };
-        
-function renderChart(chart, options) {
+
+	document.getElementById("charts").innerHTML = "";
+	
+	renderChart("bar", options, "bars");
+	
+	renderTitle("map");
 	var div = document.createElement("div");
-	div.id = "c" + wesCountry.guid();
-	document.getElementById("charts").appendChild(div);	
+	div.id = "map";
+	document.getElementById("charts").appendChild(div);
 	
-	options.chartType = chart;
-	options.container = "#" + div.id;
+	var map = wesCountry.maps.createMap({
+		container: '#map',
+		"borderWidth": 1.5,
+		"landColour": "#eee",
+		countries: countries,
+		download: true,
+		"colourRange": ['#FCD271', '#2BBBD8']
+	});
 	
-	wesCountry.charts.chart(options);
+	options.serieColours = ["rgba(1, 169, 219, 0.7)", "rgba(220, 0, 154, 0.7)"];
+	renderChart("line", options, "lines");
+	options.serieColours = ["#FCD271", "rgba(1, 169, 219, 0.7)", "rgba(220, 0, 154, 0.7)", "#01dfa5"];
+	renderChart("pie", options, "pie");
+	renderChart("area", options, "area");
+	renderChart("donut", options, "donut");
+	options.serieColours = ["rgba(1, 169, 219, 0.7)", "rgba(220, 0, 154, 0.7)"];
+	renderChart("scatter", optionScatterPlot, "scatter");
+	options.serieColours = ["#FCD271", "rgba(1, 169, 219, 0.7)", "rgba(220, 0, 154, 0.7)", "#01dfa5"];
+	renderChart("stacked", options, "stacked bars");
+	
+	renderChart("polar", options, "polar");
+	options.serieColours = ["rgba(1, 169, 219, 0.7)", "rgba(220, 0, 154, 0.7)", "#FCD271", "#01dfa5"];
+	
+		options.series = [
+			{
+					name: "ESP",
+					values: [1],
+					continent: "Europe"
+			},
+			{
+					name: "FRA",
+					values: [2],
+					continent: "Europe"
+			},
+			{
+					name: "POR",
+					values: [1.2],
+					continent: "Europe"
+			},
+			{
+					name: "GRE",
+					values: [0.5],
+					continent: "Europe"
+			},
+			{
+					name: "ITA",
+					values: [1],
+					continent: "Europe"
+			},
+			{
+					name: "IRL",
+					values: [1.1],
+					continent: "Europe"
+			},
+			{
+					name: "SUI",
+					values: [5],
+					continent: "Europe"
+			},
+			{
+					name: "NOR",
+					values: [6],
+					continent: "Europe"
+			},
+			{
+					name: "GBR",
+					values: [3],
+					continent: "Europe"
+			},
+			{
+					name: "GER",
+					values: [5],
+					continent: "Europe"
+			},
+			{
+					name: "RUS",
+					values: [1.3],
+					continent: "Europe"
+			},
+			{
+					name: "FIN",
+					values: [6],
+					continent: "Europe"
+			},
+			{
+					name: "ISL",
+					values: [0.3],
+					continent: "Europe"
+			},
+			{
+					name: "CAN",
+					values: [5],
+					continent: "America"
+			},
+			{
+					name: "USA",
+					values: [4.9],
+					continent: "America"
+			},
+			{
+					name: "MEX",
+					values: [0.5],
+					continent: "America"
+			},
+			{
+					name: "CUB",
+					values: [0.1],
+					continent: "America"
+			},
+			{
+					name: "AGO",
+					values: [0],
+					continent: "Africa"
+			},
+			{
+					name: "ETH",
+					values: [0],
+					continent: "Africa"
+			},
+			{
+					name: "EGY",
+					values: [0],
+					continent: "Africa"
+			},
+			{
+					name: "SUD",
+					values: [0],
+					continent: "Africa"
+			},
+			{
+					name: "CON",
+					values: [0],
+					continent: "Africa"
+			},
+			{
+					name: "ETH",
+					values: [0],
+					continent: "Africa"
+			},
+			{
+					name: "ANG",
+					values: [0],
+					continent: "Africa"
+			},
+			{
+					name: "SUD",
+					values: [0],
+					continent: "Africa"
+			},
+			{
+					name: "MOR",
+					values: [0],
+					continent: "Africa"
+			},
+			{
+					name: "CHI",
+					values: [3],
+					continent: "Asia"
+			},
+			{
+					name: "KOR",
+					values: [0],
+					continent: "Asia"
+			},
+			{
+					name: "JAP",
+					values: [5],
+					continent: "Asia"
+			}
+		];
+	
+		options.getElementColour = function(options, element, index) {
+			var pos = 0;
+
+			switch(element.continent) {
+				case "Europe":
+					pos = 0;
+					break;
+				case "America":
+					pos = 1;
+					break;
+				case "Africa":
+					pos = 2;
+					break;
+				case "Asia":
+					pos = 3;
+					break;
+			}
+
+			return options.serieColours[pos];
+		};
+
+		options.getLegendElements = function(options) {
+			var elements = [];
+
+			var series = options.series;
+			var length = series.length;
+
+			for (var i = 0; i < length; i++) {
+				var continent = series[i].continent;
+
+				if (elements.indexOf(continent) == -1)
+					elements.push(continent);
+			}
+
+			elements = elements.sort();
+
+			var length = elements.length;
+
+			for (var i = 0; i < length; i++)
+				elements[i] = {
+					name: elements[i],
+					continent: elements[i]
+				};
+
+			return elements;
+		};
+
+		options.maxRankingRows = 6;
+		options.margins = [2, 10, 1, 1];
+		options.xAxis.title = options.yAxis.title = "";
+	
+	renderChart("ranking", options, "ranking");
 }
 
-renderChart("bar", options);
-renderChart("line", options);
-renderChart("pie", options);
-renderChart("area", options);
-renderChart("donut", options);
-renderChart("scatter", optionScatterPlot);
-renderChart("stacked", options);
-renderChart("polar", options);
-renderChart("ranking", options);
+renderCharts();
+
+window.onresize = function() {
+	renderCharts();
+}

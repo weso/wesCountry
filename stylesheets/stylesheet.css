@@ -91,7 +91,7 @@ header h2 {
 }
 
 .inner {
-  width: 620px;
+  width: 800px;
   margin: 0 auto;
 }
 
@@ -242,12 +242,32 @@ h1 {
   font-size: 32px;
 } 
 
-h2 {
-  font-size: 22px;
-  font-weight: bold;
-  color: #303030;
-  margin-bottom: 8px;
-} 
+h2 {	
+	 font-size: 1.3em;
+  font-weight: 300;
+  color: #666;
+  margin-bottom: 1em;
+    margin-top: 1em;
+    position: relative;
+    text-align: center;
+    z-index: 1;
+}
+
+h2:before {
+    border-top: 2px solid #dfdfdf;
+    content:"";
+    margin: 0 auto; /* this centers the line to the full width specified */
+    position: absolute; /* positioning must be absolute here, and relative positioning must be applied to the parent */
+    top: 15px; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    z-index: -1;
+}
+
+h2 span { 
+    /* to hide the lines from behind the text, you have to set the background color the same as the container */ 
+    background: #fff; 
+    padding: 0 15px; 
+}
 
 h3 {
   color: #d5000d;
@@ -386,4 +406,18 @@ footer a:hover {
 
 .created img {
 	vertical-align: middle;
+}
+
+.wesCountry-map .buttons {
+	display: none;
+}
+
+.wesCountry-map .visor {
+	background-color: transparent;
+	bottom: 0;
+	color: #333;
+}
+
+#charts > div {
+	height: 30em;
 }
