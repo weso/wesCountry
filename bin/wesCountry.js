@@ -6271,6 +6271,10 @@ wesCountry.selector.basic = function(options) {
 		return selectedItems.getArray().toString();
 	}
 	
+	this.selectedLength = function() {
+		return selectedItems.length;
+	}
+	
 	this.addEventListener = function(event, handler) {
 		options.onChange = handler;
 	}
