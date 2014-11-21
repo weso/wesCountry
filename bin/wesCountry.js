@@ -6199,7 +6199,8 @@ function SortedArray() {
 }if (typeof (wesCountry) === "undefined")
     var wesCountry = new Object();
 
-wesCountry.selector = new Object();
+if (!wesCountry.selector)
+	wesCountry.selector = new Object();
 
 wesCountry.selector.basic = function(options) {
 	var defaultOptions = {
@@ -6226,6 +6227,7 @@ wesCountry.selector.basic = function(options) {
 	var root = null;
 	var elements = {};
 	var self = this;
+	var collapsableElements = [];
 
 	function init() {
 		// Merge default options and user options
@@ -6391,6 +6393,8 @@ wesCountry.selector.basic = function(options) {
 					event.stopPropagation();
 				}
 			}
+			
+			collapsableElements.push(plusOrMinus);
 
 			// Keyboard event for link
 			currentLink.plusOrMinus = plusOrMinus;
@@ -6661,6 +6665,11 @@ wesCountry.selector.basic = function(options) {
 		}
 	}
 };
+if (typeof (wesCountry) === "undefined")
+    var wesCountry = new Object();
+
+if (!wesCountry.selector)
+	wesCountry.selector = new Object();
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                    TIMELINE
