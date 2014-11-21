@@ -6840,7 +6840,7 @@ wesCountry.selector.timeline = function(options) {
 					
 				for (var j = 0; j < elements.length; j++)
 					elements[j].className = "element";
-
+				
 				elements[this.index].className = "element selected";
 
 				selectedElement = this.title;
@@ -6969,6 +6969,13 @@ wesCountry.selector.timeline = function(options) {
 		this.disableAll = function() {
 			for (var element in elementsStatus)
 				this.disable(element);
+		}
+		
+		this.clear = function() {
+			for (var j = 0; j < elements.length; j++)
+				elements[j].className = "element";
+
+			selectedElement = -1;
 		}
 	})();
 };
