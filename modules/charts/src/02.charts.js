@@ -52,6 +52,7 @@ wesCountry.charts = new (function() {
 			"font-family": "Helvetica",
 			"font-colour": "#555",
 			"font-size": "11px",
+			rotation: 0
 		},
 		nameUnderItem: {
 			show: false,
@@ -59,6 +60,7 @@ wesCountry.charts = new (function() {
 			"font-family": "Helvetica",
 			"font-colour": "#555",
 			"font-size": "11px",
+			rotation: 0
 		},
 		sizeByValue: false, // Scatter
 		sizeByValueMaxRadius: 5, // Scatter
