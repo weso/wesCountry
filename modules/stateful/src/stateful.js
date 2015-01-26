@@ -17,7 +17,7 @@ wesCountry.stateful = new (function() {
         ignoreValue: true,
         ignore: true,
         selectedIndex: 0,
-        electedIndex: function() { return 0; },
+        selectedIndex: function() { return 0; },
         onChange: function(index, value, parameters) {}
       } */
     ]
@@ -27,6 +27,7 @@ wesCountry.stateful = new (function() {
   var queryParameters = [];
   var selectors = {};
   var host = "";
+  var hash = "";
   var options = null;
 
   this.getParameters = function() {
@@ -54,6 +55,7 @@ wesCountry.stateful = new (function() {
     var info = getUrlParameters();
     parameters = info.parameters;
     host = info.host;
+    hash = info.hash;
 
     var urlDifferentFromInitial = processElements(options, parameters);
 
@@ -76,8 +78,10 @@ wesCountry.stateful = new (function() {
 
   function getFullURL() {
     var queryString = getQueryString();
-
-    return String.format("{0}?{1}", host, queryString);
+	
+	var hash = hash && hash != "" ? "#" + hash : "";
+	
+    return String.format("{0}?{1}{2}", host, queryString, hash);
   }
 
   function getQueryString() {
@@ -182,7 +186,10 @@ wesCountry.stateful = new (function() {
     //selector.element = selector.name ? selector.name : selector.id;
 
     wesCountry.registerEvent(selector, 'change', function() {
-      var value = this.options[this.selectedIndex].value;
+      //var value = this.options[this.selectedIndex].value;
+
+      var value = this.selected ? this.selected() : this.value;
+
       changeParameter(this.element, value);
 
       if (onChange)
@@ -191,7 +198,12 @@ wesCountry.stateful = new (function() {
 
     // Refresh function
     selector.refresh = function() {
-      var value = (this.options && this.options && this.options[this.selectedIndex]) ?
+    	var value = "";
+    	
+    	if (this.selected)
+    		value = this.selected();
+    	else
+      		value = (this.options && this.options && this.options[this.selectedIndex]) ?
                     this.options[this.selectedIndex].value : "";
 
       changeParameter(this.element, value);
@@ -202,14 +214,17 @@ wesCountry.stateful = new (function() {
 
     // Set initial value
     var options = selector.options;
+	
+	if (selector.select)
+		selector.select(initialValue);
+	else {
+		for (var i = 0; i < options.length; i++)
+		  if (options[i].value == initialValue) {
+			selector.selectedIndex = i;
 
-    for (var i = 0; i < options.length; i++)
-      if (options[i].value == initialValue) {
-        selector.selectedIndex = i;
-
-        break;
-      }
-
+			break;
+		  }
+	}
     // Set selected index
 
     return {
@@ -222,8 +237,12 @@ wesCountry.stateful = new (function() {
     var parameters = {};
 
     var url = document.URL;
-
-    var queryString = url.split('?');
+	
+	var hash = url.split('#');
+	
+    var queryString = hash[0].split('?');
+    
+    hash = hash.length > 1 ? hash[1] : "";
 
     var host = queryString[0];
 
@@ -244,7 +263,8 @@ wesCountry.stateful = new (function() {
 
     return {
       host: host,
-      parameters: parameters
+      parameters: parameters,
+      hash: hash
     };
   }
 })();

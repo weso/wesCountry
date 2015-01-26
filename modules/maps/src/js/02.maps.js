@@ -5,6 +5,7 @@ wesCountry.maps = new (function() {
   var defaultOptions = {
     "projection": "miller",
     "countries": [],
+    "countryCodeName": "code",
     "countryCode": "iso3",
     "backgroundColour": "#fff",
     "landColour": "#fff",
@@ -26,7 +27,7 @@ wesCountry.maps = new (function() {
         visor.innerHTML = '';
 
         var name = document.createElement('span');
-        name.innerHTML = info.nombre;
+        name.innerHTML = info.name;
         name.className = 'name';
         visor.appendChild(name);
 
@@ -39,7 +40,13 @@ wesCountry.maps = new (function() {
     "onCountryOut": function(info, visor) {
       if (visor)
         visor.innerHTML = '';
-    }
+    },
+    "getValue": function(country) {
+    	return country.value;
+    },
+    getElementColour: function(options, country, value, rangeColours) {
+		return rangeColours[value];
+	}
   };
 
   this.createMap = function(options) {
@@ -55,6 +62,7 @@ wesCountry.maps = new (function() {
     container.appendChild(mapContainer);
 
     var mapContainerHeight = container.offsetHeight > 0 ? container.offsetHeight : options.height;
+    var mapContainerWidth = container.offsetWidth > 0 ? container.offsetWidth : options.width;
 
     // Group by time
 
@@ -106,7 +114,8 @@ wesCountry.maps = new (function() {
     	options.onChange.call(this, times.length == 1 ? times[0] : null, 0);
 
     mapContainer.style.minHeight = mapContainerHeight + 'px';
-
+    mapContainer.style.minWidth = mapContainerWidth + 'px';
+    
     var last = times.length - 1;
     var mapData = [];
 
@@ -162,8 +171,8 @@ wesCountry.maps = new (function() {
 
     for (var i = 0; i < countries.length; i++) {
       var country = countries[i];
-      var code = country.code;
-      var value = country.value;
+      var code = country[options.countryCodeName];
+      var value = options.getValue(country);
       var time = country.time ? country.time : "-";
 
       if (times.indexOf(time) == -1) {
@@ -241,8 +250,11 @@ wesCountry.maps = new (function() {
 
       // Height
       var height = containerParent.offsetHeight > 0 ? containerParent.offsetHeight : 300;
+      
+      // Width
+      var width = containerParent.offsetWidth > 0 ? containerParent.offsetWidth : 300;
 
-      _svgWidth = containerParent.offsetWidth;
+      _svgWidth = width;
       _svgHeight = height;
 
       // Zoom buttons
@@ -250,7 +262,11 @@ wesCountry.maps = new (function() {
         createZoomButtons(container);
 
       getProjection();
-
+		
+	var wrapper = document.createElement("div");
+	wrapper.className = "notranslate";
+	container.appendChild(wrapper);	
+		
       svg = document.createElementNS(namespace, "svg");
       var svgClassName = String.format('wesCountry-map-time-{0}', wesCountry.guid());
       svg.setAttributeNS(null, 'class', String.format("wesCountry {0}", svgClassName));
@@ -260,7 +276,7 @@ wesCountry.maps = new (function() {
       svg.setAttributeNS(null, 'viewBox',
           String.format('0 0 {0} {1}', _svgWidth, height));
 
-      container.appendChild(svg);
+      wrapper.appendChild(svg);
 
       // Water
 
@@ -346,9 +362,15 @@ wesCountry.maps = new (function() {
           if (element) {
             element.info = country;
 
-            var value = countryList[element.id] ? countryList[element.id].value : null;
+            var value = countryList[element.id] ? options.getValue(countryList[element.id]) : null;
 
             element.info.value = value;
+            
+            // Extra info
+            for (var key in countryList[element.id]) {
+            	value = countryList[element.id][key]
+            	element.info["data-" + key] = value;
+            }
 
             fullCountryList[element.id] = element.info;
           }
@@ -649,7 +671,7 @@ wesCountry.maps = new (function() {
 			var valueList = [];
 
 			for (var i = 0; i < countries.length; i++) {
-				var value = countries[i].value;
+				var value = options.getValue(countries[i]);
 
 				if (valueList.indexOf(value) == -1)
 					valueList.push(value);
@@ -670,15 +692,16 @@ wesCountry.maps = new (function() {
 
 			for (var i = 0; i < countries.length; i++) {
 				var country = countries[i];
-				var value = country.value;
+				var value = options.getValue(country);
 
-				var colour = valueColours[value];
-
-				countryList[country.code] = country;
+				var colour = options.getElementColour(options, country, value, valueColours);
+				var code = country[options.countryCodeName];
+				
+				countryList[code] = country;
 
 				// Create CSS class to asign country colour
-				styleContent += String.format("\n.{0} .{1}, .{0} .{1} g, .{0} .{1} path { fill: {2}; }", className, country.code, colour);
-				styleContent += String.format("\n.{0} .{1}:hover, .{0} .{1}:hover g, .{0} .{1}:hover path { fill: {2}; opacity: 0.9; }", className, country.code, colour);
+				styleContent += String.format("\n.{0} .{1}, .{0} .{1} g, .{0} .{1} path { fill: {2}; }", className, code, colour);
+				styleContent += String.format("\n.{0} .{1}:hover, .{0} .{1}:hover g, .{0} .{1}:hover path { fill: {2}; opacity: 0.9; }", className, code, colour);
 			}
 
 			style.appendChild(document.createTextNode(styleContent));

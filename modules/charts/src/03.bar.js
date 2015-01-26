@@ -50,7 +50,7 @@ wesCountry.charts.barChart = function(options) {
 		for (var i = 0; i < length; i++) {
 			for (var j = 0; j < numberOfSeries; j++) {
 				var element = options.series[j];
-				var serie = element.name;
+				var serie = options.getName(element);
 				var id = element.id;
 				var value = element.values[i];
 				var url = element.urls ? element.urls[i] : "";
@@ -141,27 +141,54 @@ wesCountry.charts.barChart = function(options) {
 					});
 
 				// Value on bar
+				
+				var x = xPos + barWidth / 2;
+				var y = yPos + height + (options.height / 100) * options.valueOnItem.margin;
+				
+				var anchor = "middle";
+				
+				if (options.valueOnItem.rotation > 0)
+					anchor = "start";
+				else if (options.valueOnItem.rotation < 0)
+					anchor = "end";
+				
 				if (options.valueOnItem.show == true) {
-					g.text({
-						x: xPos + barWidth / 2,
-						y: yPos + height + (options.height / 100) * options.valueOnItem.margin,
-						value: serie
-					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
+					var t = g.text({
+						x: x,
+						y: y,
+						value: serie,
+						transform: String.format("rotate({0} {1} {2})", options.valueOnItem.rotation, x, y)
+					}).style(String.format("fill: {0};font-family:{1};font-size:{2}; dominant-baseline: middle; text-anchor: {3};",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
-						options.valueOnItem["font-size"]));
+						options.valueOnItem["font-size"],
+						anchor));
+					t.className("item-name");
 				}
-
+				
 				// Name under item
+				
+				var x = xPos + barWidth / 2;
+				var y = yPos - (options.height / 100) * options.nameUnderItem.margin;
+				
+				var anchor = "middle";
+				
+				if (options.nameUnderItem.rotation > 0)
+					anchor = "start";
+				else if (options.nameUnderItem.rotation < 0)
+					anchor = "end";
+				
 				if (options.nameUnderItem.show == true) {
 					g.text({
-						x: xPos + barWidth / 2,
-						y: yPos - (options.height / 100) * options.nameUnderItem.margin,
-						value: value.toFixed(2)
-					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
+						x: x,
+						y: y,
+						value: value.toFixed(2),
+						transform: String.format("rotate({0} {1} {2})", options.valueOnItem.rotation, x, y)
+					}).style(String.format("fill: {0};font-family:{1};font-size:{2} ;dominant-baseline: middle; text-anchor: {3};",
 						options.nameUnderItem["font-colour"],
 						options.nameUnderItem["font-family"],
-						options.nameUnderItem["font-size"]));
+						options.nameUnderItem["font-size"],
+						anchor));
 				}
 			}
 		}
@@ -231,7 +258,7 @@ wesCountry.charts.barChart = function(options) {
 		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor:end;dominant-baseline: middle",
 			option["font-colour"],
 			option["font-family"],
-			option["font-size"]));
+			option["font-size"])).className("statistics");
 	}
 
 	function getStatistics(values) {

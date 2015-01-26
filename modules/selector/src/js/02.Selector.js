@@ -1,25 +1,41 @@
 if (typeof (wesCountry) === "undefined")
     var wesCountry = new Object();
 
-wesCountry.selector = new Object();
+if (!wesCountry.selector)
+	wesCountry.selector = new Object();
 
-wesCountry.selector.basic = function(data, options) {
+wesCountry.selector.basic = function(options) {
 	var defaultOptions = {
 		"ul-class": "default-selector",
-		callback: null,
+		data: [],
+		onChange: function(element, index) {
+			console.log(String.format("{0} {1}", index, element));
+		},
+		beforeChange: function(element, index) {
+			console.log(String.format("{0} {1}", index, element));
+		},
 		maxSelectedItems: -1,
-		selectedItems: []
+		selectedItems: [],
+		labelName: "label",
+		valueName: "code",
+		childrenName: "children",
+		sort: true,
+		autoClose: false,
+		selectParentNodes: true
 	};
 
 	var firstLevelItems = [];
 	var selectedItems = new SortedArray();
 	var root = null;
+	var elements = {};
+	var self = this;
+	var collapsableElements = [];
 
 	function init() {
 		// Merge default options and user options
-		options = mergeOptionsAndDefaultOptions(options, defaultOptions);
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
 
-		var list = generateList(data, null, 1, null, null);
+		var list = generateList(options.data, null, 1, null, null);
 		root = list.ul;
 
 		// Set options.selectedItems as selected
@@ -37,9 +53,56 @@ wesCountry.selector.basic = function(data, options) {
 	}
 
 	this.clear = function() {
-		var length = root.children.length;
-		for (var i = 0; i < length; i++)
-			updateElementStatus(root.children[i], null, false);
+		selectedItems = new SortedArray();
+		
+		clearElements(root);
+	}
+	
+	function clearElements(element) {
+		var length = element && element.children && element.children.length ? element.children.length : 0;
+		
+		for (var i = 0; i < length; i++) {
+			var child = element.children[i];
+				
+			updateElementStatus(child, null, false);
+			clearElements(child.querySelector("ul"));	
+		}
+	}
+	
+	this.selected = function() {
+		return selectedItems.getArray().toString();
+	}
+	
+	this.selectedLength = function() {
+		return selectedItems.length;
+	}
+	
+	this.addEventListener = function(event, handler) {
+		options.onChange = handler;
+	}
+	
+	this.options = [];
+	
+	this.select = function(objects) {
+		self.clear();
+		
+		changeElementsStatus(objects, true);
+	}
+	
+	this.unselect = function(objects) {
+		changeElementsStatus(objects, false);
+	}
+	
+	function changeElementsStatus(objects, status) {
+		objects = objects.split(",");
+		var length = objects.length;
+
+		for (var i = 0; i < length; i++) {
+			var element = objects[i];
+
+			if (element in elements)
+				updateElementStatus(elements[element], null, status);
+		}
 	}
 
 	// List generation
@@ -48,13 +111,17 @@ wesCountry.selector.basic = function(data, options) {
 		ul.className = options["ul-class"];
 
 		// Sort children
-		element.sort(function(a, b) {
-			if (a.label < b.label)
-				return -1;
-			if (a.label > b.label)
-				return 1;
-			return 0;
-		});
+		
+		var labelName = options.labelName;
+		
+		if (options.sort)
+			element.sort(function(a, b) {
+				if (a[labelName] < b[labelName])
+					return -1;
+				if (a[labelName] > b[labelName])
+					return 1;
+				return 0;
+			});
 
 		var length = element.length;
 
@@ -65,13 +132,13 @@ wesCountry.selector.basic = function(data, options) {
 
 		for (var i = 0; i < length; i++) {
 			var child = element[i];
-			var childrenLength = child.children && child.children.length ? child.children.length : 0;
+			var childrenLength = child[options.childrenName] && child[options.childrenName].length ? child[options.childrenName].length : 0;
 
 			var li = document.createElement("li");
 			ul.appendChild(li);
 
 			// Set parent information
-			li.code = child.code;
+			li.code = child[options.valueName];
 			li.liParent = parent;
 			li.data = child;
 
@@ -80,8 +147,8 @@ wesCountry.selector.basic = function(data, options) {
 
 			var currentLink = document.createElement("a");
 			currentLink.href = "javascript: void(0)"
-			currentLink.value = child.label;
-
+			currentLink.value = child[options.labelName];
+			
 			// Check if element is selected
 			if (options.selectedItems.indexOf(li.code) != -1) {
 				selected = true;
@@ -105,21 +172,25 @@ wesCountry.selector.basic = function(data, options) {
 			currentLink.className = "circleAndText"
 			li.appendChild(currentLink);
 
-			// Click event on currentLink div
 			// We set the parent of currentLink div (the LI element)
 			currentLink.liParent = li;
-
+			
+			// Click event on currentLink div
 			currentLink.onclick = function(event) {
-				elementClick(this.liParent, options.callback);
+				elementClick(this.liParent, options.onChange);
 
 				if (event)
 					event.stopPropagation();
 			};
+			
+			// Save element in dictionary
+			elements[li.code] = li;
 
 			// Plus or minus sign to show / hide children
 			var plusOrMinus = document.createElement("div");
-			plusOrMinus.className = childrenLength > 0 ? "plusOrMinus" : "hidden-plusOrMinus";
+			plusOrMinus.className = childrenLength > 0 ? "plus-element plusOrMinus" : "hidden-plusOrMinus";
 			plusOrMinus.innerHTML = "+";
+			plusOrMinus.parentUl = ul;
 			currentLink.appendChild(plusOrMinus);
 
 			if (childrenLength > 0) {
@@ -128,13 +199,15 @@ wesCountry.selector.basic = function(data, options) {
 					event.stopPropagation();
 				}
 			}
+			
+			collapsableElements.push(plusOrMinus);
 
 			// Keyboard event for link
 			currentLink.plusOrMinus = plusOrMinus;
 
 			currentLink.onkeydown = function(event) {
 				if (event.keyCode == 13) {
-					elementClick(this.liParent, options.callback);
+					elementClick(this.liParent, options.onChange);
 
 					event.stopPropagation();
 					return false;
@@ -177,7 +250,7 @@ wesCountry.selector.basic = function(data, options) {
 			title.className = "title";
 			currentLink.appendChild(title)
 
-			var text = document.createTextNode(child.label);
+			var text = document.createTextNode(child[options.labelName]);
 			title.appendChild(text);
 
 			// Update previous link
@@ -199,7 +272,7 @@ wesCountry.selector.basic = function(data, options) {
 				};
 
 				// Children
-				var childrenUl = generateList(child.children, li, level + 1, previousLink, currentLink);
+				var childrenUl = generateList(child[options.childrenName], li, level + 1, previousLink, currentLink);
 				li.appendChild(childrenUl.ul);
 
 				// Update first child link
@@ -219,7 +292,7 @@ wesCountry.selector.basic = function(data, options) {
 			}
 
 			// Set child number
-			li.childNumber = child.children ? child.children.length : 0;
+			li.childNumber = child[options.childrenName] ? child[options.childrenName].length : 0;
 		}
 
 		// Non top-level elements are initially hidden
@@ -241,6 +314,17 @@ wesCountry.selector.basic = function(data, options) {
 
 	function plusMinusClick (element) {
 		if (element.innerHTML == "+") {
+			if (options.autoClose) {
+				// Close siblings
+				
+				var children = element.parentUl.querySelectorAll(".plus-element");
+
+				for (var i = 0; i < children.length; i++) {
+					var child = children[i];
+					closeElement(child);
+				}
+			}
+			
 			element.innerHTML = "&#8212;";
 
 			if (element.childrenUl)
@@ -249,13 +333,17 @@ wesCountry.selector.basic = function(data, options) {
 			element.opened = true;
 		}
 		else {
-			element.innerHTML = "+";
-
-			if (element.childrenUl)
-				element.childrenUl.style.display = "none";
-
-			element.opened = false;
+			closeElement(element);
 		}
+	}
+	
+	function closeElement(element) {
+		element.innerHTML = "+";
+
+		if (element.childrenUl)
+			element.childrenUl.style.display = "none";
+
+		element.opened = false;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -268,25 +356,37 @@ wesCountry.selector.basic = function(data, options) {
 			elementClick(firstLevelItems[i].liParent, null);
 	}
 
-	function elementClick(element, callback) {
+	function elementClick(element, onChange) {
+		if (element.childNumber > 0 && !options.selectParentNodes)
+			return;
+		
 		var selected = !element.isSelected;
 
 		if (selected && options.maxSelectedItems > 0 && selectedItems.length >= options.maxSelectedItems)
 			return;
 
-		updateElementStatus(element, callback, selected);
+		updateElementStatus(element, onChange, selected);
 	}
 
-	function updateElementStatus(element, callback, selected) {
+	function updateElementStatus(element, onChange, selected) {
+		var oldClass = element.className;
 		setElementStatus(element, selected);
 
 		// Add element in its parent's counter
 		if (element.liParent) {
-			var oldParentCounter = element.liParent.counter.value;
-			var parentCounter = selected ? oldParentCounter + 1 : oldParentCounter - 1;
+			if (element.liParent.counter != undefined && element.liParent.counter.value != undefined) {
+				var oldParentCounter = element.liParent.counter.value;
 
-			updateElementCounter(element.liParent, parentCounter);
+				if (oldClass == "" || oldClass == "not-selected")
+					var parentCounter = selected ? oldParentCounter + 1 : oldParentCounter;
+				else
+					var parentCounter = selected ? oldParentCounter : oldParentCounter - 1;
+					
+				if (parentCounter < 0)
+					parentCounter = 0;
 
+				updateElementCounter(element.liParent, parentCounter);
+			}
 			// An element is selected when all its children are selected
 			// If an element is unselected then its parent must be unselected
 			if (!selected) {
@@ -312,9 +412,17 @@ wesCountry.selector.basic = function(data, options) {
 		if (element.childNumber > 0)
 			updateElementCounter(element, selected ? element.childNumber : 0);
 
-		// Callback invocation
-		if (callback)
-			callback.call(element, element.data, selectedItems);
+		// onChange invocation
+		if (onChange) {
+			if (options.beforeChange)
+				options.beforeChange.call(self, selectedItems, {
+					code: element.code,
+					selected: selected,
+					element: element
+				});
+			
+			onChange.call(self, selectedItems);
+		}
 	}
 
 	function setElementStatus(element, status) {
@@ -330,10 +438,10 @@ wesCountry.selector.basic = function(data, options) {
 			element.firstChild.title = value + (status ? " is selected" : "");
 		}
 
-		var length = element && element.children && element.children.length ? element.children.length : 0;
+		var length = element && element[options.childrenName] && element[options.childrenName].length ? element[options.childrenName].length : 0;
 
 		for (var i = 0; i < length; i++)
-			setElementStatus(element.children[i], status);
+			setElementStatus(element[options.childrenName][i], status);
 	}
 
 	function updateElementCounter(element, value) {
@@ -362,259 +470,4 @@ wesCountry.selector.basic = function(data, options) {
 				selectedItems.remove(code);
 		}
 	}
-
-	////////////////////////////////////////////////////////////////////////////////
-	//                              MERGING OPTIONS
-	////////////////////////////////////////////////////////////////////////////////
-
-	function mergeOptionsAndDefaultOptions(options, defaultOptions) {
-		if (options) {
-			if (typeof options === "string")
-				options = { container: options };
-
-			var auxOptions = clone(defaultOptions);
-
-			for (var option in options)
-				auxOptions[option] = mergeOptions(auxOptions[option], options[option]);
-
-			options = auxOptions;
-		}
-		else
-			options = clone(defaultOptions);
-
-		return options;
-	};
-
-	function mergeOptions(to, from) {
-		if (from instanceof Array) {
-			return from;
-		}
-		else if (typeof from === "object") {
-			for (var option in from) {
-				to[option] = mergeOptions(to[option], from[option]);
-			}
-
-			return to;
-		}
-		else
-			return from;
-	};
-
-	function clone(obj) {
-		// Not valid for copying objects that contain methods
-	    return JSON.parse(JSON.stringify(obj));
-	}
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//                                    TIMELINE
-////////////////////////////////////////////////////////////////////////////////
-
-wesCountry.selector.timeline = function(options) {
-	var defaultOptions = {
-		"container": "body",
-    "maxShownElements": 10,
-		"elements": [
-			2010,
-			2011,
-			2012
-		],
-		"selected": 2012,
-		"onChange": function(element, index) {
-			console.log(String.format("{0} {1}", index, element));
-		}
-	};
-
-	var selectedElement = options.selected ? options.selected : null;
-
-	return new (function() {
-		options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
-
-		var container = document.querySelector(options.container);
-
-		var timeline = document.createElement('div');
-		timeline.className = 'timeline';
-		container.appendChild(timeline);
-
-		var line = document.createElement('div');
-		line.className = 'line';
-		timeline.appendChild(line);
-
-		var years = document.createElement('div');
-		years.className = 'elements';
-		timeline.appendChild(years);
-
-		//var elementWidth = 100 / (options.elements.length > 0 ? options.elements.length : 1);
-    var numberOfElements = options.elements.length > options.maxShownElements ?
-                              options.maxShownElements + 2 : options.elements.length;
-    var elementWidth = 100 / (numberOfElements > 0 ? numberOfElements : 1);
-
-		elementWidth += '%';
-
-		var elements = [];
-    var texts = [];
-
-    // Left arrow
-    if (options.elements.length > options.maxShownElements) {
-      var element = document.createElement('div');
-      element.className = 'element';
-      //element.title = options.elements[i];
-      element.style.width = elementWidth;
-      line.appendChild(element);
-
-      element.onclick = function() {
-        if (start > 0) {
-          start--;
-
-          var end = start + options.maxShownElements;
-
-          for (var i = 0; i < elements.length; i++) {
-            if (i >= start && i < end)
-              elements[i].style.display = texts[i].style.display = 'block';
-            else
-              elements[i].style.display = texts[i].style.display = 'none';
-          }
-
-          if (start == 0)
-            leftArrow.className = 'arrow arrow-left arrow-disabled';
-
-          rightArrow.className = 'arrow arrow-right arrow-active';
-        }
-      }
-
-      var leftArrow = document.createElement('a');
-      leftArrow.className = "arrow arrow-left arrow-active";
-      leftArrow.innerHTML = '<';
-      element.appendChild(leftArrow);
-      element.arrow = leftArrow;
-
-      var space = document.createElement('div');
-      space.style.width = elementWidth;
-      space.style.height = '0.1em';
-      space.className = 'element'
-      years.appendChild(space);
-    }
-
-    // Elements
-
-    var start = options.elements.length <= options.maxShownElements ? 0 :
-                  options.elements.length - options.maxShownElements;
-
-		for (var i = 0; i < options.elements.length; i++) {
-			// Circle
-			var element = document.createElement('div');
-			element.className = options.elements[i] == options.selected ? 'element selected' : 'element';
-			element.title = options.elements[i];
-			element.style.width = elementWidth;
-			line.appendChild(element);
-
-      if (i < start)
-        element.style.display = 'none';
-
-			elements.push(element);
-
-			var a = document.createElement('a');
-			a.className = 'circle';
-			a.title = options.elements[i];
-      a.index = i;
-			element.appendChild(a);
-
-			a.onclick = function() {
-				for (var j = 0; j < elements.length; j++)
-					elements[j].className = "element";
-
-				this.parentNode.className = "element selected";
-
-				selectedElement = this.title;
-
-				if (options.onChange)
-					options.onChange(selectedElement, this.index);
-
-				return false;
-			}
-
-			// Text
-			var element = document.createElement('div');
-			element.className = 'element';
-			element.style.width = elementWidth;
-			years.appendChild(element);
-
-      if (i < start)
-        element.style.display = 'none';
-
-      texts.push(element);
-
-			var a = document.createElement('a');
-			a.title = options.elements[i];
-			a.index = i;
-			element.appendChild(a);
-
-			a.onclick = function() {
-				for (var j = 0; j < elements.length; j++)
-					elements[j].className = "element";
-
-				elements[this.index].className = "element selected";
-
-				selectedElement = this.title;
-
-				if (options.onChange)
-					options.onChange(selectedElement);
-
-				return false;
-			}
-
-			a.appendChild(document.createTextNode(options.elements[i]));
-		}
-
-    // Right arrow
-
-    if (options.elements.length > options.maxShownElements) {
-      var element = document.createElement('div');
-      element.className = 'element element-right';
-      //element.title = options.elements[i];
-      element.style.width = elementWidth;
-      line.appendChild(element);
-
-      element.onclick = function() {
-        if (start + options.maxShownElements < elements.length) {
-          start++;
-
-          var end = start + options.maxShownElements;
-
-          for (var i = 0; i < elements.length; i++) {
-            if (i >= start && i < end)
-              elements[i].style.display = texts[i].style.display = 'block';
-            else
-              elements[i].style.display = texts[i].style.display = 'none';
-          }
-
-          if (end == elements.length)
-            rightArrow.className = 'arrow arrow-right arrow-disabled';
-
-          leftArrow.className = 'arrow arrow-left arrow-active';
-        }
-      }
-
-      var rightArrow = document.createElement('a');
-      rightArrow.className = "arrow arrow-right arrow-disabled";
-      rightArrow.innerHTML = '>';
-      element.appendChild(rightArrow);
-      element.arrow = rightArrow;
-
-      var space = document.createElement('div');
-      space.style.width = elementWidth;
-      space.style.height = '0.1em';
-      space.className = 'element'
-      years.appendChild(space);
-    }
-
-    // First onChange call
-
-    if (selectedElement && options.onChange)
-      options.onChange(selectedElement);
-
-		this.selected = function() {
-			return selectedElement;
-		}
-	})();
 };

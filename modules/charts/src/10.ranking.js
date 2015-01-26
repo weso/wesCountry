@@ -71,7 +71,7 @@ wesCountry.charts.rankingChart = function(options) {
 
 			for (var j = 0; j < groupLength; j++) {
 				var element = group[j];
-				var serie = element.name;
+				var serie = options.getName(element);
 				var id = element.id;
 				var value = element.value;
 				var url = element.url;
@@ -357,10 +357,13 @@ wesCountry.charts.rankingChart = function(options) {
 		}
 
 		numbers = numbers.sort(function(a, b) {
+			var a_name = options.getName(a);
+			var b_name = options.getName(b);
+			
 			if (a.value != b.value)
 				return a.value - b.value;
 			else
-				return a.name.localeCompare(b.name);
+				return a_name.localeCompare(b_name);
 		});
 
 		var count = 1;

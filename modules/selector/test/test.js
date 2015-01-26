@@ -81,21 +81,23 @@ var dataCountries = [
 	}
 ];
 
-function timeCallback(element, selectedItems) {
+function timeCallback(selectedItems) {
 	var result = "YEAR(" + selectedItems.getArray() + ")";
 	document.getElementById("first_result").innerHTML = result;
 }
 
-function countryCallback(element, selectedItems) {
+function countryCallback(selectedItems) {
 	var result = "COUNTRY(" + selectedItems.getArray() + ")";
 	document.getElementById("second_result").innerHTML = result;
 }
 
-var yearSelector = new wesCountry.selector.basic(dataYears, { callback: timeCallback, maxSelectedItems: 3 });
+var yearSelector = new wesCountry.selector.basic({ data: dataYears, onChange: timeCallback, maxSelectedItems: 3 });
 document.getElementById("first").appendChild(yearSelector.render());
 
-var countrySelector = new wesCountry.selector.basic(dataCountries, { callback: countryCallback, selectedItems: ["ESP"], maxSelectedItems: 3 });
+var countrySelector = new wesCountry.selector.basic({ data: dataCountries, onChange: countryCallback, selectedItems: ["ESP"], maxSelectedItems: 3 });
 document.getElementById("second").appendChild(countrySelector.render());
+
+console.log(countrySelector.selected())
 
 wesCountry.selector.timeline({
 	container: '#third',
@@ -126,7 +128,7 @@ wesCountry.selector.timeline({
 	]
 });
 
-wesCountry.selector.timeline({
+var timeline = wesCountry.selector.timeline({
 	container: '#third',
 	maxShownElements: 5,
 	elements: [
@@ -134,10 +136,15 @@ wesCountry.selector.timeline({
 		2009,
 		2010,
 		2011,
-		2012
-	]
+		2012,
+		2013
+	],
+	onChange: function() {
+		if (timeline)
+			console.log(timeline.selected())
+	}
 });
-
+console.log(timeline)
 function clearYearSelector() {
 	yearSelector.clear();
 }

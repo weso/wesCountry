@@ -99,6 +99,30 @@ var wesCountry = new (function() {
 		else
 			element.fireEvent("on" + event);
 	}
+	
+	this.hexToRgb = function(hex) {
+    	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    	
+    	return result ? {
+        	r: parseInt(result[1], 16),
+        	g: parseInt(result[2], 16),
+        	b: parseInt(result[3], 16)
+    	} : {
+    		r: 0,
+    		g: 0,
+    		b: 0
+    	};
+	}
+	
+	this.shadeColour = function(colour, percent) {   
+		if (typeof colour == 'string' || colour instanceof String || ! "r" in colour|| ! "g" in colour || ! "b" in colour)
+			colour = wesCountry.hexToRgb(colour.toString());
+			
+    	var t = percent < 0 ? 0 : 255,
+    	percent = percent < 0 ? percent * -1 : percent;
+    	
+    	return "#" + (0x1000000+(Math.round((t-colour.r)*percent)+colour.r)*0x10000+(Math.round((t-colour.g)*percent)+colour.g)*0x100+(Math.round((t-colour.b)*percent)+colour.b)).toString(16).slice(1);
+	}
 
 	this.makeGradientColour = function(colour1, colour2, percent) {
 		var newColour = {};
@@ -119,7 +143,13 @@ var wesCountry = new (function() {
 
 			return(str);
 		}
-
+		
+		if (typeof colour1 == 'string' || colour1 instanceof String || ! "r" in colour1|| ! "g" in colour1 || ! "b" in colour1)
+			colour1 = wesCountry.hexToRgb(colour1.toString());
+			
+		if (typeof colour2 == 'string' || colour2 instanceof String || ! "r" in colour2|| ! "g" in colour2 || ! "b" in colour2)
+			colour2 = wesCountry.hexToRgb(colour2.toString());
+		
 		newColour.r = makeChannel(colour1.r, colour2.r);
 		newColour.g = makeChannel(colour1.g, colour2.g);
 		newColour.b = makeChannel(colour1.b, colour2.b);
@@ -129,6 +159,27 @@ var wesCountry = new (function() {
 							makeColourPiece(newColour.b);
 
 		return(newColour);
+	}
+	
+	this.makeGradientPalette = function(colours, length) {
+		var palette = [];
+
+  		var index = 0;
+  		var colourLength = colours.length;
+
+  		var intervalLength = length / (colourLength - 1);
+
+  		while (index < colourLength - 1) {
+    		for (var i = 0; i < intervalLength; i++) {
+      			var colour1 = colours[index];
+      			var colour2 = colours[index + 1];
+
+  				palette.push(wesCountry.makeGradientColour(colour1, colour2, (i / intervalLength) * 100).cssColour);
+  			}
+    		index++;
+  		}
+  		
+  		return palette;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////

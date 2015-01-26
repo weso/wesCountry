@@ -184,6 +184,30 @@ var wesCountry = new (function() {
 		else
 			element.fireEvent("on" + event);
 	}
+	
+	this.hexToRgb = function(hex) {
+    	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    	
+    	return result ? {
+        	r: parseInt(result[1], 16),
+        	g: parseInt(result[2], 16),
+        	b: parseInt(result[3], 16)
+    	} : {
+    		r: 0,
+    		g: 0,
+    		b: 0
+    	};
+	}
+	
+	this.shadeColour = function(colour, percent) {   
+		if (typeof colour == 'string' || colour instanceof String || ! "r" in colour|| ! "g" in colour || ! "b" in colour)
+			colour = wesCountry.hexToRgb(colour.toString());
+			
+    	var t = percent < 0 ? 0 : 255,
+    	percent = percent < 0 ? percent * -1 : percent;
+    	
+    	return "#" + (0x1000000+(Math.round((t-colour.r)*percent)+colour.r)*0x10000+(Math.round((t-colour.g)*percent)+colour.g)*0x100+(Math.round((t-colour.b)*percent)+colour.b)).toString(16).slice(1);
+	}
 
 	this.makeGradientColour = function(colour1, colour2, percent) {
 		var newColour = {};
@@ -204,7 +228,13 @@ var wesCountry = new (function() {
 
 			return(str);
 		}
-
+		
+		if (typeof colour1 == 'string' || colour1 instanceof String || ! "r" in colour1|| ! "g" in colour1 || ! "b" in colour1)
+			colour1 = wesCountry.hexToRgb(colour1.toString());
+			
+		if (typeof colour2 == 'string' || colour2 instanceof String || ! "r" in colour2|| ! "g" in colour2 || ! "b" in colour2)
+			colour2 = wesCountry.hexToRgb(colour2.toString());
+		
 		newColour.r = makeChannel(colour1.r, colour2.r);
 		newColour.g = makeChannel(colour1.g, colour2.g);
 		newColour.b = makeChannel(colour1.b, colour2.b);
@@ -214,6 +244,27 @@ var wesCountry = new (function() {
 							makeColourPiece(newColour.b);
 
 		return(newColour);
+	}
+	
+	this.makeGradientPalette = function(colours, length) {
+		var palette = [];
+
+  		var index = 0;
+  		var colourLength = colours.length;
+
+  		var intervalLength = length / (colourLength - 1);
+
+  		while (index < colourLength - 1) {
+    		for (var i = 0; i < intervalLength; i++) {
+      			var colour1 = colours[index];
+      			var colour2 = colours[index + 1];
+
+  				palette.push(wesCountry.makeGradientColour(colour1, colour2, (i / intervalLength) * 100).cssColour);
+  			}
+    		index++;
+  		}
+  		
+  		return palette;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -719,6 +770,7 @@ wesCountry.charts = new (function() {
 			"font-family": "Helvetica",
 			"font-colour": "#555",
 			"font-size": "11px",
+			rotation: 0
 		},
 		nameUnderItem: {
 			show: false,
@@ -726,6 +778,7 @@ wesCountry.charts = new (function() {
 			"font-family": "Helvetica",
 			"font-colour": "#555",
 			"font-size": "11px",
+			rotation: 0
 		},
 		sizeByValue: false, // Scatter
 		sizeByValueMaxRadius: 5, // Scatter
@@ -820,6 +873,12 @@ wesCountry.charts = new (function() {
     },
     stroke: {
       width: 1
+    },
+    getName: function(element) {
+    	return element.name ? element.name : "";
+    },
+    getValue: function(element) {
+    	return element.value;
     }
 	};
 
@@ -886,8 +945,9 @@ wesCountry.charts = new (function() {
 			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
 
 			var element = elements[i];
-
-			var name = element.name ? element.name : "";
+			
+			var name = options.getName(element);
+				
 			var colour = options.getElementColour(options, element, i);
 
 			legend.circle({
@@ -1248,7 +1308,7 @@ wesCountry.charts.barChart = function(options) {
 		for (var i = 0; i < length; i++) {
 			for (var j = 0; j < numberOfSeries; j++) {
 				var element = options.series[j];
-				var serie = element.name;
+				var serie = options.getName(element);
 				var id = element.id;
 				var value = element.values[i];
 				var url = element.urls ? element.urls[i] : "";
@@ -1339,27 +1399,54 @@ wesCountry.charts.barChart = function(options) {
 					});
 
 				// Value on bar
+				
+				var x = xPos + barWidth / 2;
+				var y = yPos + height + (options.height / 100) * options.valueOnItem.margin;
+				
+				var anchor = "middle";
+				
+				if (options.valueOnItem.rotation > 0)
+					anchor = "start";
+				else if (options.valueOnItem.rotation < 0)
+					anchor = "end";
+				
 				if (options.valueOnItem.show == true) {
-					g.text({
-						x: xPos + barWidth / 2,
-						y: yPos + height + (options.height / 100) * options.valueOnItem.margin,
-						value: serie
-					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
+					var t = g.text({
+						x: x,
+						y: y,
+						value: serie,
+						transform: String.format("rotate({0} {1} {2})", options.valueOnItem.rotation, x, y)
+					}).style(String.format("fill: {0};font-family:{1};font-size:{2}; dominant-baseline: middle; text-anchor: {3};",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
-						options.valueOnItem["font-size"]));
+						options.valueOnItem["font-size"],
+						anchor));
+					t.className("item-name");
 				}
-
+				
 				// Name under item
+				
+				var x = xPos + barWidth / 2;
+				var y = yPos - (options.height / 100) * options.nameUnderItem.margin;
+				
+				var anchor = "middle";
+				
+				if (options.nameUnderItem.rotation > 0)
+					anchor = "start";
+				else if (options.nameUnderItem.rotation < 0)
+					anchor = "end";
+				
 				if (options.nameUnderItem.show == true) {
 					g.text({
-						x: xPos + barWidth / 2,
-						y: yPos - (options.height / 100) * options.nameUnderItem.margin,
-						value: value.toFixed(2)
-					}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle;dominant-baseline: middle",
+						x: x,
+						y: y,
+						value: value.toFixed(2),
+						transform: String.format("rotate({0} {1} {2})", options.valueOnItem.rotation, x, y)
+					}).style(String.format("fill: {0};font-family:{1};font-size:{2} ;dominant-baseline: middle; text-anchor: {3};",
 						options.nameUnderItem["font-colour"],
 						options.nameUnderItem["font-family"],
-						options.nameUnderItem["font-size"]));
+						options.nameUnderItem["font-size"],
+						anchor));
 				}
 			}
 		}
@@ -1429,7 +1516,7 @@ wesCountry.charts.barChart = function(options) {
 		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor:end;dominant-baseline: middle",
 			option["font-colour"],
 			option["font-family"],
-			option["font-size"]));
+			option["font-size"])).className("statistics");
 	}
 
 	function getStatistics(values) {
@@ -3034,6 +3121,7 @@ wesCountry.charts.chart = function (options) {
 	return render(container);
 
 	function render(container) {
+
 		if (!options.width && container.offsetWidth > 0 )
 			options.width = container.offsetWidth;
 
@@ -3102,7 +3190,7 @@ wesCountry.charts.chart = function (options) {
 
 		// Chart
 
-		if (isNaN(height)) {
+		if (isNaN(height) || height <= 0) {
 			height = options.height;
 		}
 
@@ -3135,7 +3223,7 @@ wesCountry.charts.chart = function (options) {
 	function renderChart() {
 		body.innerHTML = '';
 
-		options.width = container.offsetWidth;
+		options.width = options.width ? options.width : container.offsetWidth;
 
 		if (container.offsetWidth == 0 && options.parentContainer) {
 			parentContainer = document.getElementById(options.parentContainer);
@@ -3941,7 +4029,7 @@ wesCountry.charts.rankingChart = function(options) {
 
 			for (var j = 0; j < groupLength; j++) {
 				var element = group[j];
-				var serie = element.name;
+				var serie = options.getName(element);
 				var id = element.id;
 				var value = element.value;
 				var url = element.url;
@@ -4227,10 +4315,13 @@ wesCountry.charts.rankingChart = function(options) {
 		}
 
 		numbers = numbers.sort(function(a, b) {
+			var a_name = options.getName(a);
+			var b_name = options.getName(b);
+			
 			if (a.value != b.value)
 				return a.value - b.value;
 			else
-				return a.name.localeCompare(b.name);
+				return a_name.localeCompare(b_name);
 		});
 
 		var count = 1;
@@ -6136,25 +6227,41 @@ function SortedArray() {
 }if (typeof (wesCountry) === "undefined")
     var wesCountry = new Object();
 
-wesCountry.selector = new Object();
+if (!wesCountry.selector)
+	wesCountry.selector = new Object();
 
-wesCountry.selector.basic = function(data, options) {
+wesCountry.selector.basic = function(options) {
 	var defaultOptions = {
 		"ul-class": "default-selector",
-		callback: null,
+		data: [],
+		onChange: function(element, index) {
+			console.log(String.format("{0} {1}", index, element));
+		},
+		beforeChange: function(element, index) {
+			console.log(String.format("{0} {1}", index, element));
+		},
 		maxSelectedItems: -1,
-		selectedItems: []
+		selectedItems: [],
+		labelName: "label",
+		valueName: "code",
+		childrenName: "children",
+		sort: true,
+		autoClose: false,
+		selectParentNodes: true
 	};
 
 	var firstLevelItems = [];
 	var selectedItems = new SortedArray();
 	var root = null;
+	var elements = {};
+	var self = this;
+	var collapsableElements = [];
 
 	function init() {
 		// Merge default options and user options
-		options = mergeOptionsAndDefaultOptions(options, defaultOptions);
+		options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
 
-		var list = generateList(data, null, 1, null, null);
+		var list = generateList(options.data, null, 1, null, null);
 		root = list.ul;
 
 		// Set options.selectedItems as selected
@@ -6172,9 +6279,56 @@ wesCountry.selector.basic = function(data, options) {
 	}
 
 	this.clear = function() {
-		var length = root.children.length;
-		for (var i = 0; i < length; i++)
-			updateElementStatus(root.children[i], null, false);
+		selectedItems = new SortedArray();
+		
+		clearElements(root);
+	}
+	
+	function clearElements(element) {
+		var length = element && element.children && element.children.length ? element.children.length : 0;
+		
+		for (var i = 0; i < length; i++) {
+			var child = element.children[i];
+				
+			updateElementStatus(child, null, false);
+			clearElements(child.querySelector("ul"));	
+		}
+	}
+	
+	this.selected = function() {
+		return selectedItems.getArray().toString();
+	}
+	
+	this.selectedLength = function() {
+		return selectedItems.length;
+	}
+	
+	this.addEventListener = function(event, handler) {
+		options.onChange = handler;
+	}
+	
+	this.options = [];
+	
+	this.select = function(objects) {
+		self.clear();
+		
+		changeElementsStatus(objects, true);
+	}
+	
+	this.unselect = function(objects) {
+		changeElementsStatus(objects, false);
+	}
+	
+	function changeElementsStatus(objects, status) {
+		objects = objects.split(",");
+		var length = objects.length;
+
+		for (var i = 0; i < length; i++) {
+			var element = objects[i];
+
+			if (element in elements)
+				updateElementStatus(elements[element], null, status);
+		}
 	}
 
 	// List generation
@@ -6183,13 +6337,17 @@ wesCountry.selector.basic = function(data, options) {
 		ul.className = options["ul-class"];
 
 		// Sort children
-		element.sort(function(a, b) {
-			if (a.label < b.label)
-				return -1;
-			if (a.label > b.label)
-				return 1;
-			return 0;
-		});
+		
+		var labelName = options.labelName;
+		
+		if (options.sort)
+			element.sort(function(a, b) {
+				if (a[labelName] < b[labelName])
+					return -1;
+				if (a[labelName] > b[labelName])
+					return 1;
+				return 0;
+			});
 
 		var length = element.length;
 
@@ -6200,13 +6358,13 @@ wesCountry.selector.basic = function(data, options) {
 
 		for (var i = 0; i < length; i++) {
 			var child = element[i];
-			var childrenLength = child.children && child.children.length ? child.children.length : 0;
+			var childrenLength = child[options.childrenName] && child[options.childrenName].length ? child[options.childrenName].length : 0;
 
 			var li = document.createElement("li");
 			ul.appendChild(li);
 
 			// Set parent information
-			li.code = child.code;
+			li.code = child[options.valueName];
 			li.liParent = parent;
 			li.data = child;
 
@@ -6215,8 +6373,8 @@ wesCountry.selector.basic = function(data, options) {
 
 			var currentLink = document.createElement("a");
 			currentLink.href = "javascript: void(0)"
-			currentLink.value = child.label;
-
+			currentLink.value = child[options.labelName];
+			
 			// Check if element is selected
 			if (options.selectedItems.indexOf(li.code) != -1) {
 				selected = true;
@@ -6240,21 +6398,25 @@ wesCountry.selector.basic = function(data, options) {
 			currentLink.className = "circleAndText"
 			li.appendChild(currentLink);
 
-			// Click event on currentLink div
 			// We set the parent of currentLink div (the LI element)
 			currentLink.liParent = li;
-
+			
+			// Click event on currentLink div
 			currentLink.onclick = function(event) {
-				elementClick(this.liParent, options.callback);
+				elementClick(this.liParent, options.onChange);
 
 				if (event)
 					event.stopPropagation();
 			};
+			
+			// Save element in dictionary
+			elements[li.code] = li;
 
 			// Plus or minus sign to show / hide children
 			var plusOrMinus = document.createElement("div");
-			plusOrMinus.className = childrenLength > 0 ? "plusOrMinus" : "hidden-plusOrMinus";
+			plusOrMinus.className = childrenLength > 0 ? "plus-element plusOrMinus" : "hidden-plusOrMinus";
 			plusOrMinus.innerHTML = "+";
+			plusOrMinus.parentUl = ul;
 			currentLink.appendChild(plusOrMinus);
 
 			if (childrenLength > 0) {
@@ -6263,13 +6425,15 @@ wesCountry.selector.basic = function(data, options) {
 					event.stopPropagation();
 				}
 			}
+			
+			collapsableElements.push(plusOrMinus);
 
 			// Keyboard event for link
 			currentLink.plusOrMinus = plusOrMinus;
 
 			currentLink.onkeydown = function(event) {
 				if (event.keyCode == 13) {
-					elementClick(this.liParent, options.callback);
+					elementClick(this.liParent, options.onChange);
 
 					event.stopPropagation();
 					return false;
@@ -6312,7 +6476,7 @@ wesCountry.selector.basic = function(data, options) {
 			title.className = "title";
 			currentLink.appendChild(title)
 
-			var text = document.createTextNode(child.label);
+			var text = document.createTextNode(child[options.labelName]);
 			title.appendChild(text);
 
 			// Update previous link
@@ -6334,7 +6498,7 @@ wesCountry.selector.basic = function(data, options) {
 				};
 
 				// Children
-				var childrenUl = generateList(child.children, li, level + 1, previousLink, currentLink);
+				var childrenUl = generateList(child[options.childrenName], li, level + 1, previousLink, currentLink);
 				li.appendChild(childrenUl.ul);
 
 				// Update first child link
@@ -6354,7 +6518,7 @@ wesCountry.selector.basic = function(data, options) {
 			}
 
 			// Set child number
-			li.childNumber = child.children ? child.children.length : 0;
+			li.childNumber = child[options.childrenName] ? child[options.childrenName].length : 0;
 		}
 
 		// Non top-level elements are initially hidden
@@ -6376,6 +6540,17 @@ wesCountry.selector.basic = function(data, options) {
 
 	function plusMinusClick (element) {
 		if (element.innerHTML == "+") {
+			if (options.autoClose) {
+				// Close siblings
+				
+				var children = element.parentUl.querySelectorAll(".plus-element");
+
+				for (var i = 0; i < children.length; i++) {
+					var child = children[i];
+					closeElement(child);
+				}
+			}
+			
 			element.innerHTML = "&#8212;";
 
 			if (element.childrenUl)
@@ -6384,13 +6559,17 @@ wesCountry.selector.basic = function(data, options) {
 			element.opened = true;
 		}
 		else {
-			element.innerHTML = "+";
-
-			if (element.childrenUl)
-				element.childrenUl.style.display = "none";
-
-			element.opened = false;
+			closeElement(element);
 		}
+	}
+	
+	function closeElement(element) {
+		element.innerHTML = "+";
+
+		if (element.childrenUl)
+			element.childrenUl.style.display = "none";
+
+		element.opened = false;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -6403,25 +6582,37 @@ wesCountry.selector.basic = function(data, options) {
 			elementClick(firstLevelItems[i].liParent, null);
 	}
 
-	function elementClick(element, callback) {
+	function elementClick(element, onChange) {
+		if (element.childNumber > 0 && !options.selectParentNodes)
+			return;
+		
 		var selected = !element.isSelected;
 
 		if (selected && options.maxSelectedItems > 0 && selectedItems.length >= options.maxSelectedItems)
 			return;
 
-		updateElementStatus(element, callback, selected);
+		updateElementStatus(element, onChange, selected);
 	}
 
-	function updateElementStatus(element, callback, selected) {
+	function updateElementStatus(element, onChange, selected) {
+		var oldClass = element.className;
 		setElementStatus(element, selected);
 
 		// Add element in its parent's counter
 		if (element.liParent) {
-			var oldParentCounter = element.liParent.counter.value;
-			var parentCounter = selected ? oldParentCounter + 1 : oldParentCounter - 1;
+			if (element.liParent.counter != undefined && element.liParent.counter.value != undefined) {
+				var oldParentCounter = element.liParent.counter.value;
 
-			updateElementCounter(element.liParent, parentCounter);
+				if (oldClass == "" || oldClass == "not-selected")
+					var parentCounter = selected ? oldParentCounter + 1 : oldParentCounter;
+				else
+					var parentCounter = selected ? oldParentCounter : oldParentCounter - 1;
+					
+				if (parentCounter < 0)
+					parentCounter = 0;
 
+				updateElementCounter(element.liParent, parentCounter);
+			}
 			// An element is selected when all its children are selected
 			// If an element is unselected then its parent must be unselected
 			if (!selected) {
@@ -6447,9 +6638,17 @@ wesCountry.selector.basic = function(data, options) {
 		if (element.childNumber > 0)
 			updateElementCounter(element, selected ? element.childNumber : 0);
 
-		// Callback invocation
-		if (callback)
-			callback.call(element, element.data, selectedItems);
+		// onChange invocation
+		if (onChange) {
+			if (options.beforeChange)
+				options.beforeChange.call(self, selectedItems, {
+					code: element.code,
+					selected: selected,
+					element: element
+				});
+			
+			onChange.call(self, selectedItems);
+		}
 	}
 
 	function setElementStatus(element, status) {
@@ -6465,10 +6664,10 @@ wesCountry.selector.basic = function(data, options) {
 			element.firstChild.title = value + (status ? " is selected" : "");
 		}
 
-		var length = element && element.children && element.children.length ? element.children.length : 0;
+		var length = element && element[options.childrenName] && element[options.childrenName].length ? element[options.childrenName].length : 0;
 
 		for (var i = 0; i < length; i++)
-			setElementStatus(element.children[i], status);
+			setElementStatus(element[options.childrenName][i], status);
 	}
 
 	function updateElementCounter(element, value) {
@@ -6497,49 +6696,12 @@ wesCountry.selector.basic = function(data, options) {
 				selectedItems.remove(code);
 		}
 	}
-
-	////////////////////////////////////////////////////////////////////////////////
-	//                              MERGING OPTIONS
-	////////////////////////////////////////////////////////////////////////////////
-
-	function mergeOptionsAndDefaultOptions(options, defaultOptions) {
-		if (options) {
-			if (typeof options === "string")
-				options = { container: options };
-
-			var auxOptions = clone(defaultOptions);
-
-			for (var option in options)
-				auxOptions[option] = mergeOptions(auxOptions[option], options[option]);
-
-			options = auxOptions;
-		}
-		else
-			options = clone(defaultOptions);
-
-		return options;
-	};
-
-	function mergeOptions(to, from) {
-		if (from instanceof Array) {
-			return from;
-		}
-		else if (typeof from === "object") {
-			for (var option in from) {
-				to[option] = mergeOptions(to[option], from[option]);
-			}
-
-			return to;
-		}
-		else
-			return from;
-	};
-
-	function clone(obj) {
-		// Not valid for copying objects that contain methods
-	    return JSON.parse(JSON.stringify(obj));
-	}
 };
+if (typeof (wesCountry) === "undefined")
+    var wesCountry = new Object();
+
+if (!wesCountry.selector)
+	wesCountry.selector = new Object();
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                    TIMELINE
@@ -6561,10 +6723,13 @@ wesCountry.selector.timeline = function(options) {
 	};
 
 	var selectedElement = options.selected ? options.selected : null;
+	var elementsStatus = {};
 
 	return new (function() {
+		var self = this;
 		options = wesCountry.mergeOptionsAndDefaultOptions(options, defaultOptions);
-
+		selectedElement = options.elements.length > 0 ? options.elements[options.elements.length - 1] : null;
+		
 		var container = document.querySelector(options.container);
 
 		var timeline = document.createElement('div');
@@ -6588,11 +6753,14 @@ wesCountry.selector.timeline = function(options) {
 
 		var elements = [];
     var texts = [];
+    var anchors = {};
+    var textAnchors = {};
 
     // Left arrow
     if (options.elements.length > options.maxShownElements) {
       var element = document.createElement('div');
       element.className = 'element';
+      
       //element.title = options.elements[i];
       element.style.width = elementWidth;
       line.appendChild(element);
@@ -6629,7 +6797,14 @@ wesCountry.selector.timeline = function(options) {
       space.className = 'element'
       years.appendChild(space);
     }
-
+	
+	// Elements status
+	
+	for (var i = 0; i < options.elements.length; i++) {
+		var element = options.elements[i];
+		elementsStatus[element] = true;
+	}
+	
     // Elements
 
     var start = options.elements.length <= options.maxShownElements ? 0 :
@@ -6638,7 +6813,7 @@ wesCountry.selector.timeline = function(options) {
 		for (var i = 0; i < options.elements.length; i++) {
 			// Circle
 			var element = document.createElement('div');
-			element.className = options.elements[i] == options.selected ? 'element selected' : 'element';
+			element.className = options.elements[i] == selectedElement ? 'element selected' : 'element';
 			element.title = options.elements[i];
 			element.style.width = elementWidth;
 			line.appendChild(element);
@@ -6651,10 +6826,15 @@ wesCountry.selector.timeline = function(options) {
 			var a = document.createElement('a');
 			a.className = 'circle';
 			a.title = options.elements[i];
-      a.index = i;
+      		a.index = i;
 			element.appendChild(a);
+			
+			anchors[options.elements[i]] = a;
 
 			a.onclick = function() {
+				if (!elementsStatus[this.title])
+					return;
+					
 				for (var j = 0; j < elements.length; j++)
 					elements[j].className = "element";
 
@@ -6663,7 +6843,7 @@ wesCountry.selector.timeline = function(options) {
 				selectedElement = this.title;
 
 				if (options.onChange)
-					options.onChange(selectedElement, this.index);
+					options.onChange.call(self, selectedElement, this.index);
 
 				return false;
 			}
@@ -6678,22 +6858,29 @@ wesCountry.selector.timeline = function(options) {
         element.style.display = 'none';
 
       texts.push(element);
+      textAnchors[options.elements[i]] = element;
 
 			var a = document.createElement('a');
 			a.title = options.elements[i];
 			a.index = i;
+			a.setAttribute("data-index", options.elements[i]);
 			element.appendChild(a);
 
 			a.onclick = function() {
+				if (!elementsStatus[this.title])
+					return;
+					
 				for (var j = 0; j < elements.length; j++)
 					elements[j].className = "element";
-
+				
 				elements[this.index].className = "element selected";
 
 				selectedElement = this.title;
+				
+				self.selectedIndex = this.index;
 
 				if (options.onChange)
-					options.onChange(selectedElement);
+					options.onChange.call(self, selectedElement);
 
 				return false;
 			}
@@ -6746,10 +6933,81 @@ wesCountry.selector.timeline = function(options) {
     // First onChange call
 
     if (selectedElement && options.onChange)
-      options.onChange(selectedElement);
+      options.onChange.call(self, selectedElement);
 
 		this.selected = function() {
 			return selectedElement;
+		}
+		
+		this.addEventListener = function(event, handler) {
+			options.onChange = handler;
+		}
+		
+		this.options = elements;
+		
+		this.select = function(element) {
+			var a = anchors[element];
+			
+			if (a) {
+				a.click();
+			}
+		}
+		
+		this.getElements = function() {
+			return options.elements;
+		}
+		
+		this.enable = function(element) {
+			if (elementsStatus[element] !== undefined) {
+				elementsStatus[element] = true;
+				
+				if (anchors[element])
+					anchors[element].className = anchors[element].className.replace(" enabled", "").replace(" disabled", "") + " enabled";
+					
+				if (textAnchors[element])
+					textAnchors[element].className = textAnchors[element].className.replace(" enabled", "").replace(" disabled", "") + " enabled";
+			}
+		}
+		
+		this.disable = function(element) {
+			if (elementsStatus[element] !== undefined) {
+				elementsStatus[element] = false;
+				
+				if (anchors[element])
+					anchors[element].className = anchors[element].className.replace(" enabled", "").replace(" disabled", "") + " disabled";
+					
+				if (textAnchors[element])
+					textAnchors[element].className = textAnchors[element].className.replace(" enabled", "").replace(" disabled", "") + " disabled";
+					
+				if (element == selectedElement) {
+					selectedElement = null;
+					
+					// Select first selectable item (from the end)
+					for (var i = options.elements.length - 1; i >= 0; i--) {
+						var e = options.elements[i];
+						
+						if (elementsStatus[e])
+							this.select(e);
+					}
+				}	
+			}
+		}
+		
+		this.enableAll = function() {
+			for (var element in elementsStatus)
+				this.enable(element);
+		}
+		
+		this.disableAll = function() {
+			for (var element in elementsStatus)
+				this.disable(element);
+		}
+		
+		this.clear = function() {
+			for (var j = 0; j < elements.length; j++)
+				elements[j].className = "element";
+
+			selectedElement = -1;
 		}
 	})();
 };
@@ -7016,6 +7274,7 @@ wesCountry.maps = new (function() {
   var defaultOptions = {
     "projection": "miller",
     "countries": [],
+    "countryCodeName": "code",
     "countryCode": "iso3",
     "backgroundColour": "#fff",
     "landColour": "#fff",
@@ -7037,7 +7296,7 @@ wesCountry.maps = new (function() {
         visor.innerHTML = '';
 
         var name = document.createElement('span');
-        name.innerHTML = info.nombre;
+        name.innerHTML = info.name;
         name.className = 'name';
         visor.appendChild(name);
 
@@ -7050,7 +7309,13 @@ wesCountry.maps = new (function() {
     "onCountryOut": function(info, visor) {
       if (visor)
         visor.innerHTML = '';
-    }
+    },
+    "getValue": function(country) {
+    	return country.value;
+    },
+    getElementColour: function(options, country, value, rangeColours) {
+		return rangeColours[value];
+	}
   };
 
   this.createMap = function(options) {
@@ -7066,6 +7331,7 @@ wesCountry.maps = new (function() {
     container.appendChild(mapContainer);
 
     var mapContainerHeight = container.offsetHeight > 0 ? container.offsetHeight : options.height;
+    var mapContainerWidth = container.offsetWidth > 0 ? container.offsetWidth : options.width;
 
     // Group by time
 
@@ -7117,7 +7383,8 @@ wesCountry.maps = new (function() {
     	options.onChange.call(this, times.length == 1 ? times[0] : null, 0);
 
     mapContainer.style.minHeight = mapContainerHeight + 'px';
-
+    mapContainer.style.minWidth = mapContainerWidth + 'px';
+    
     var last = times.length - 1;
     var mapData = [];
 
@@ -7173,8 +7440,8 @@ wesCountry.maps = new (function() {
 
     for (var i = 0; i < countries.length; i++) {
       var country = countries[i];
-      var code = country.code;
-      var value = country.value;
+      var code = country[options.countryCodeName];
+      var value = options.getValue(country);
       var time = country.time ? country.time : "-";
 
       if (times.indexOf(time) == -1) {
@@ -7252,8 +7519,11 @@ wesCountry.maps = new (function() {
 
       // Height
       var height = containerParent.offsetHeight > 0 ? containerParent.offsetHeight : 300;
+      
+      // Width
+      var width = containerParent.offsetWidth > 0 ? containerParent.offsetWidth : 300;
 
-      _svgWidth = containerParent.offsetWidth;
+      _svgWidth = width;
       _svgHeight = height;
 
       // Zoom buttons
@@ -7261,7 +7531,11 @@ wesCountry.maps = new (function() {
         createZoomButtons(container);
 
       getProjection();
-
+		
+	var wrapper = document.createElement("div");
+	wrapper.className = "notranslate";
+	container.appendChild(wrapper);	
+		
       svg = document.createElementNS(namespace, "svg");
       var svgClassName = String.format('wesCountry-map-time-{0}', wesCountry.guid());
       svg.setAttributeNS(null, 'class', String.format("wesCountry {0}", svgClassName));
@@ -7271,7 +7545,7 @@ wesCountry.maps = new (function() {
       svg.setAttributeNS(null, 'viewBox',
           String.format('0 0 {0} {1}', _svgWidth, height));
 
-      container.appendChild(svg);
+      wrapper.appendChild(svg);
 
       // Water
 
@@ -7357,9 +7631,15 @@ wesCountry.maps = new (function() {
           if (element) {
             element.info = country;
 
-            var value = countryList[element.id] ? countryList[element.id].value : null;
+            var value = countryList[element.id] ? options.getValue(countryList[element.id]) : null;
 
             element.info.value = value;
+            
+            // Extra info
+            for (var key in countryList[element.id]) {
+            	value = countryList[element.id][key]
+            	element.info["data-" + key] = value;
+            }
 
             fullCountryList[element.id] = element.info;
           }
@@ -7660,7 +7940,7 @@ wesCountry.maps = new (function() {
 			var valueList = [];
 
 			for (var i = 0; i < countries.length; i++) {
-				var value = countries[i].value;
+				var value = options.getValue(countries[i]);
 
 				if (valueList.indexOf(value) == -1)
 					valueList.push(value);
@@ -7681,15 +7961,16 @@ wesCountry.maps = new (function() {
 
 			for (var i = 0; i < countries.length; i++) {
 				var country = countries[i];
-				var value = country.value;
+				var value = options.getValue(country);
 
-				var colour = valueColours[value];
-
-				countryList[country.code] = country;
+				var colour = options.getElementColour(options, country, value, valueColours);
+				var code = country[options.countryCodeName];
+				
+				countryList[code] = country;
 
 				// Create CSS class to asign country colour
-				styleContent += String.format("\n.{0} .{1}, .{0} .{1} g, .{0} .{1} path { fill: {2}; }", className, country.code, colour);
-				styleContent += String.format("\n.{0} .{1}:hover, .{0} .{1}:hover g, .{0} .{1}:hover path { fill: {2}; opacity: 0.9; }", className, country.code, colour);
+				styleContent += String.format("\n.{0} .{1}, .{0} .{1} g, .{0} .{1} path { fill: {2}; }", className, code, colour);
+				styleContent += String.format("\n.{0} .{1}:hover, .{0} .{1}:hover g, .{0} .{1}:hover path { fill: {2}; opacity: 0.9; }", className, code, colour);
 			}
 
 			style.appendChild(document.createTextNode(styleContent));
@@ -7973,7 +8254,7 @@ wesCountry.stateful = new (function() {
         ignoreValue: true,
         ignore: true,
         selectedIndex: 0,
-        electedIndex: function() { return 0; },
+        selectedIndex: function() { return 0; },
         onChange: function(index, value, parameters) {}
       } */
     ]
@@ -7983,6 +8264,7 @@ wesCountry.stateful = new (function() {
   var queryParameters = [];
   var selectors = {};
   var host = "";
+  var hash = "";
   var options = null;
 
   this.getParameters = function() {
@@ -8010,6 +8292,7 @@ wesCountry.stateful = new (function() {
     var info = getUrlParameters();
     parameters = info.parameters;
     host = info.host;
+    hash = info.hash;
 
     var urlDifferentFromInitial = processElements(options, parameters);
 
@@ -8032,8 +8315,10 @@ wesCountry.stateful = new (function() {
 
   function getFullURL() {
     var queryString = getQueryString();
-
-    return String.format("{0}?{1}", host, queryString);
+	
+	var hash = hash && hash != "" ? "#" + hash : "";
+	
+    return String.format("{0}?{1}{2}", host, queryString, hash);
   }
 
   function getQueryString() {
@@ -8138,7 +8423,10 @@ wesCountry.stateful = new (function() {
     //selector.element = selector.name ? selector.name : selector.id;
 
     wesCountry.registerEvent(selector, 'change', function() {
-      var value = this.options[this.selectedIndex].value;
+      //var value = this.options[this.selectedIndex].value;
+
+      var value = this.selected ? this.selected() : this.value;
+
       changeParameter(this.element, value);
 
       if (onChange)
@@ -8147,7 +8435,12 @@ wesCountry.stateful = new (function() {
 
     // Refresh function
     selector.refresh = function() {
-      var value = (this.options && this.options && this.options[this.selectedIndex]) ?
+    	var value = "";
+    	
+    	if (this.selected)
+    		value = this.selected();
+    	else
+      		value = (this.options && this.options && this.options[this.selectedIndex]) ?
                     this.options[this.selectedIndex].value : "";
 
       changeParameter(this.element, value);
@@ -8158,14 +8451,17 @@ wesCountry.stateful = new (function() {
 
     // Set initial value
     var options = selector.options;
+	
+	if (selector.select)
+		selector.select(initialValue);
+	else {
+		for (var i = 0; i < options.length; i++)
+		  if (options[i].value == initialValue) {
+			selector.selectedIndex = i;
 
-    for (var i = 0; i < options.length; i++)
-      if (options[i].value == initialValue) {
-        selector.selectedIndex = i;
-
-        break;
-      }
-
+			break;
+		  }
+	}
     // Set selected index
 
     return {
@@ -8178,8 +8474,12 @@ wesCountry.stateful = new (function() {
     var parameters = {};
 
     var url = document.URL;
-
-    var queryString = url.split('?');
+	
+	var hash = url.split('#');
+	
+    var queryString = hash[0].split('?');
+    
+    hash = hash.length > 1 ? hash[1] : "";
 
     var host = queryString[0];
 
@@ -8200,7 +8500,8 @@ wesCountry.stateful = new (function() {
 
     return {
       host: host,
-      parameters: parameters
+      parameters: parameters,
+      hash: hash
     };
   }
 })();
