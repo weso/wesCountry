@@ -7274,6 +7274,7 @@ wesCountry.maps = new (function() {
   var defaultOptions = {
     "projection": "miller",
     "countries": [],
+    "countryCodeName": "code",
     "countryCode": "iso3",
     "backgroundColour": "#fff",
     "landColour": "#fff",
@@ -7311,7 +7312,10 @@ wesCountry.maps = new (function() {
     },
     "getValue": function(country) {
     	return country.value;
-    }
+    },
+    getElementColour: function(options, country, value, rangeColours) {
+		return rangeColours[value];
+	}
   };
 
   this.createMap = function(options) {
@@ -7436,7 +7440,7 @@ wesCountry.maps = new (function() {
 
     for (var i = 0; i < countries.length; i++) {
       var country = countries[i];
-      var code = country.code;
+      var code = country[options.countryCodeName];
       var value = options.getValue(country);
       var time = country.time ? country.time : "-";
 
@@ -7959,13 +7963,14 @@ wesCountry.maps = new (function() {
 				var country = countries[i];
 				var value = options.getValue(country);
 
-				var colour = valueColours[value];
-
-				countryList[country.code] = country;
+				var colour = options.getElementColour(options, country, value, valueColours);
+				var code = country[options.countryCodeName];
+				
+				countryList[code] = country;
 
 				// Create CSS class to asign country colour
-				styleContent += String.format("\n.{0} .{1}, .{0} .{1} g, .{0} .{1} path { fill: {2}; }", className, country.code, colour);
-				styleContent += String.format("\n.{0} .{1}:hover, .{0} .{1}:hover g, .{0} .{1}:hover path { fill: {2}; opacity: 0.9; }", className, country.code, colour);
+				styleContent += String.format("\n.{0} .{1}, .{0} .{1} g, .{0} .{1} path { fill: {2}; }", className, code, colour);
+				styleContent += String.format("\n.{0} .{1}:hover, .{0} .{1}:hover g, .{0} .{1}:hover path { fill: {2}; opacity: 0.9; }", className, code, colour);
 			}
 
 			style.appendChild(document.createTextNode(styleContent));
