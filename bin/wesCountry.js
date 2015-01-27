@@ -7284,7 +7284,7 @@ wesCountry.maps = new (function() {
     "colourRange": ['#A9F5BC', '#1184a7'],
     "container": "body",
     "zoom": true,
-    "zoomToCountryFactor": 0.8,
+    "zoomToCountryFactor": 1,
     "selectedRegions": [],
     "selectedRegionColour": '#333',
     "selectedRegionBorderColour": "#ccc",
@@ -7502,14 +7502,15 @@ wesCountry.maps = new (function() {
       container.style.display = 'none';
     }
 
-		function init(containerParent, map, countries, show) {
-		  container = createMap(containerParent, countries);
-//
-      if (!show)
-        container.style.display = 'none';
+	function init(containerParent, map, countries, show) {
+		container = createMap(containerParent, countries);
+		map.zoomToCountry("the-world");
 
-			return map;
-		};
+      	if (!show)
+        	container.style.display = 'none';
+
+		return map;
+	};
 
     function createMap(containerParent, countries) {
       var container = document.createElement('div');
@@ -7556,6 +7557,8 @@ wesCountry.maps = new (function() {
       // Panel
 
       panel = document.createElementNS(namespace, "g");
+      panel.setAttributeNS(null, "id", "the-world");
+      panel.setAttributeNS(null, "class", "the-world");
       svg.appendChild(panel);
 
       // Styles
