@@ -7307,9 +7307,10 @@ wesCountry.maps = new (function() {
     "onCountryClick": function(info) {
       alert(info.iso3);
     },
-    "onCountryOver": function(info, visor) {
+    "onCountryOver": function(info, visor, options) {
       if (visor) {
         visor.innerHTML = '';
+        visor.className = 'visor visor-full';
 
         var name = document.createElement('span');
         name.innerHTML = info.name;
@@ -7322,15 +7323,21 @@ wesCountry.maps = new (function() {
         visor.appendChild(value);
       }
     },
-    "onCountryOut": function(info, visor) {
-      if (visor)
-        visor.innerHTML = '';
+    "onCountryOut": function(info, visor, options) {
+      if (visor) {
+        visor.innerHTML = options.visor.value;
+        visor.className = 'visor visor-empty';
+      }
     },
     "getValue": function(country) {
     	return country.value;
     },
     getElementColour: function(options, country, value, rangeColours) {
 		return rangeColours[value];
+	},
+	visor: {
+		show: true,
+		value: ""
 	}
   };
 
@@ -7638,13 +7645,13 @@ wesCountry.maps = new (function() {
           if (element && options.onCountryOver)
             element.onmouseover = function() {
               if (this.id)
-                options.onCountryOver.call(this, this.info, visor);
+                options.onCountryOver.call(this, this.info, visor, options);
             }
 
           if (element && options.onCountryOut)
             element.onmouseout = function() {
               if (this.id)
-                options.onCountryOut.call(this, this.info, visor);
+                options.onCountryOut.call(this, this.info, visor, options);
             }
 
           if (element) {
@@ -7698,6 +7705,12 @@ wesCountry.maps = new (function() {
       visor = document.createElement('div');
       visor.id = 'country-visor';
       visor.className = 'visor';
+      
+      if (!options.visor.show)
+      	visor.style.display = 'none';
+      	
+      visor.innerHTML = options.visor.value;
+      
       container.appendChild(visor);
 
       // Panning
