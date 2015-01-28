@@ -827,7 +827,9 @@ wesCountry.charts = new (function() {
 			"font-family": "Helvetica",
 			"font-colour": "#aaa",
 			"font-size": "16px",
-			"from-zero": false
+			"from-zero": false,
+			tickNumber: null,
+			maxValue: null
 		},
 		series: [{
 			id: "1",
@@ -1020,6 +1022,7 @@ wesCountry.charts = new (function() {
 				options.yAxis["font-colour"],
 				options.yAxis["font-family"],
 				options.yAxis["font-size"]));
+
 	}
 
 	this.setAxisX = function(container, sizes, options) {
@@ -1086,7 +1089,7 @@ wesCountry.charts = new (function() {
 	this.getMaxAndMinValuesAxisY = function(options) {
 		var maxValue = 0, minValue = Number.MAX_VALUE;
 
-		var length = options.series.length;
+		var length = options.series.length; 
 		var valueLength = null;
 		var value = null;
 		var maxValueLength = 0;
@@ -1110,11 +1113,17 @@ wesCountry.charts = new (function() {
 					minValue = value;
 			}
 		}
+		
+		if (maxValueLength == 0)
+			minValue = 0;
 
 		if (options.yAxis["from-zero"] === true && minValue > 0)
 			minValue = 0;
+		
+		if (options.yAxis.maxValue && options.yAxis.maxValue > maxValue)
+			maxValue = options.yAxis.maxValue;
 
-		var maxAndMinValues = this.getNearestNumber(minValue, maxValue);
+		var maxAndMinValues = this.getNearestNumber(minValue, maxValue, options);
 
 		return {
 			max: maxAndMinValues.max,
@@ -1137,13 +1146,20 @@ wesCountry.charts = new (function() {
 		}).style(String.format("fill: {0}", options.backgroundColour));
 	}
 
-	this.getNearestNumber = function(minValue, maxValue) {
+	this.getNearestNumber = function(minValue, maxValue, options) {
+		var tickNumber = options.yAxis.tickNumber;
 		var pow = getNearestPow(maxValue - minValue);
+		
+		var max = Math.ceil(maxValue / pow) * pow;
+		var min = Math.floor(minValue / pow) * pow;
+		var size = max - min;
+		
+		var inc = tickNumber ? size / (tickNumber - 1) : pow;
 
 		return  {
-			max: Math.ceil(maxValue / pow) * pow,
-			min: Math.floor(minValue / pow) * pow,
-			inc: pow
+			max: max,
+			min: min,
+			inc: inc
 		}
 	}
 
@@ -1652,7 +1668,7 @@ wesCountry.charts.areaChart = function(options) {
 wesCountry.charts.generateLineChart = function(options, area) {
 	return renderChart();
 
-	function renderChart() {
+	function renderChart() {	
 		// Options and default options
 		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 
@@ -2984,7 +3000,7 @@ wesCountry.charts.scatterPlot = function(options) {
 			}
 		}
 
-		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue);
+		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue, options);
 
 		return {
 			max: maxAndMinValues.max,
@@ -3945,7 +3961,7 @@ wesCountry.charts.stackedChart = function(options) {
 		if (options.yAxis["from-zero"] === true && minValue > 0)
 			minValue = 0;
 
-		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue);
+		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue, options);
 
 		return {
 			max: maxAndMinValues.max,

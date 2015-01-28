@@ -312,7 +312,7 @@ wesCountry.charts.stackedChart = function(options) {
 		if (options.yAxis["from-zero"] === true && minValue > 0)
 			minValue = 0;
 
-		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue);
+		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue, options);
 
 		return {
 			max: maxAndMinValues.max,

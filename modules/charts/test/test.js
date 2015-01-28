@@ -604,7 +604,7 @@ function renderBarChart(options) {
 	document.getElementById("barDiv").appendChild(chart.render());
 }
 
-function renderStackedChart(options) {
+function renderStackedChart(options) { 
 	var chart = wesCountry.charts.stackedChart(options);
 	document.getElementById("stackedDiv").appendChild(chart.render());
 }
@@ -629,7 +629,7 @@ function renderPolarChart(options) {
 	document.getElementById("polarDiv").appendChild(chart.render());
 }
 
-function renderScatterPlot(options) {
+function renderScatterPlot(options) { 
 	var chart = wesCountry.charts.scatterPlot(options);
 	document.getElementById("scatterDiv").appendChild(chart.render());
 }

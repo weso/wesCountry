@@ -325,7 +325,7 @@ wesCountry.charts.scatterPlot = function(options) {
 			}
 		}
 
-		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue);
+		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue, options);
 
 		return {
 			max: maxAndMinValues.max,

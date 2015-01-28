@@ -1707,7 +1707,7 @@ wesCountry.charts = new (function() {
 				}
 			}
 			
-			var maxAndMinValues = getNearestNumber(minValue, maxValue);
+			var maxAndMinValues = getNearestNumber(minValue, maxValue, options);
 		
 			return { 
 				max: maxAndMinValues.max, 

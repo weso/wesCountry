@@ -19,7 +19,7 @@ wesCountry.charts.areaChart = function(options) {
 wesCountry.charts.generateLineChart = function(options, area) {
 	return renderChart();
 
-	function renderChart() {
+	function renderChart() {	
 		// Options and default options
 		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 
