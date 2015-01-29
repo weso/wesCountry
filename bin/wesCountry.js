@@ -760,6 +760,7 @@ wesCountry.charts = new (function() {
 			return options.series;
 		},
 		overColour: "#333",
+		showOverColour: true,
 		backColour: "#eee", // Pie
 		groupMargin: 4,
 		barMargin: 8,
@@ -2060,15 +2061,19 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 			// Events
 
 			var onmouseover = function(event) {
-				this.colour = this.style.fill;
-				this.style.fill = options.overColour;
+				if (options.showOverColour) {
+					this.colour = this.style.fill;
+					this.style.fill = options.overColour;
 
-				options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
+					options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
+				}
 			};
 
 			var onmouseout = function(event) {
-				this.style.fill = this.colour;
-				options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
+				if (options.showOverColour) {
+					this.style.fill = this.colour;
+					options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
+				}
 			};
 
 			var onclick = function(event) {

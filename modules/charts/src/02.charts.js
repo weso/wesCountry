@@ -42,6 +42,7 @@ wesCountry.charts = new (function() {
 			return options.series;
 		},
 		overColour: "#333",
+		showOverColour: true,
 		backColour: "#eee", // Pie
 		groupMargin: 4,
 		barMargin: 8,
