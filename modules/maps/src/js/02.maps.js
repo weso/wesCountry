@@ -426,6 +426,8 @@ wesCountry.maps = new (function() {
       	
       visor.innerHTML = options.visor.value;
       
+      options.onCountryOut(null, visor, options);
+      
       container.appendChild(visor);
 
       // Panning
