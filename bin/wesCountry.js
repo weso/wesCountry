@@ -1338,8 +1338,8 @@ wesCountry.charts.barChart = function(options) {
 				element.group = "b" + wesCountry.guid()
 				
 				var barG = g.g({
-					id: element.group
-				})
+					id: element.group,
+				}).className("bar-group");
 				
 				// Store bar
 				bars.push(element);
@@ -1450,7 +1450,7 @@ wesCountry.charts.barChart = function(options) {
 						y: y,
 						value: serie,
 						transform: String.format("rotate({0} {1} {2})", options.valueOnItem.rotation, x, y),
-						"data-x": xPos,
+						"data-inc-x": barWidth / 2,
 						"data-rotate": options.valueOnItem.rotation
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2}; dominant-baseline: middle; text-anchor: {3};",
 						options.valueOnItem["font-colour"],
@@ -1478,7 +1478,7 @@ wesCountry.charts.barChart = function(options) {
 						y: y,
 						value: value.toFixed(2),
 						transform: String.format("rotate({0} {1} {2})", options.valueOnItem.rotation, x, y),
-						"data-x": xPos,
+						"data-inc-x": barWidth / 2,
 						"data-rotate": options.valueOnItem.rotation
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2} ;dominant-baseline: middle; text-anchor: {3};",
 						options.nameUnderItem["font-colour"],
@@ -1539,18 +1539,24 @@ wesCountry.charts.barChart = function(options) {
 					var child = children[j];
 					var x = parseFloat(child.getAttribute("x"));
 					var y = parseFloat(child.getAttribute("y"));
-					var xPos = child.getAttribute("data-x");
-	
-					var inc = 0;
+					var inc = child.getAttribute("data-inc-x");
+					var cx = child.getAttribute("cx");
+					var r = child.getAttribute("r");
 					
-					if (xPos) {
-						xPos = parseFloat(xPos);
-						
-						inc = x - xPos;
-					}
+					if (inc)
+						inc = parseFloat(inc);
+					else
+						inc = 0;
 					
 					// Set new coordinates
 					child.setAttribute("x", position + inc);
+					
+					if (cx) {
+						cx = parseFloat(cx);
+						r = parseFloat(r);
+						
+						child.setAttribute("cx", position + r);
+					}
 					
 					// Set new rotation
 					

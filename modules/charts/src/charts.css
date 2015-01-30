@@ -193,3 +193,12 @@ table.wesCountry tr:nth-child(even) {
 	-ms-user-select: none;
 	user-select: none;
 }
+
+/* Animated bars */
+
+.bar-group * {
+	-webkit-transition: all 1s;
+	-moz-transition: all 1s;
+	-o-transition: all 1s;
+    transition: all 1s;
+}
