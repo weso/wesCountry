@@ -1281,6 +1281,9 @@ wesCountry.charts.barChart = function(options) {
 	return renderChart();
 
 	function renderChart() {
+		var positions = [];
+		var bars = [];
+	
 		// Options and default options
 		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 		options.yAxis["from-zero"] = true;
@@ -1330,6 +1333,16 @@ wesCountry.charts.barChart = function(options) {
 				var value = element.values[i];
 				var url = element.urls ? element.urls[i] : "";
 				var pos = options.xAxis.values[j];
+				
+				// Group bar
+				element.group = "b" + wesCountry.guid()
+				
+				var barG = g.g({
+					id: element.group
+				})
+				
+				// Store bar
+				bars.push(element);
 
 				if (!value)
 					value = 0;
@@ -1347,6 +1360,9 @@ wesCountry.charts.barChart = function(options) {
 
 				var height = (Math.abs(value) / (sizes.maxValue - sizes.minValue))
 						* maxHeight;
+				
+				// Store X position
+				positions.push(xPos);
 
 				var rectangleOptions = {
 					x: xPos,
@@ -1356,7 +1372,8 @@ wesCountry.charts.barChart = function(options) {
 					id: id,
 					serie: serie,
 					value: value,
-					pos: pos
+					pos: pos,
+					"data-x": xPos
 				};
 
 				wesCountry.charts.setElementInfo(element, rectangleOptions);
@@ -1400,11 +1417,11 @@ wesCountry.charts.barChart = function(options) {
 				var r = null;
 
 				if (url && url != "") {
-					var a = g.a({}, url ? url : "")
+					var a = barG.a({}, url ? url : "")
 					r = a.rectangle(rectangleOptions);
 				}
 				else {
-					r = g.rectangle(rectangleOptions);
+					r = barG.rectangle(rectangleOptions);
 				}
 
 				r.style(rectangleStyle).className(serie)
@@ -1428,11 +1445,13 @@ wesCountry.charts.barChart = function(options) {
 					anchor = "end";
 				
 				if (options.valueOnItem.show == true) {
-					var t = g.text({
+					var t = barG.text({
 						x: x,
 						y: y,
 						value: serie,
-						transform: String.format("rotate({0} {1} {2})", options.valueOnItem.rotation, x, y)
+						transform: String.format("rotate({0} {1} {2})", options.valueOnItem.rotation, x, y),
+						"data-x": xPos,
+						"data-rotate": options.valueOnItem.rotation
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2}; dominant-baseline: middle; text-anchor: {3};",
 						options.valueOnItem["font-colour"],
 						options.valueOnItem["font-family"],
@@ -1454,11 +1473,13 @@ wesCountry.charts.barChart = function(options) {
 					anchor = "end";
 				
 				if (options.nameUnderItem.show == true) {
-					g.text({
+					barG.text({
 						x: x,
 						y: y,
 						value: value.toFixed(2),
-						transform: String.format("rotate({0} {1} {2})", options.valueOnItem.rotation, x, y)
+						transform: String.format("rotate({0} {1} {2})", options.valueOnItem.rotation, x, y),
+						"data-x": xPos,
+						"data-rotate": options.valueOnItem.rotation
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2} ;dominant-baseline: middle; text-anchor: {3};",
 						options.nameUnderItem["font-colour"],
 						options.nameUnderItem["font-family"],
@@ -1473,22 +1494,74 @@ wesCountry.charts.barChart = function(options) {
 		// Show mean
 		var side = statistics.mean - statistics.median >= 0 ? 1 : -1
 
-		showStatistics(g, statistics.mean, options.mean,
+		showStatistics(barG, statistics.mean, options.mean,
 			side , sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
 
 		// Show median
 		var side = statistics.mean - statistics.median >= 0 ? -1 : 1
 		side = statistics.mean == statistics.median ? -1 : side;
 
-		showStatistics(g, statistics.median, options.median,
+		showStatistics(barG, statistics.median, options.median,
 			side, sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
 
 		// Legend
 		if (options.legend.show)
-			wesCountry.charts.showLegend(g, sizes, options);
+			wesCountry.charts.showLegend(barG, sizes, options);
 
 		// Tooltip
 		wesCountry.charts.createTooltip(options);
+		
+		// Sort handler
+		
+		svg.sort = function(sorter) {
+			if (!sorter)
+				return;
+		
+			bars.sort(sorter);
+
+			var length = bars.length;
+		
+			for (var i = 0; i < length; i++) {
+				var bar = bars[i];
+				var group = bar.group;
+				group = document.getElementById(group);
+
+				if (!group)
+					continue;
+
+				var position = positions[i];
+
+				var children = group.childNodes;
+				var length2 = children.length;
+				
+				for (var j = 0; j < length2; j++) {
+					// Get coordinates
+					var child = children[j];
+					var x = parseFloat(child.getAttribute("x"));
+					var y = parseFloat(child.getAttribute("y"));
+					var xPos = child.getAttribute("data-x");
+	
+					var inc = 0;
+					
+					if (xPos) {
+						xPos = parseFloat(xPos);
+						
+						inc = x - xPos;
+					}
+					
+					// Set new coordinates
+					child.setAttribute("x", position + inc);
+					
+					// Set new rotation
+					
+					var rotation = child.getAttribute("data-rotate");
+					
+					if (rotation) {
+						child.setAttribute("transform", String.format("rotate({0} {1} {2})", rotation, position + inc, y));
+					}
+				}
+			}
+		}
 
 		return svg;
 	}
