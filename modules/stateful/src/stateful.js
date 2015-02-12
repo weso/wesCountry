@@ -18,13 +18,15 @@ wesCountry.stateful = new (function() {
         ignore: true,
         selectedIndex: 0,
         selectedIndex: function() { return 0; },
-        onChange: function(index, value, parameters) {}
+        onChange: function(index, value, parameters) {},
+        removeIfEmpty
       } */
     ]
 	};
 
   var parameters = {};
   var queryParameters = [];
+  var queryParametersDict = {};
   var selectors = {};
   var host = "";
   var hash = "";
@@ -91,8 +93,13 @@ wesCountry.stateful = new (function() {
 
     for (var i = 0; i < length; i++) {
       var name = queryParameters[i];
+      var value = parameters[name]
+      var element = queryParametersDict[name];
+      
+      if (element.removeIfEmpty && value === "")
+      	continue;
 
-      queryString += String.format("{0}{1}={2}", queryString == "" ? "" : "&", name, parameters[name]);
+      queryString += String.format("{0}{1}={2}", queryString == "" ? "" : "&", name, value);
     }
 
     return queryString;
@@ -126,8 +133,10 @@ wesCountry.stateful = new (function() {
         parameters[element.name] = value;
       }
 
-      if (!ignore && queryParameters.indexOf(element.name) == -1)
+      if (!ignore && queryParameters.indexOf(element.name) == -1) {
         queryParameters.push(element.name);
+        queryParametersDict[element.name] = element;
+    }
 
       if (element.selector) {
         var selector = typeof element.selector === 'string' ? document.querySelector(element.selector) : element.selector;
@@ -170,8 +179,10 @@ wesCountry.stateful = new (function() {
 
       changed = true;
     }
+    
+    var element = queryParametersDict[name];
 
-    if (value != "" && parameters[name] != value) {
+    if (parameters[name] != value && (value != "" || (element.removeIfEmpty && value === ""))) {
       parameters[name] = value;
 
       changed = true;
