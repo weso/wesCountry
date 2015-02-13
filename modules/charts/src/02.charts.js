@@ -75,6 +75,7 @@ wesCountry.charts = new (function() {
 			"font-family": "Helvetica",
 			"font-colour": "#333",
 			"font-size": "12px",
+			value: null
 		},
 		median: { // Bar
 			show: false,
@@ -85,6 +86,7 @@ wesCountry.charts = new (function() {
 			"font-family": "Helvetica",
 			"font-colour": "#333",
 			"font-size": "12px",
+			value: null
 		},
 		maxBarWidth: 20, // Bar
 		maxRankingRows: 8, // Ranking

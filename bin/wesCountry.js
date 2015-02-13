@@ -793,6 +793,7 @@ wesCountry.charts = new (function() {
 			"font-family": "Helvetica",
 			"font-colour": "#333",
 			"font-size": "12px",
+			value: null
 		},
 		median: { // Bar
 			show: false,
@@ -803,6 +804,7 @@ wesCountry.charts = new (function() {
 			"font-family": "Helvetica",
 			"font-colour": "#333",
 			"font-size": "12px",
+			value: null
 		},
 		maxBarWidth: 20, // Bar
 		maxRankingRows: 8, // Ranking
@@ -1471,7 +1473,7 @@ wesCountry.charts.barChart = function(options) {
 					anchor = "start";
 				else if (options.nameUnderItem.rotation < 0)
 					anchor = "end";
-				
+
 				if (options.nameUnderItem.show == true) {
 					barG.text({
 						x: x,
@@ -1489,7 +1491,7 @@ wesCountry.charts.barChart = function(options) {
 			}
 		}
 
-		var statistics = getStatistics(valueList);
+		var statistics = getStatistics(options, valueList);
 
 		// Show mean
 		var side = statistics.mean - statistics.median >= 0 ? 1 : -1
@@ -1608,18 +1610,18 @@ wesCountry.charts.barChart = function(options) {
 		container.text({
 			x: x2,
 			y: posY - sign * (options.height / 100) * option.margin,
-			value: String.format("{0}{1}", option.text, value.toFixed(2))
+			value: String.format("{0}{1}", option.text, value && value.toFixed ? value.toFixed(2) : "")
 		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor:end;dominant-baseline: middle",
 			option["font-colour"],
 			option["font-family"],
 			option["font-size"])).className("statistics");
 	}
 
-	function getStatistics(values) {
+	function getStatistics(options, values) {
 		if (values == 0)
 			return {
-				median: 0,
-				mean: 0
+				median: options.median.value ? options.median.value : 0,
+				mean: options.mean.value ? options.mean.value : 0
 			}
 
 		// Median
@@ -1645,8 +1647,8 @@ wesCountry.charts.barChart = function(options) {
 		var mean = sum / length;
 
 		return {
-			median: median,
-			mean: mean
+			median: options.median.value ? options.median.value : median,
+			mean: options.mean.value ? options.mean.value : mean
 		}
 	}
 
