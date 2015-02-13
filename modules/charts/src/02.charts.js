@@ -71,22 +71,26 @@ wesCountry.charts = new (function() {
 			stroke: 1,
 			colour: "#444",
 			margin: 3,
-			text: "mean: ",
+			text: "mean",
 			"font-family": "Helvetica",
 			"font-colour": "#333",
 			"font-size": "12px",
-			value: null
+			value: null,
+			position: "TOP",
+			side: "RIGHT"
 		},
 		median: { // Bar
 			show: false,
 			stroke: 1,
 			colour: "#888",
 			margin: 3,
-			text: "median: ",
+			text: "median",
 			"font-family": "Helvetica",
 			"font-colour": "#333",
 			"font-size": "12px",
-			value: null
+			value: null,
+			position: "TOP",
+			side: "RIGHT"
 		},
 		maxBarWidth: 20, // Bar
 		maxRankingRows: 8, // Ranking
@@ -220,11 +224,14 @@ wesCountry.charts = new (function() {
 	////////////////////////////////////////////////////////////////////////////////
 
 	this.showLegend = function(container, sizes, options) {
+		if (!container)
+			return;
+			
 		var elements = options.getLegendElements(options);
 		var length = elements.length;
 
 		var xPos = sizes.width - sizes.marginRight * 0.2;
-		
+
 		var legend = container.g();
 		legend.className("wesCountry-legend");
 		

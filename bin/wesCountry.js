@@ -789,22 +789,26 @@ wesCountry.charts = new (function() {
 			stroke: 1,
 			colour: "#444",
 			margin: 3,
-			text: "mean: ",
+			text: "mean",
 			"font-family": "Helvetica",
 			"font-colour": "#333",
 			"font-size": "12px",
-			value: null
+			value: null,
+			position: "TOP",
+			side: "RIGHT"
 		},
 		median: { // Bar
 			show: false,
 			stroke: 1,
 			colour: "#888",
 			margin: 3,
-			text: "median: ",
+			text: "median",
 			"font-family": "Helvetica",
 			"font-colour": "#333",
 			"font-size": "12px",
-			value: null
+			value: null,
+			position: "TOP",
+			side: "RIGHT"
 		},
 		maxBarWidth: 20, // Bar
 		maxRankingRows: 8, // Ranking
@@ -938,11 +942,14 @@ wesCountry.charts = new (function() {
 	////////////////////////////////////////////////////////////////////////////////
 
 	this.showLegend = function(container, sizes, options) {
+		if (!container)
+			return;
+			
 		var elements = options.getLegendElements(options);
 		var length = elements.length;
 
 		var xPos = sizes.width - sizes.marginRight * 0.2;
-		
+
 		var legend = container.g();
 		legend.className("wesCountry-legend");
 		
@@ -1326,6 +1333,40 @@ wesCountry.charts.barChart = function(options) {
 		var valueList = [];
 
 		var numColumnsDifferentFromZero = 0;
+		
+		// Get valueList for statistics
+		
+		for (var i = 0; i < length; i++) {
+			for (var j = 0; j < numberOfSeries; j++) {
+				var element = options.series[j];
+				var value = element.values[i];
+				
+				if (!value)
+					value = 0;
+					
+				if (value != 0)
+					numColumnsDifferentFromZero++;
+					
+				valueList.push(value);
+			}
+		}
+		
+		var statistics = getStatistics(options, valueList);
+
+		// Mean
+		var side = statistics.mean - statistics.median >= 0 ? 1 : -1
+		
+		if (options.mean.position === "BOTTOM")
+			showStatistics(g, statistics.mean, options.mean,
+				side , sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
+
+		// Median
+		var side = statistics.mean - statistics.median >= 0 ? -1 : 1
+		side = statistics.mean == statistics.median ? -1 : side;
+		
+		if (options.median.position === "BOTTOM")
+			showStatistics(g, statistics.median, options.median,
+				side, sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
 
 		for (var i = 0; i < length; i++) {
 			for (var j = 0; j < numberOfSeries; j++) {
@@ -1348,11 +1389,6 @@ wesCountry.charts.barChart = function(options) {
 
 				if (!value)
 					value = 0;
-
-				if (value != 0)
-					numColumnsDifferentFromZero++;
-
-				valueList.push(value);
 
 				var xPos = sizes.marginLeft + sizes.yAxisMargin + sizes.groupMargin * (2 * i + 1) + sizes.barMargin
 						+ sizes.xTickWidth * i
@@ -1491,24 +1527,18 @@ wesCountry.charts.barChart = function(options) {
 			}
 		}
 
-		var statistics = getStatistics(options, valueList);
-
-		// Show mean
-		var side = statistics.mean - statistics.median >= 0 ? 1 : -1
-
-		showStatistics(barG, statistics.mean, options.mean,
-			side , sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
-
-		// Show median
-		var side = statistics.mean - statistics.median >= 0 ? -1 : 1
-		side = statistics.mean == statistics.median ? -1 : side;
-
-		showStatistics(barG, statistics.median, options.median,
-			side, sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
+		// Show statistics 
+		
+		if (options.mean.position !== "BOTTOM")
+			showStatistics(g, statistics.mean, options.mean,
+				side , sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
+		if (options.median.position !== "BOTTOM")
+			showStatistics(g, statistics.median, options.median,
+				side, sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
 
 		// Legend
 		if (options.legend.show)
-			wesCountry.charts.showLegend(barG, sizes, options);
+			wesCountry.charts.showLegend(g, sizes, options);
 
 		// Tooltip
 		wesCountry.charts.createTooltip(options);
@@ -1606,11 +1636,33 @@ wesCountry.charts.barChart = function(options) {
 		.className("statistics");
 
 		var sign = textSide >= 0 ? 1 : -1;
-
+		
+		// Side
+		
+		var text1 = option.text;
+		var text2 = value && value.toFixed ? value.toFixed(2) : value;
+		
+		if (option.side === "LEFT") {
+			var aux = text1;
+			text1 = text2;
+			text2 = aux;
+		}
+		
+		// Text 1
+		container.text({
+			x: x1,
+			y: posY - sign * (options.height / 100) * option.margin,
+			value: text1
+		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor:start;dominant-baseline: middle",
+			option["font-colour"],
+			option["font-family"],
+			option["font-size"])).className("statistics");
+		
+		// Text 2
 		container.text({
 			x: x2,
 			y: posY - sign * (options.height / 100) * option.margin,
-			value: String.format("{0}{1}", option.text, value && value.toFixed ? value.toFixed(2) : "")
+			value: text2
 		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor:end;dominant-baseline: middle",
 			option["font-colour"],
 			option["font-family"],

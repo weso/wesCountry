@@ -48,11 +48,15 @@ function generateCharts(options) {
 		sortSeries: true,
 		mean: {
 			show: true,
-			stroke: 1
+			stroke: 1,
+			position: "BOTTOM",
+			side: "RIGHT"
 		},
 		median: {
 			show: true,
-			stroke: 1
+			stroke: 1,
+			position: "BOTTOM",
+			side: "LEFT"
 		},
 		xAxis: {
 			"font-family": "'Kite One', sans-serif",
