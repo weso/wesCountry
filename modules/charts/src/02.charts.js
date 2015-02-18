@@ -66,6 +66,11 @@ wesCountry.charts = new (function() {
 		sizeByValue: false, // Scatter
 		sizeByValueMaxRadius: 5, // Scatter
 		sizeByValueMinRadius: 1, // Scatter
+		showFitLine: { // Scatter
+			show: true,
+			colour: "#ccc",
+			stroke: 2
+		},
 		mean: { // Bar
 			show: false,
 			stroke: 1,
