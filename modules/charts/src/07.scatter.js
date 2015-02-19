@@ -133,7 +133,7 @@ wesCountry.charts.scatterPlot = function(options) {
 				var xPos = point.x;
 				var yPos = point.y;
 
-				var colour = options.getElementColour(options, options.series[i], i);
+				var colour = options.getElementColour(options, options.series[i], i, j);
 
 				var circleOptions = {
 					cx: xPos,
@@ -333,7 +333,7 @@ wesCountry.charts.scatterPlot = function(options) {
 
 		var ticksX = (maxValue - minValue) / maxAndMinValues.inc;
 
-		var xTickWidth = (sizes.innerWidth - sizes.yAxisMargin) / (ticksX);
+		var xTickWidth = (sizes.innerWidth - sizes.yAxisMargin) / (ticksX > 0 ? ticksX : 1);
 		var incX = maxAndMinValues.inc;
 
 		var length = ticksX + 1;
