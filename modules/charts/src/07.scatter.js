@@ -100,12 +100,6 @@ wesCountry.charts.scatterPlot = function(options) {
 			for (var j = 0; j < valueLength; j++) {
 				var valueX = values[j][0] ? values[j][0] : 0;
 
-				var element = options.series[i];
-				var value = element.values[j];
-				var id = element.id;
-				var serie = element.name;
-				var pos = valueX;
-
 				if (!valueX)
 					valueX = 0;
 
@@ -119,6 +113,49 @@ wesCountry.charts.scatterPlot = function(options) {
 
 				if (valueX < minX)
 					minX = valueX;
+			}
+
+			// Fit line
+			if (options.showFitLine.show && valueLength > 1) {
+				var line = getFitLine(values);
+
+				// y = a + bx
+
+				// First point
+				var firstPointX = minX;
+				var lastPointX = maxX;
+
+				var firstPointY = line.a + line.b * firstPointX;
+				var lastPointY = line.a + line.b * lastPointX;
+
+				var pointA = transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, firstPointX, firstPointY);
+				var pointB = transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, lastPointX, lastPointY);
+
+				g.line({
+					x1: pointA.x,
+					x2: pointB.x,
+					y1: pointA.y,
+					y2: pointB.y,
+					"stroke-width": options.showFitLine.stroke
+				}).style(String.format("stroke: {0}", options.showFitLine.colour));
+			}
+
+			for (var j = 0; j < valueLength; j++) {
+				var valueX = values[j][0] ? values[j][0] : 0;
+
+				var element = options.series[i];
+				var value = element.values[j];
+				var id = element.id;
+				var serie = element.name;
+				var pos = valueX;
+
+				if (!valueX)
+					valueX = 0;
+
+				var valueY = values[j][1] ? values[j][1] : 0;
+
+				if (!valueY)
+					valueY = 0;
 
 				// Circle radius
 				var radius = minRadius;
@@ -149,31 +186,6 @@ wesCountry.charts.scatterPlot = function(options) {
 
 				g.circle(circleOptions).style(String.format("fill: {0}", colour))
 				.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
-			}
-
-			// Fit line
-			if (options.showFitLine.show && valueLength > 1) {
-				var line = getFitLine(values);
-
-				// y = a + bx
-
-				// First point
-				var firstPointX = minX;
-				var lastPointX = maxX;
-
-				var firstPointY = line.a + line.b * firstPointX;
-				var lastPointY = line.a + line.b * lastPointX;
-
-				var pointA = transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, firstPointX, firstPointY);
-				var pointB = transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, lastPointX, lastPointY);
-
-				g.line({
-					x1: pointA.x,
-					x2: pointB.x,
-					y1: pointA.y,
-					y2: pointB.y,
-					"stroke-width": options.showFitLine.stroke
-				}).style(String.format("stroke: {0}", options.showFitLine.colour));
 			}
 		}
 
