@@ -2981,6 +2981,8 @@ wesCountry.charts.scatterPlot = function(options) {
 				var id = element.id;
 				var serie = element.name;
 				var pos = valueX;
+				
+				var extra = values[j][2];
 
 				if (!valueX)
 					valueX = 0;
@@ -3016,6 +3018,9 @@ wesCountry.charts.scatterPlot = function(options) {
 				};
 
 				wesCountry.charts.setElementInfo(element, circleOptions);
+				
+				if (extra)
+					wesCountry.charts.setElementInfo(extra, circleOptions);
 
 				g.circle(circleOptions).style(String.format("fill: {0}", colour))
 				.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
