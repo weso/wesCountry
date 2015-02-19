@@ -1429,7 +1429,9 @@ wesCountry.charts.barChart = function(options) {
 					serie: serie,
 					value: value,
 					pos: pos,
-					"data-x": xPos
+					"data-x": xPos,
+					serie_pos: i,
+					bar_pos: j
 				};
 
 				wesCountry.charts.setElementInfo(element, rectangleOptions);
