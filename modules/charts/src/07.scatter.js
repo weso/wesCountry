@@ -128,7 +128,7 @@ wesCountry.charts.scatterPlot = function(options) {
 					var rValue = valueX * valueY != 0 ? Math.abs(valueX * valueY) : 1;
 					radius = (((rValue - minValue) * radiusRange) / range) + minRadius;
 				}
-	
+				
 				var point = transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, valueX, valueY);
 				var xPos = point.x;
 				var yPos = point.y;
@@ -332,6 +332,7 @@ wesCountry.charts.scatterPlot = function(options) {
 		var maxValueLength = maxAndMinValues.valueLength;
 
 		var ticksX = (maxValue - minValue) / maxAndMinValues.inc;
+
 		var xTickWidth = (sizes.innerWidth - sizes.yAxisMargin) / (ticksX);
 		var incX = maxAndMinValues.inc;
 

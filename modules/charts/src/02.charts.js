@@ -451,13 +451,17 @@ wesCountry.charts = new (function() {
 		var min = Math.floor(minValue / pow) * pow;
 		var size = max - min;
 		
-		var inc = tickNumber ? size / (tickNumber - 1) : pow;
+		var inc = tickNumber && isNumber(tickNumber) ? size / (tickNumber - 1) : pow;
 
 		return  {
 			max: max,
 			min: min,
 			inc: inc
 		}
+	}
+	
+	function isNumber(n) {
+  		return !isNaN(parseFloat(n)) && isFinite(n);
 	}
 
 	function getNearestPow(number) {
