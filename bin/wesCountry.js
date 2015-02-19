@@ -829,7 +829,9 @@ wesCountry.charts = new (function() {
 			values: ["Jan", "Feb", "Mar", "Apr", "May"],
 			"font-family": "Helvetica",
 			"font-colour": "#666",
-			"font-size": "16px"
+			"font-size": "16px",
+			maxValue: null,
+			pow: null
 		},
 		yAxis: {
 			title: "Values",
@@ -841,7 +843,8 @@ wesCountry.charts = new (function() {
 			"font-size": "16px",
 			"from-zero": false,
 			tickNumber: null,
-			maxValue: null
+			maxValue: null,
+			pow: null
 		},
 		series: [{
 			id: "1",
@@ -949,7 +952,7 @@ wesCountry.charts = new (function() {
 	this.showLegend = function(container, sizes, options) {
 		if (!container)
 			return;
-			
+
 		var elements = options.getLegendElements(options);
 		var length = elements.length;
 
@@ -957,14 +960,14 @@ wesCountry.charts = new (function() {
 
 		var legend = container.g();
 		legend.className("wesCountry-legend");
-		
+
 		for (var i = 0; i < length; i++) {
 			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
 
 			var element = elements[i];
-			
+
 			var name = options.getName(element);
-				
+
 			var colour = options.getElementColour(options, element, i);
 
 			legend.circle({
@@ -1104,7 +1107,7 @@ wesCountry.charts = new (function() {
 	this.getMaxAndMinValuesAxisY = function(options) {
 		var maxValue = 0, minValue = Number.MAX_VALUE;
 
-		var length = options.series.length; 
+		var length = options.series.length;
 		var valueLength = null;
 		var value = null;
 		var maxValueLength = 0;
@@ -1128,17 +1131,17 @@ wesCountry.charts = new (function() {
 					minValue = value;
 			}
 		}
-		
+
 		if (maxValueLength == 0)
 			minValue = 0;
 
 		if (options.yAxis["from-zero"] === true && minValue > 0)
 			minValue = 0;
-		
+
 		if (options.yAxis.maxValue && options.yAxis.maxValue > maxValue)
 			maxValue = options.yAxis.maxValue;
 
-		var maxAndMinValues = this.getNearestNumber(minValue, maxValue, options);
+		var maxAndMinValues = this.getNearestNumber(minValue, maxValue, options, options.yAxis.maxValue, options.yAxis.pow, options.yAxis.tickNumber);
 
 		return {
 			max: maxAndMinValues.max,
@@ -1152,7 +1155,7 @@ wesCountry.charts = new (function() {
 	//                              AUX FUNCTIONS
 	////////////////////////////////////////////////////////////////////////////////
 
-	this.setBackground = function(container, sizes, options) {
+	this.setBackground = function(container, sizes, options, pow) {
 		container.rectangle({
 			x: 0,
 			y: 0,
@@ -1161,14 +1164,20 @@ wesCountry.charts = new (function() {
 		}).style(String.format("fill: {0}", options.backgroundColour));
 	}
 
-	this.getNearestNumber = function(minValue, maxValue, options) {
-		var tickNumber = options.yAxis.tickNumber;
-		var pow = getNearestPow(maxValue - minValue);
-		
+	this.getNearestNumber = function(minValue, maxValue, options, maximum, pow, tickNumber) {
+		if (maximum && isNumber(maximum))
+			maxValue = maximum;
+
+		if (!tickNumber)
+			tickNumber = options.yAxis.tickNumber;
+
+		if (!pow || !isNumber(pow))
+			pow = getNearestPow(maxValue - minValue);
+
 		var max = Math.ceil(maxValue / pow) * pow;
 		var min = Math.floor(minValue / pow) * pow;
 		var size = max - min;
-		
+
 		var inc = tickNumber && isNumber(tickNumber) ? size / (tickNumber - 1) : pow;
 
 		return  {
@@ -1177,7 +1186,7 @@ wesCountry.charts = new (function() {
 			inc: inc
 		}
 	}
-	
+
 	function isNumber(n) {
   		return !isNaN(parseFloat(n)) && isFinite(n);
 	}
@@ -2915,10 +2924,10 @@ wesCountry.charts.scatterPlot = function(options) {
 
 				range = maxValue - minValue;
 			}
-			
+
 			var minX = Number.MAX_VALUE;
 			var maxX = 0;
-			
+
 			for (var j = 0; j < valueLength; j++) {
 				var valueX = values[j][0] ? values[j][0] : 0;
 
@@ -2935,10 +2944,10 @@ wesCountry.charts.scatterPlot = function(options) {
 
 				if (!valueY)
 					valueY = 0;
-					
+
 				if (valueX > maxX)
 					maxX = valueX;
-					
+
 				if (valueX < minX)
 					minX = valueX;
 
@@ -2950,7 +2959,7 @@ wesCountry.charts.scatterPlot = function(options) {
 					var rValue = valueX * valueY != 0 ? Math.abs(valueX * valueY) : 1;
 					radius = (((rValue - minValue) * radiusRange) / range) + minRadius;
 				}
-				
+
 				var point = transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, valueX, valueY);
 				var xPos = point.x;
 				var yPos = point.y;
@@ -2972,23 +2981,23 @@ wesCountry.charts.scatterPlot = function(options) {
 				g.circle(circleOptions).style(String.format("fill: {0}", colour))
 				.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 			}
-			
+
 			// Fit line
 			if (options.showFitLine.show && valueLength > 1) {
 				var line = getFitLine(values);
-				
+
 				// y = a + bx
-				
+
 				// First point
 				var firstPointX = minX;
 				var lastPointX = maxX;
-				
+
 				var firstPointY = line.a + line.b * firstPointX;
 				var lastPointY = line.a + line.b * lastPointX;
-				
+
 				var pointA = transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, firstPointX, firstPointY);
 				var pointB = transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, lastPointX, lastPointY);
-				
+
 				g.line({
 					x1: pointA.x,
 					x2: pointB.x,
@@ -3008,7 +3017,7 @@ wesCountry.charts.scatterPlot = function(options) {
 
 		return svg;
 	}
-	
+
 	function transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, valueX, valueY) {
 		var xPos = sizes.marginLeft + sizes.yAxisMargin
 						+ zeroPosX
@@ -3021,45 +3030,45 @@ wesCountry.charts.scatterPlot = function(options) {
 						- (sizes.maxValue - sizes.minValue == 0 ? 1 :
 							(valueY - sizes.minValue) / (sizes.maxValue - sizes.minValue))
 						* maxHeight;
-						
+
 		return {
 			x: xPos,
 			y: yPos
 		};
 	}
-	
+
 	function getFitLine(values) {
 		var length = values.length;
-		
+
 		var sumX = 0;
 		var sumY = 0;
 		var sumXY = 0;
 		var sumXX = 0;
 		var sumYY = 0;
-		
+
 		for (var i = 0; i < length; i++) {
 			var value = values[i];
 			var x = 0;
 			var y = 0;
-			
+
 			if (value.length > 0)
 				x = value[0];
-				
+
 			if (value.length > 1)
 				y = value[1];
-				
+
 			sumX += x;
 			sumY += y;
 			sumXY += x * y;
 			sumXX += x * x;
 			sumYY += y * y;
 		}
-		
+
 		var divisor = length * sumXX - sumX * sumX;
-		
+
 		var a = (sumY * sumXX - sumX * sumXY) / divisor;
 		var b = (length * sumXY - sumX * sumY) / divisor;
-		
+
 		return {
 			a: a,
 			b: b
@@ -3231,7 +3240,7 @@ wesCountry.charts.scatterPlot = function(options) {
 			}
 		}
 
-		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue, options);
+		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue, options, options.xAxis.maxValue, options.xAxis.pow, options.xAxis.tickNumber);
 
 		return {
 			max: maxAndMinValues.max,

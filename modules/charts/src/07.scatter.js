@@ -93,10 +93,10 @@ wesCountry.charts.scatterPlot = function(options) {
 
 				range = maxValue - minValue;
 			}
-			
+
 			var minX = Number.MAX_VALUE;
 			var maxX = 0;
-			
+
 			for (var j = 0; j < valueLength; j++) {
 				var valueX = values[j][0] ? values[j][0] : 0;
 
@@ -113,10 +113,10 @@ wesCountry.charts.scatterPlot = function(options) {
 
 				if (!valueY)
 					valueY = 0;
-					
+
 				if (valueX > maxX)
 					maxX = valueX;
-					
+
 				if (valueX < minX)
 					minX = valueX;
 
@@ -128,7 +128,7 @@ wesCountry.charts.scatterPlot = function(options) {
 					var rValue = valueX * valueY != 0 ? Math.abs(valueX * valueY) : 1;
 					radius = (((rValue - minValue) * radiusRange) / range) + minRadius;
 				}
-				
+
 				var point = transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, valueX, valueY);
 				var xPos = point.x;
 				var yPos = point.y;
@@ -150,23 +150,23 @@ wesCountry.charts.scatterPlot = function(options) {
 				g.circle(circleOptions).style(String.format("fill: {0}", colour))
 				.event("onmouseover", onmouseover).event("onmouseout", onmouseout).event("onclick", onclick);
 			}
-			
+
 			// Fit line
 			if (options.showFitLine.show && valueLength > 1) {
 				var line = getFitLine(values);
-				
+
 				// y = a + bx
-				
+
 				// First point
 				var firstPointX = minX;
 				var lastPointX = maxX;
-				
+
 				var firstPointY = line.a + line.b * firstPointX;
 				var lastPointY = line.a + line.b * lastPointX;
-				
+
 				var pointA = transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, firstPointX, firstPointY);
 				var pointB = transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, lastPointX, lastPointY);
-				
+
 				g.line({
 					x1: pointA.x,
 					x2: pointB.x,
@@ -186,7 +186,7 @@ wesCountry.charts.scatterPlot = function(options) {
 
 		return svg;
 	}
-	
+
 	function transformPoint(sizes, sizesX, zeroPosX, zeroPos, maxWidth, maxHeight, valueX, valueY) {
 		var xPos = sizes.marginLeft + sizes.yAxisMargin
 						+ zeroPosX
@@ -199,45 +199,45 @@ wesCountry.charts.scatterPlot = function(options) {
 						- (sizes.maxValue - sizes.minValue == 0 ? 1 :
 							(valueY - sizes.minValue) / (sizes.maxValue - sizes.minValue))
 						* maxHeight;
-						
+
 		return {
 			x: xPos,
 			y: yPos
 		};
 	}
-	
+
 	function getFitLine(values) {
 		var length = values.length;
-		
+
 		var sumX = 0;
 		var sumY = 0;
 		var sumXY = 0;
 		var sumXX = 0;
 		var sumYY = 0;
-		
+
 		for (var i = 0; i < length; i++) {
 			var value = values[i];
 			var x = 0;
 			var y = 0;
-			
+
 			if (value.length > 0)
 				x = value[0];
-				
+
 			if (value.length > 1)
 				y = value[1];
-				
+
 			sumX += x;
 			sumY += y;
 			sumXY += x * y;
 			sumXX += x * x;
 			sumYY += y * y;
 		}
-		
+
 		var divisor = length * sumXX - sumX * sumX;
-		
+
 		var a = (sumY * sumXX - sumX * sumXY) / divisor;
 		var b = (length * sumXY - sumX * sumY) / divisor;
-		
+
 		return {
 			a: a,
 			b: b
@@ -409,7 +409,7 @@ wesCountry.charts.scatterPlot = function(options) {
 			}
 		}
 
-		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue, options);
+		var maxAndMinValues = wesCountry.charts.getNearestNumber(minValue, maxValue, options, options.xAxis.maxValue, options.xAxis.pow, options.xAxis.tickNumber);
 
 		return {
 			max: maxAndMinValues.max,

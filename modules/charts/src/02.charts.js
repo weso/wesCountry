@@ -111,7 +111,9 @@ wesCountry.charts = new (function() {
 			values: ["Jan", "Feb", "Mar", "Apr", "May"],
 			"font-family": "Helvetica",
 			"font-colour": "#666",
-			"font-size": "16px"
+			"font-size": "16px",
+			maxValue: null,
+			pow: null
 		},
 		yAxis: {
 			title: "Values",
@@ -123,7 +125,8 @@ wesCountry.charts = new (function() {
 			"font-size": "16px",
 			"from-zero": false,
 			tickNumber: null,
-			maxValue: null
+			maxValue: null,
+			pow: null
 		},
 		series: [{
 			id: "1",
@@ -231,7 +234,7 @@ wesCountry.charts = new (function() {
 	this.showLegend = function(container, sizes, options) {
 		if (!container)
 			return;
-			
+
 		var elements = options.getLegendElements(options);
 		var length = elements.length;
 
@@ -239,14 +242,14 @@ wesCountry.charts = new (function() {
 
 		var legend = container.g();
 		legend.className("wesCountry-legend");
-		
+
 		for (var i = 0; i < length; i++) {
 			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
 
 			var element = elements[i];
-			
+
 			var name = options.getName(element);
-				
+
 			var colour = options.getElementColour(options, element, i);
 
 			legend.circle({
@@ -386,7 +389,7 @@ wesCountry.charts = new (function() {
 	this.getMaxAndMinValuesAxisY = function(options) {
 		var maxValue = 0, minValue = Number.MAX_VALUE;
 
-		var length = options.series.length; 
+		var length = options.series.length;
 		var valueLength = null;
 		var value = null;
 		var maxValueLength = 0;
@@ -410,17 +413,17 @@ wesCountry.charts = new (function() {
 					minValue = value;
 			}
 		}
-		
+
 		if (maxValueLength == 0)
 			minValue = 0;
 
 		if (options.yAxis["from-zero"] === true && minValue > 0)
 			minValue = 0;
-		
+
 		if (options.yAxis.maxValue && options.yAxis.maxValue > maxValue)
 			maxValue = options.yAxis.maxValue;
 
-		var maxAndMinValues = this.getNearestNumber(minValue, maxValue, options);
+		var maxAndMinValues = this.getNearestNumber(minValue, maxValue, options, options.yAxis.maxValue, options.yAxis.pow, options.yAxis.tickNumber);
 
 		return {
 			max: maxAndMinValues.max,
@@ -434,7 +437,7 @@ wesCountry.charts = new (function() {
 	//                              AUX FUNCTIONS
 	////////////////////////////////////////////////////////////////////////////////
 
-	this.setBackground = function(container, sizes, options) {
+	this.setBackground = function(container, sizes, options, pow) {
 		container.rectangle({
 			x: 0,
 			y: 0,
@@ -443,14 +446,20 @@ wesCountry.charts = new (function() {
 		}).style(String.format("fill: {0}", options.backgroundColour));
 	}
 
-	this.getNearestNumber = function(minValue, maxValue, options) {
-		var tickNumber = options.yAxis.tickNumber;
-		var pow = getNearestPow(maxValue - minValue);
-		
+	this.getNearestNumber = function(minValue, maxValue, options, maximum, pow, tickNumber) {
+		if (maximum && isNumber(maximum))
+			maxValue = maximum;
+
+		if (!tickNumber)
+			tickNumber = options.yAxis.tickNumber;
+
+		if (!pow || !isNumber(pow))
+			pow = getNearestPow(maxValue - minValue);
+
 		var max = Math.ceil(maxValue / pow) * pow;
 		var min = Math.floor(minValue / pow) * pow;
 		var size = max - min;
-		
+
 		var inc = tickNumber && isNumber(tickNumber) ? size / (tickNumber - 1) : pow;
 
 		return  {
@@ -459,7 +468,7 @@ wesCountry.charts = new (function() {
 			inc: inc
 		}
 	}
-	
+
 	function isNumber(n) {
   		return !isNaN(parseFloat(n)) && isFinite(n);
 	}
