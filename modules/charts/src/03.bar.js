@@ -229,18 +229,19 @@ wesCountry.charts.barChart = function(options) {
 					anchor = "end";
 
 				if (options.nameUnderItem.show == true) {
-					barG.text({
+					var t = barG.text({
 						x: x,
 						y: y,
 						value: value.toFixed(2),
 						transform: String.format("rotate({0} {1} {2})", options.valueOnItem.rotation, x, y),
 						"data-inc-x": barWidth / 2,
-						"data-rotate": options.valueOnItem.rotation
+						"data-rotate": options.nameUnderItem.rotation
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2} ;dominant-baseline: middle; text-anchor: {3};",
 						options.nameUnderItem["font-colour"],
 						options.nameUnderItem["font-family"],
 						options.nameUnderItem["font-size"],
 						anchor));
+					t.className("under-name");
 				}
 			}
 		}

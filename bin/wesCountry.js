@@ -831,7 +831,8 @@ wesCountry.charts = new (function() {
 			"font-colour": "#666",
 			"font-size": "16px",
 			maxValue: null,
-			pow: null
+			pow: null,
+			rotation: 0
 		},
 		yAxis: {
 			title: "Values",
@@ -1078,15 +1079,19 @@ wesCountry.charts = new (function() {
 			// Label
 
 			var value = options.xAxis.values[i] ? options.xAxis.values[i] : "";
-
+			
+			var y = sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin / 2;
+			
 			container.text({
 				x: xPos,
-				y: sizes.marginTop + sizes.innerHeight - sizes.xAxisMargin / 2,
-				value: value
+				y: y,
+				value: value,
+				transform: String.format("rotate({0} {1} {2})", options.xAxis.rotation, xPos, y),
+				"data-rotate": options.valueOnItem.rotation
 			}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle",
 				options.xAxis["font-colour"],
 				options.xAxis["font-family"],
-				options.xAxis["font-size"]));
+				options.xAxis["font-size"])).className("x-axis-value");
 		}
 
 		// X Axis Title
@@ -1098,7 +1103,7 @@ wesCountry.charts = new (function() {
 		}).style(String.format("fill: {0};font-family:{1};font-size:{2};text-anchor: middle",
 				options.xAxis["font-colour"],
 				options.xAxis["font-family"],
-				options.xAxis["font-size"]));
+				options.xAxis["font-size"])).className("x-axis-title");
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -1532,18 +1537,19 @@ wesCountry.charts.barChart = function(options) {
 					anchor = "end";
 
 				if (options.nameUnderItem.show == true) {
-					barG.text({
+					var t = barG.text({
 						x: x,
 						y: y,
 						value: value.toFixed(2),
 						transform: String.format("rotate({0} {1} {2})", options.valueOnItem.rotation, x, y),
 						"data-inc-x": barWidth / 2,
-						"data-rotate": options.valueOnItem.rotation
+						"data-rotate": options.nameUnderItem.rotation
 					}).style(String.format("fill: {0};font-family:{1};font-size:{2} ;dominant-baseline: middle; text-anchor: {3};",
 						options.nameUnderItem["font-colour"],
 						options.nameUnderItem["font-family"],
 						options.nameUnderItem["font-size"],
 						anchor));
+					t.className("under-name");
 				}
 			}
 		}
