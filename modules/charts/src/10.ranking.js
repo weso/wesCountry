@@ -255,6 +255,7 @@ wesCountry.charts.rankingChart = function(options) {
 		}
 
 		var legendItemSize = options.legend.itemSize * width / 100;
+		var legendMargin = options.legend.margin * width / 100;
 
 		return {
 			width : width,
@@ -287,7 +288,8 @@ wesCountry.charts.rankingChart = function(options) {
 
 			maxValueLength: groups.length,
 
-			legendItemSize: legendItemSize
+			legendItemSize: legendItemSize,
+			legendMargin: legendMargin
 		};
 	}
 
@@ -359,7 +361,7 @@ wesCountry.charts.rankingChart = function(options) {
 		numbers = numbers.sort(function(a, b) {
 			var a_name = options.getName(a);
 			var b_name = options.getName(b);
-			
+
 			if (a.value != b.value)
 				return a.value - b.value;
 			else

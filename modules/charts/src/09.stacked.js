@@ -240,6 +240,7 @@ wesCountry.charts.stackedChart = function(options) {
 		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
 
 		var legendItemSize = options.legend.itemSize * width / 100;
+		var legendMargin = options.legend.margin * width / 100;
 
 		return {
 			width : width,
@@ -268,7 +269,8 @@ wesCountry.charts.stackedChart = function(options) {
 			groupMargin: groupMargin,
 			barWidth: barWidth,
 
-			legendItemSize: legendItemSize
+			legendItemSize: legendItemSize,
+			legendMargin: legendMargin
 		};
 	}
 

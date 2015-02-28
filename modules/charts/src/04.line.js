@@ -19,7 +19,7 @@ wesCountry.charts.areaChart = function(options) {
 wesCountry.charts.generateLineChart = function(options, area) {
 	return renderChart();
 
-	function renderChart() {	
+	function renderChart() {
 		// Options and default options
 		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 
@@ -270,6 +270,7 @@ wesCountry.charts.generateLineChart = function(options, area) {
 		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
 
 		var legendItemSize = options.legend.itemSize * width / 100;
+		var legendMargin = options.legend.margin * width / 100;
 
 		return {
 			width : width,
@@ -298,7 +299,8 @@ wesCountry.charts.generateLineChart = function(options, area) {
 			groupMargin: groupMargin,
 			barWidth: barWidth,
 
-			legendItemSize: legendItemSize
+			legendItemSize: legendItemSize,
+			legendMargin: legendMargin
 		};
 	}
 };

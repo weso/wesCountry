@@ -8,7 +8,7 @@ wesCountry.charts.barChart = function(options) {
 	function renderChart() {
 		var positions = [];
 		var bars = [];
-	
+
 		// Options and default options
 		options = wesCountry.mergeOptionsAndDefaultOptions(options, wesCountry.charts.defaultOptions);
 		options.yAxis["from-zero"] = true;
@@ -49,29 +49,29 @@ wesCountry.charts.barChart = function(options) {
 		var valueList = [];
 
 		var numColumnsDifferentFromZero = 0;
-		
+
 		// Get valueList for statistics
-		
+
 		for (var i = 0; i < length; i++) {
 			for (var j = 0; j < numberOfSeries; j++) {
 				var element = options.series[j];
 				var value = element.values[i];
-				
+
 				if (!value)
 					value = 0;
-					
+
 				if (value != 0)
 					numColumnsDifferentFromZero++;
-					
+
 				valueList.push(value);
 			}
 		}
-		
+
 		var statistics = getStatistics(options, valueList);
 
 		// Mean
 		var side = statistics.mean - statistics.median >= 0 ? 1 : -1
-		
+
 		if (options.mean.position === "BOTTOM")
 			showStatistics(g, statistics.mean, options.mean,
 				side , sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
@@ -79,7 +79,7 @@ wesCountry.charts.barChart = function(options) {
 		// Median
 		var side = statistics.mean - statistics.median >= 0 ? -1 : 1
 		side = statistics.mean == statistics.median ? -1 : side;
-		
+
 		if (options.median.position === "BOTTOM")
 			showStatistics(g, statistics.median, options.median,
 				side, sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
@@ -92,14 +92,14 @@ wesCountry.charts.barChart = function(options) {
 				var value = element.values[i];
 				var url = element.urls ? element.urls[i] : "";
 				var pos = options.xAxis.values[j];
-				
+
 				// Group bar
 				element.group = "b" + wesCountry.guid()
-				
+
 				var barG = g.g({
 					id: element.group,
 				}).className("bar-group");
-				
+
 				// Store bar
 				bars.push(element);
 
@@ -114,7 +114,7 @@ wesCountry.charts.barChart = function(options) {
 
 				var height = (Math.abs(value) / (sizes.maxValue - sizes.minValue))
 						* maxHeight;
-				
+
 				// Store X position
 				positions.push(xPos);
 
@@ -189,17 +189,17 @@ wesCountry.charts.barChart = function(options) {
 					});
 
 				// Value on bar
-				
+
 				var x = xPos + barWidth / 2;
 				var y = yPos + height + (options.height / 100) * options.valueOnItem.margin;
-				
+
 				var anchor = "middle";
-				
+
 				if (options.valueOnItem.rotation > 0)
 					anchor = "start";
 				else if (options.valueOnItem.rotation < 0)
 					anchor = "end";
-				
+
 				if (options.valueOnItem.show == true) {
 					var t = barG.text({
 						x: x,
@@ -215,14 +215,14 @@ wesCountry.charts.barChart = function(options) {
 						anchor));
 					t.className("item-name");
 				}
-				
+
 				// Name under item
-				
+
 				var x = xPos + barWidth / 2;
 				var y = yPos - (options.height / 100) * options.nameUnderItem.margin;
-				
+
 				var anchor = "middle";
-				
+
 				if (options.nameUnderItem.rotation > 0)
 					anchor = "start";
 				else if (options.nameUnderItem.rotation < 0)
@@ -245,8 +245,8 @@ wesCountry.charts.barChart = function(options) {
 			}
 		}
 
-		// Show statistics 
-		
+		// Show statistics
+
 		if (options.mean.position !== "BOTTOM")
 			showStatistics(g, statistics.mean, options.mean,
 				side , sizes, minValuePos, maxHeight, numColumnsDifferentFromZero > 1);
@@ -260,17 +260,17 @@ wesCountry.charts.barChart = function(options) {
 
 		// Tooltip
 		wesCountry.charts.createTooltip(options);
-		
+
 		// Sort handler
-		
+
 		svg.sort = function(sorter) {
 			if (!sorter)
 				return;
-		
+
 			bars.sort(sorter);
 
 			var length = bars.length;
-		
+
 			for (var i = 0; i < length; i++) {
 				var bar = bars[i];
 				var group = bar.group;
@@ -283,7 +283,7 @@ wesCountry.charts.barChart = function(options) {
 
 				var children = group.childNodes;
 				var length2 = children.length;
-				
+
 				for (var j = 0; j < length2; j++) {
 					// Get coordinates
 					var child = children[j];
@@ -292,26 +292,26 @@ wesCountry.charts.barChart = function(options) {
 					var inc = child.getAttribute("data-inc-x");
 					var cx = child.getAttribute("cx");
 					var r = child.getAttribute("r");
-					
+
 					if (inc)
 						inc = parseFloat(inc);
 					else
 						inc = 0;
-					
+
 					// Set new coordinates
 					child.setAttribute("x", position + inc);
-					
+
 					if (cx) {
 						cx = parseFloat(cx);
 						r = parseFloat(r);
-						
+
 						child.setAttribute("cx", position + r);
 					}
-					
+
 					// Set new rotation
-					
+
 					var rotation = child.getAttribute("data-rotate");
-					
+
 					if (rotation) {
 						child.setAttribute("transform", String.format("rotate({0} {1} {2})", rotation, position + inc, y));
 					}
@@ -354,18 +354,18 @@ wesCountry.charts.barChart = function(options) {
 		.className("statistics");
 
 		var sign = textSide >= 0 ? 1 : -1;
-		
+
 		// Side
-		
+
 		var text1 = option.text;
 		var text2 = value && value.toFixed ? value.toFixed(2) : value;
-		
+
 		if (option.side === "LEFT") {
 			var aux = text1;
 			text1 = text2;
 			text2 = aux;
 		}
-		
+
 		// Text 1
 		container.text({
 			x: x1,
@@ -375,7 +375,7 @@ wesCountry.charts.barChart = function(options) {
 			option["font-colour"],
 			option["font-family"],
 			option["font-size"])).className("statistics");
-		
+
 		// Text 2
 		container.text({
 			x: x2,
@@ -467,6 +467,7 @@ wesCountry.charts.barChart = function(options) {
 		var valueInc = ticksY != 0 ? (maxValue - minValue) / ticksY : 0;
 
 		var legendItemSize = options.legend.itemSize * width / 100;
+		var legendMargin = options.legend.margin * width / 100;
 
 		return {
 			width : width,
@@ -495,7 +496,8 @@ wesCountry.charts.barChart = function(options) {
 			groupMargin: groupMargin,
 			barWidth: barWidth,
 
-			legendItemSize: legendItemSize
+			legendItemSize: legendItemSize,
+			legendMargin: legendMargin
 		};
 	}
 };

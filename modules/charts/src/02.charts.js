@@ -148,8 +148,9 @@ wesCountry.charts = new (function() {
 	    show: true,
 	    itemSize: 1,
 	    "font-colour": "#666",
-			"font-family": "Helvetica",
-			"font-size": "16px"
+		"font-family": "Helvetica",
+		"font-size": "16px",
+		margin: 2
     },
     tooltip: {
 	    show: true
@@ -244,7 +245,7 @@ wesCountry.charts = new (function() {
 		legend.className("wesCountry-legend");
 
 		for (var i = 0; i < length; i++) {
-			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.barMargin) * 2.5 * i;
+			var yPos = sizes.marginTop + (sizes.legendItemSize + sizes.legendMargin) * i;
 
 			var element = elements[i];
 
