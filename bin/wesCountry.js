@@ -8713,11 +8713,11 @@ wesCountry.stateful = new (function() {
 
       if (selectedIndex >= 0 && selectedIndex < selector.options.length) {
     	  selector.selectedIndex = selectedIndex;
-    	  selector.refresh();
+    	  selector.refresh(true);
       }
       else if (!isFunction)
-		selector.refresh();
-       }
+		selector.refresh(true);
+    	}
 
     return changed;
   }
@@ -8755,11 +8755,11 @@ wesCountry.stateful = new (function() {
       changeParameter(this.element, value);
 
       if (onChange)
-        onChange.call(selector, this.selectedIndex, value, parameters, selectors);
+        onChange.call(selector, this.selectedIndex, value, parameters, selectors, false);
     });
 
     // Refresh function
-    selector.refresh = function() {
+    selector.refresh = function(initial) {
     	var value = "";
     	
     	if (this.selected)
@@ -8771,7 +8771,7 @@ wesCountry.stateful = new (function() {
       changeParameter(this.element, value);
 
       if (onChange)
-        onChange.call(this, this.selectedIndex, value, parameters, selectors);
+        onChange.call(this, this.selectedIndex, value, parameters, selectors, initial);
     }
 
     // Set initial value
