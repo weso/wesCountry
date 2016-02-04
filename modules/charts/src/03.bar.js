@@ -146,7 +146,11 @@ wesCountry.charts.barChart = function(options) {
 						unselectBar(selectedBars[i]);
 
 					element.colour = element.style.fill;
-					element.style.fill = options.overColour;
+					
+					if (options.showOverColour && options.overColour && options.overColour !== 'none') {
+						element.style.fill = options.overColour;
+					}
+					
 					element.setAttribute("selected", "selected");
 				};
 

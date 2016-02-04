@@ -113,7 +113,11 @@ wesCountry.charts.rankingChart = function(options) {
 					var rect = element.querySelector('.inner-bar');
 
 					rect.colour = rect.style.fill;
-					rect.style.fill = options.overColour;
+					
+					if (options.showOverColour && options.overColour && options.overColour !== 'none') {
+						rect.style.fill = options.overColour;
+					}
+					
 					rect.setAttribute("selected", "selected");
 				};
 

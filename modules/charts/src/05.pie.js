@@ -107,7 +107,7 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 			// Events
 
 			var onmouseover = function(event) {
-				if (options.showOverColour) {
+				if (options.showOverColour && options.overColour && options.overColour !== 'none') {
 					this.colour = this.style.fill;
 					this.style.fill = options.overColour;
 
@@ -116,7 +116,7 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 			};
 
 			var onmouseout = function(event) {
-				if (options.showOverColour) {
+				if (options.showOverColour && options.overColour && options.overColour !== 'none') {
 					this.style.fill = this.colour;
 					options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 				}

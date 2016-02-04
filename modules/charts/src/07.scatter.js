@@ -45,7 +45,10 @@ wesCountry.charts.scatterPlot = function(options) {
 
 		var onmouseover = function(event) {
 			this.colour = this.style.fill;
-			this.style.fill = options.overColour;
+			
+			if (options.showOverColour && options.overColour && options.overColour !== 'none') {
+				this.style.fill = options.overColour;
+			}
 
 			options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 		};

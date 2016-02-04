@@ -1454,7 +1454,11 @@ wesCountry.charts.barChart = function(options) {
 						unselectBar(selectedBars[i]);
 
 					element.colour = element.style.fill;
-					element.style.fill = options.overColour;
+					
+					if (options.showOverColour && options.overColour && options.overColour !== 'none') {
+						element.style.fill = options.overColour;
+					}
+					
 					element.setAttribute("selected", "selected");
 				};
 
@@ -1896,15 +1900,17 @@ wesCountry.charts.generateLineChart = function(options, area) {
 				var serie = element.name;
 				var pos = options.xAxis.values[j];
 
-				if (!value)
+				if (!value && value !== 0) {
 					continue;
-
+				}
+				
 				firstValue++;
 
 				// If previous value is null we rescue the last non-null value
 
-				if (!valuePrev)
+				if (!valuePrev && valuePrev !== 0) {
 					valuePrev = valuePrevAux;
+				}
 
 				// We store this as the new previous value
 				valuePrevAux = value;
@@ -2225,7 +2231,7 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 			// Events
 
 			var onmouseover = function(event) {
-				if (options.showOverColour) {
+				if (options.showOverColour && options.overColour && options.overColour !== 'none') {
 					this.colour = this.style.fill;
 					this.style.fill = options.overColour;
 
@@ -2234,7 +2240,7 @@ wesCountry.charts.generatePieChart = function(options, donut) {
 			};
 
 			var onmouseout = function(event) {
-				if (options.showOverColour) {
+				if (options.showOverColour && options.overColour && options.overColour !== 'none') {
 					this.style.fill = this.colour;
 					options.events.onmouseout(wesCountry.charts.getElementAttributes(this, event));
 				}
@@ -2893,7 +2899,10 @@ wesCountry.charts.scatterPlot = function(options) {
 
 		var onmouseover = function(event) {
 			this.colour = this.style.fill;
-			this.style.fill = options.overColour;
+			
+			if (options.showOverColour && options.overColour && options.overColour !== 'none') {
+				this.style.fill = options.overColour;
+			}
 
 			options.events.onmouseover(wesCountry.charts.getElementAttributes(this, event));
 		};
@@ -4024,7 +4033,11 @@ wesCountry.charts.stackedChart = function(options) {
 					var rect = element.querySelector('rect');
 
 					rect.colour = rect.style.fill;
-					rect.style.fill = options.overColour;
+					
+					if (options.showOverColour && options.overColour && options.overColour !== 'none') {
+						rect.style.fill = options.overColour;
+					}
+					
 					rect.setAttribute("selected", "selected");
 				};
 
@@ -4365,7 +4378,11 @@ wesCountry.charts.rankingChart = function(options) {
 					var rect = element.querySelector('.inner-bar');
 
 					rect.colour = rect.style.fill;
-					rect.style.fill = options.overColour;
+					
+					if (options.showOverColour && options.overColour && options.overColour !== 'none') {
+						rect.style.fill = options.overColour;
+					}
+					
 					rect.setAttribute("selected", "selected");
 				};
 

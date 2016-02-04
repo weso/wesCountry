@@ -84,15 +84,17 @@ wesCountry.charts.generateLineChart = function(options, area) {
 				var serie = element.name;
 				var pos = options.xAxis.values[j];
 
-				if (!value)
+				if (!value && value !== 0) {
 					continue;
-
+				}
+				
 				firstValue++;
 
 				// If previous value is null we rescue the last non-null value
 
-				if (!valuePrev)
+				if (!valuePrev && valuePrev !== 0) {
 					valuePrev = valuePrevAux;
+				}
 
 				// We store this as the new previous value
 				valuePrevAux = value;
