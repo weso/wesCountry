@@ -91,7 +91,7 @@ wesCountry.charts.barChart = function(options) {
 				var id = element.id;
 				var value = element.values[i];
 				var url = element.urls ? element.urls[i] : "";
-				var pos = options.xAxis.values[j];
+				var pos = options.xAxis.values[i];
 
 				// Group bar
 				element.group = "b" + wesCountry.guid()
